@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+Class-Path: slf4j-simple-1.6.6.jar slf4j-api-1.6.6.jar postgresql-9.1-
+ 901.jdbc4.jar
+Build-Jdk: 1.6.0_22
+Built-By: root
+Created-By: Maven Integration for Eclipse
+Main-Class: org.backmeup.keysrv.Maventest
+

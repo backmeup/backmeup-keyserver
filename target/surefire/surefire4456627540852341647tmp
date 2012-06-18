@@ -1,0 +1,5 @@
+#surefire
+#Tue Jun 12 15:50:07 CEST 2012
+user.dir=/home/spawn/workspace/keysrv
+localRepository=/root/.m2/repository
+basedir=/home/spawn/workspace/keysrv
