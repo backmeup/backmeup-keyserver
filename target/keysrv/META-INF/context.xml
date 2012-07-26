@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context>
+	<Resource name="jdbc/keysrvdb" auth="Container" type="javax.sql.DataSource"
+		username="dbu_keysrv" password="SAQ*$X2tX1bF.,%"
+		url="jdbc:postgresql://bmu-keysrv01.l.x:5432/db_keysrv" factory="org.apache.commons.dbcp.BasicDataSourceFactory"
+		driverClassName="org.postgresql.Driver" maxActive="20" maxIdle="10" />
+</Context>
