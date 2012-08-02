@@ -29,8 +29,8 @@ public class DBManager
 	private static final String DB_HOST = "bmu-keysrv01";
 	private static final String DB_URL = "jdbc:postgresql://" + DB_HOST + "/" + DB;
 
-	private static final String PS_INSERT_USER = "INSERT INTO users (bmu_user_id) VALUES (?)";
-	private static final String PS_SELECT_USER_BY_BMU_USER_ID = "SELECT id, bmu_user_id FROM users WHERE bmu_user_id=?";
+	private static final String PS_INSERT_USER = "INSERT INTO users (bmu_user_id, bmu_user_pwd_hash) VALUES (?, (pgp_pub_encrypt (?, dearmor(?))))";
+	private static final String PS_SELECT_USER_BY_BMU_USER_ID = "SELECT id, bmu_user_id, pgp_pub_decrypt (bmu_user_pwd_hash, dearmor (?)) AS bmu_user_pwd_hash FROM users WHERE bmu_user_id=?";
 	private static final String PS_SELECT_USER_BY_ID = "SELECT id, bmu_user_id FROM users WHERE id=?";
 	private static final String PS_DELETE_USER_BY_BMU_USER_ID = "DELETE FROM users WHERE bmu_user_id=?";
 
@@ -58,6 +58,8 @@ public class DBManager
 	private static final String PS_INSERT_TOKEN = "INSERT INTO tokens (token_pwd) VALUES ((pgp_pub_encrypt_bytea (?, dearmor(?))))";
 	private static final String PS_SELECT_TOKEN_BY_ID = "SELECT id, pgp_pub_decrypt_bytea (token_pwd, dearmor (?)) AS token_pwd FROM tokens WHERE id=?";
 	private static final String PS_DELETE_TOKEN_BY_ID = "DELETE FROM tokens WHERE id=?";
+	
+	//private static final String PS_WRITE_LOG = "INSERT INTO log (user_id, )";
 
 	private static PreparedStatement ps_insert_user = null;
 	private static PreparedStatement ps_select_user_by_bmu_user_id = null;
@@ -275,6 +277,8 @@ public class DBManager
 		try
 		{
 			ps_insert_user.setLong (1, user.getBmuId ());
+			ps_insert_user.setString (2, user.getPwd_hash ());
+			ps_insert_user.setString (3, pgpkeys.getPublickey ());
 
 			ps_insert_user.executeUpdate ();
 		}
@@ -291,12 +295,14 @@ public class DBManager
 
 		try
 		{
-			ps_select_user_by_bmu_user_id.setLong (1, bmu_user_id);
+			ps_select_user_by_bmu_user_id.setString (1, pgpkeys.getPrivatekey ());
+			ps_select_user_by_bmu_user_id.setLong (2, bmu_user_id);
 
 			ResultSet rs = ps_select_user_by_bmu_user_id.executeQuery ();
 			if (rs.next ())
 			{
 				user = new User (rs.getLong ("id"), rs.getLong ("bmu_user_id"));
+				user.setPwd_hash (rs.getString ("bmu_user_pwd_hash"));
 			}
 			rs.close ();
 		}

@@ -37,7 +37,7 @@ public class Tokens
 	@Path ("/token")
 	@Consumes ("application/json")
 	@Produces ("application/json")
-	public TokenContainer getToken (TokenRequestContainer trc) throws WebApplicationException, SQLException
+	public TokenContainer getToken (TokenRequestContainer trc) throws SQLException
 	{
 		DBManager dbm = new DBManager ();
 

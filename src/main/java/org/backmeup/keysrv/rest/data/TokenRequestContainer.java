@@ -94,7 +94,7 @@ public class TokenRequestContainer
 			return false;
 		}
 		
-		if (this.bmu_authinfo_ids.length != this.bmu_authinfo_ids.length)
+		if (this.bmu_authinfo_ids.length != this.bmu_service_ids.length)
 		{
 			return false;
 		}

@@ -14,6 +14,6 @@ public class RestWrongDecryptionKeyException extends WebApplicationException
 
 	public RestWrongDecryptionKeyException (long bmu_user_id)
 	{
-		super (Response.status (400).entity (new ExceptionContainer ("RestWrongDecryptionKeyException", "The password proviced for this user (" + bmu_user_id + ") is not correct")).build ());
+		super (Response.status (400).entity (new ExceptionContainer ("RestWrongDecryptionKeyException", "The password provided for this user (" + bmu_user_id + ") is not correct")).build ());
 	}
 }

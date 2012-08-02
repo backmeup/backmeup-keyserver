@@ -41,7 +41,7 @@ public class AuthInfos
 	@POST
 	@Path ("add/userpwd")
 	@Consumes ("application/json")
-	@Produces ("application/json")
+	@Produces ("r = dbm.getUapplication/json")
 	public void addAuthInfoUserPwd (AuthInfoContainer aic) throws RestUserNotFoundException, RestSQLException
 	{
 		DBManager dbm = new DBManager ();
