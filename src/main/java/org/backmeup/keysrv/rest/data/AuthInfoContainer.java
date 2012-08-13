@@ -1,5 +1,7 @@
 package org.backmeup.keysrv.rest.data;
 
+import java.util.HashMap;
+
 import org.backmeup.keysrv.rest.exceptions.RestWrongDecryptionKeyException;
 import org.backmeup.keysrv.worker.AuthInfo;
 import org.codehaus.jackson.annotate.JsonIgnore;
@@ -16,7 +18,9 @@ public class AuthInfoContainer
 	private String ai_oauth = "";
 	private String ai_type = "";
 	private String user_pwd = "";
-
+	
+	HashMap<String, String> ai_data = new HashMap<String, String> ();
+	
 	public AuthInfoContainer ()
 	{
 	}
@@ -47,6 +51,9 @@ public class AuthInfoContainer
 		{
 			throw new RestWrongDecryptionKeyException (this.bmu_user_id);
 		}
+		
+		ai_data.put ("e-mail", "ft@x-net.at");
+		ai_data.put ("server-ip", "127.0.0.1");
 	}
 
 	@JsonIgnore(true)
@@ -139,5 +146,15 @@ public class AuthInfoContainer
 	public void setUser_pwd (String user_pwd)
 	{
 		this.user_pwd = user_pwd;
+	}
+
+	public HashMap<String, String> getAi_data ()
+	{
+		return ai_data;
+	}
+
+	public void setAi_data (HashMap<String, String> ai_data)
+	{
+		this.ai_data = ai_data;
 	}
 }

@@ -1,6 +1,7 @@
 package org.backmeup.keysrv.worker;
 
 import java.security.SecureRandom;
+import java.util.HashMap;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
@@ -14,8 +15,13 @@ import org.backmeup.keysrv.rest.exceptions.RestWrongDecryptionKeyException;
 
 public class AuthInfo
 {
+	@Deprecated
 	public static final int TYPE_PWD = 1;
+	
+	@Deprecated
 	public static final int TYPE_OAUTH = 2;
+	
+	public static final int TYPE_KEY_VALUE = 3;
 	
 	private final String ENCODING = "UTF-8";
 	private final String AES_ALGORITHM = "AES/CBC/PKCS5Padding";
@@ -35,6 +41,7 @@ public class AuthInfo
 	private byte[] ai_pwd = null;
 	private byte[] ai_oauth = null;
 	private int ai_type = 0;
+	private HashMap<byte[], byte[]> ai_data = null;
 	
 	private CipherGenerator cipher = null;
 
@@ -46,6 +53,7 @@ public class AuthInfo
 		this.user = user;
 		this.service = service;
 		this.ai_type = ai_type;
+		this.ai_data = new HashMap<byte[], byte[]> ();
 	}
 	
 	public AuthInfo (long id, long bmu_authinfo_id, User user, Service service, int ai_type, byte[] ai_username, byte[] ai_pwd, byte[] ai_oauth)
@@ -57,18 +65,35 @@ public class AuthInfo
 		this.user = user;
 		this.service = service;
 		this.ai_type = ai_type;
+		this.ai_data = new HashMap<byte[], byte[]> ();
 		
-		if (this.ai_type == TYPE_PWD)
+		switch (this.ai_type)
 		{
-			this.ai_username = ai_username;
-			this.ai_pwd = ai_pwd;
-			this.ai_oauth = null;
-		}
-		else
-		{
-			this.ai_oauth = ai_oauth;
-			this.ai_username = null;
-			this.ai_pwd = null;
+			case TYPE_PWD:
+			{
+				this.ai_username = ai_username;
+				this.ai_pwd = ai_pwd;
+				this.ai_oauth = null;
+				break;
+			}
+			case TYPE_OAUTH:
+			{
+				this.ai_oauth = ai_oauth;
+				this.ai_username = null;
+				this.ai_pwd = null;
+				break;
+			}
+			case TYPE_KEY_VALUE:
+			{
+				this.ai_oauth = null;
+				this.ai_username = null;
+				this.ai_pwd = null;
+				break;
+			}
+			default:
+			{
+				// not valid!
+			}
 		}
 	}
 	
@@ -216,14 +241,33 @@ public class AuthInfo
 	}
 
 	/**
-	 * Sets the encrypted AuthInfo OAuth Token
-	 * 
+	 * Sets the encrypted AuthInfo OAuth Token 
 	 * 
 	 * @param ai_username
 	 */
 	public void setDecAi_oauth (String ai_oauth)
 	{
 		this.ai_oauth = cipher.encData (ai_oauth, this.user);
+	}
+	
+	public void setDecAi_data (HashMap<String, String> ai_data)
+	{
+		this.ai_data = cipher.encData (ai_data, this.user);
+	}
+	
+	public void setAi_data (HashMap<byte[], byte[]> ai_data)
+	{
+		this.ai_data = ai_data;
+	}
+	
+	public HashMap<String, String> getEncAi_data ()
+	{
+		return cipher.decData (this.ai_data, this.user);
+	}
+	
+	public HashMap<byte[], byte[]> getAi_data ()
+	{
+		return this.ai_data;
 	}
 	
 	/**
@@ -233,6 +277,7 @@ public class AuthInfo
 	 * @param user
 	 * @return
 	 */
+	@Deprecated
 	private byte[] encData (String data, User user)
 	{	
 		// Password Salt
@@ -279,6 +324,7 @@ public class AuthInfo
 		return finaldata;
 	}
 
+	
 	/**
 	 * Decrypts the data with the given user password.
 	 * 
@@ -286,6 +332,7 @@ public class AuthInfo
 	 * @param user
 	 * @return
 	 */
+	@Deprecated
 	private String decData (byte[] encdata)
 	{
 		byte[] salt = new byte[SALT_LENGTH];

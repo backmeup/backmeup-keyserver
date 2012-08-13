@@ -1,6 +1,7 @@
 package org.backmeup.keysrv.worker;
 import java.io.UnsupportedEncodingException;
 import java.security.SecureRandom;
+import java.util.HashMap;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -42,6 +43,36 @@ public class CipherGenerator
 	public String decData (byte[] encdata, User user)
 	{
 		return this.decData (encdata, user.getPwd ());
+	}
+	
+	public HashMap<byte[], byte[]> encData (HashMap<String, String> data, User user)
+	{
+		HashMap<byte[], byte[]> enc_data = new HashMap<byte[], byte[]> ();
+		
+		for (String key : data.keySet ())
+		{
+			byte[] enc_key = this.encData (key, user.getPwd ());
+			byte[] enc_value = this.encData (data.get (key), user.getPwd ());
+			
+			enc_data.put (enc_key, enc_value);
+		}
+		
+		return enc_data;
+	}
+	
+	public HashMap<String, String> decData (HashMap<byte[], byte[]> enc_data, User user)
+	{
+		HashMap<String, String> data = new HashMap<String, String> ();
+		
+		for (byte[] key : enc_data.keySet ())
+		{
+			String dec_key = this.decData (key, user.getPwd ());
+			String dec_value = this.decData (enc_data.get (key), user.getPwd ());
+			
+			data.put (dec_key, dec_value);
+		}
+		
+		return data;
 	}
 
 	/**

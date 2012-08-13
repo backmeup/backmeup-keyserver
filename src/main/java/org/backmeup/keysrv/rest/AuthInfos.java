@@ -38,10 +38,11 @@ public class AuthInfos
 		return new AuthInfoContainer (ai);
 	}
 	
+	@Deprecated
 	@POST
 	@Path ("add/userpwd")
 	@Consumes ("application/json")
-	@Produces ("r = dbm.getUapplication/json")
+	@Produces ("application/json")
 	public void addAuthInfoUserPwd (AuthInfoContainer aic) throws RestUserNotFoundException, RestSQLException
 	{
 		DBManager dbm = new DBManager ();
@@ -58,6 +59,7 @@ public class AuthInfos
 		dbm.insertAuthInfo (ai);
 	}
 	
+	@Deprecated
 	@POST
 	@Path ("add/oauth")
 	@Consumes({"application/json"})
@@ -72,6 +74,25 @@ public class AuthInfos
 		Service service = dbm.getService (aic.getBmu_service_id ());
 		
 		AuthInfo ai = new AuthInfo (aic.getBmu_authinfo_id (), user, service, AuthInfo.TYPE_OAUTH);
+		ai.setDecAi_oauth (aic.getAi_oauth ());
+		
+		dbm.insertAuthInfo (ai);
+	}
+	
+	@POST
+	@Path ("add")
+	@Consumes({"application/json"})
+	@Produces ("application/json")
+	public void addAuthInfo (AuthInfoContainer aic) throws RestUserNotFoundException, RestSQLException
+	{
+		DBManager dbm = new DBManager ();
+		
+		User user = dbm.getUser (aic.getBmu_user_id ());
+		user.setPwd (aic.getUser_pwd ());
+		
+		Service service = dbm.getService (aic.getBmu_service_id ());
+		
+		AuthInfo ai = new AuthInfo (aic.getBmu_authinfo_id (), user, service, AuthInfo.TYPE_KEY_VALUE);
 		ai.setDecAi_oauth (aic.getAi_oauth ());
 		
 		dbm.insertAuthInfo (ai);
