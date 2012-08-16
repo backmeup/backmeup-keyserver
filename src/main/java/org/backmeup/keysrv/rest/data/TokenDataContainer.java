@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.backmeup.keysrv.worker.Token;
+import org.codehaus.jackson.annotate.JsonIgnore;
 
 @XmlRootElement
 public class TokenDataContainer
@@ -50,6 +51,7 @@ public class TokenDataContainer
 		this.usercontainer = usercontainer;
 	}
 
+	@JsonIgnore(true)
 	public ArrayList<ServiceContainer> getServices ()
 	{
 		return servicecontainers;

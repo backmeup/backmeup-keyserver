@@ -64,4 +64,20 @@ public class Users
 			throw new RestUserNotValidException (bmu_user_id);
 		}
 	}
+	
+	@GET
+	@Path ("{bmu_user_id}/{old_bmu_user_pwd}/{new_bmu_user_pwd}/changeuserpwd")
+	@Produces ("application/json")
+	public void changeUserPwd (@PathParam ("bmu_user_id") long bmu_user_id, @PathParam ("new_bmu_user_pwd") String new_bmu_user_pwd, @PathParam ("old_bmu_user_pwd") String old_bmu_user_pwd)
+	{
+		DBManager dbm = new DBManager ();
+		User user = dbm.getUser (bmu_user_id);
+		
+		if (user.validatePwd (old_bmu_user_pwd) == false)
+		{
+			throw new RestUserNotValidException (bmu_user_id);
+		}
+		
+		user.setPwd (new_bmu_user_pwd);
+	}
 }

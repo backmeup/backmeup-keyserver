@@ -1,6 +1,5 @@
 package org.backmeup.keysrv.worker;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -8,6 +7,8 @@ import org.jboss.resteasy.util.Base64;
 
 public class Token
 {
+	private static final String ENCODING = "UTF-8";
+
 	// the time the token would be valid +/- in milliseconds. 600000 = 10 Minutes
 	public final long TIME_WINDOW = 600000;
 	
@@ -52,27 +53,23 @@ public class Token
 	
 	public String getToken ()
 	{
-		String tokenstring = "";
-		
-		tokenstring += "<token>\n";
-		tokenstring += "<tokeninfo>\n";
-		tokenstring += user.getId () + "\n";
-		tokenstring += user.getBmuId () + "\n";
-		tokenstring += backupdate.getTime () + "\n";
-		tokenstring += extendable + "\n";
-		
-		tokenstring += "</tokeninfo>\n";
-		for (int i = 0; i < auth_infos.size (); i++)
-		{
-			tokenstring += auth_infos.get (i).toString ();
-		}
-		
-		tokenstring += "</token>\n";
-		
-		CipherGenerator cipher = new CipherGenerator ();
-		return Base64.encodeBytes (cipher.encData (tokenstring, this.tokenpwd));
+		return Base64.encodeBytes (this.tokenpwd.getBytes ());
 	}
 	
+	public void setEncTokenPwd (String enc_tokenpwd)
+	{
+		try
+		{
+			this.tokenpwd = new String (Base64.decode (enc_tokenpwd), ENCODING);
+		}
+		catch (Exception e)
+		{
+			// ignore -> should never come up
+			FileLogger.logException (e);
+		}
+	}
+	
+	@Deprecated
 	public String toString ()
 	{
 		String tokenstring = "";
@@ -103,79 +100,6 @@ public class Token
 	public void setTokenpwd (String tokenpwd)
 	{
 		this.tokenpwd = tokenpwd;
-	}
-	
-	public static Token decodeToken (String tokenstr, String tokenpwd) throws TokenInvalidException
-	{		
-		User user = null;
-		Token token = null;
-		Service service = null;
-		AuthInfo ai = null;
-		CipherGenerator cipher = new CipherGenerator ();
-		
-		String enctoken = null;
-		try
-		{
-			enctoken = cipher.decData (Base64.decode (tokenstr), tokenpwd);
-		}
-		catch (IOException e)
-		{
-			FileLogger.logException (e);
-			e.printStackTrace();
-		}
-		
-		String[] lines = enctoken.split ("\n");
-		for (int i = 0; i < lines.length; i++)
-		{
-			if (lines[i].compareTo ("<tokeninfo>") == 0)
-			{
-				user = new User (new Long (lines[i + 1]), new Long (lines[i + 2]));
-				user.setPwd (cipher.generatePassword ());
-				i += 2;
-				
-				token = new Token (user, new Date (new Long (lines[i + 1])));
-				i++;
-			}
-			if ((lines[i].compareTo ("<autinfo>") == 0))
-			{
-				service = new Service (new Long (lines[i + 1]), new Long (lines[i + 2]));
-				i += 2;
-				
-				ai = new AuthInfo (new Long (lines[i + 1]), user, service, new Integer (lines[i + 2]));
-				i += 2;
-				
-				if (ai.getAi_type () == AuthInfo.TYPE_PWD)
-				{
-					ai.setDecAi_username (lines[i + 1]);
-					i++;
-
-					ai.setDecAi_pwd (lines[i + 1]);
-					i++;
-				}
-				else
-				{
-					ai.setDecAi_oauth (lines[i + 1]);
-					i++;
-				}
-				
-				token.addAuthInfo (ai);
-			}
-		}
-		
-		if (token.checkToken () == false)
-		{
-			String message = "Token is not valid anymore!\n";
-			message += "User ID: " + user.getId () + "\n";
-			message += "User BMU ID: " + user.getBmuId () + "\n";
-			message += "Now: " + new Date () + "\n";
-			message += "Valid from: " + new Date (token.getBackupdate ().getTime () - token.TIME_WINDOW) + "\n";
-			message += "Valid to: " + new Date (token.getBackupdate ().getTime () + token.TIME_WINDOW) + "\n";
-			
-			FileLogger.logException (new TokenInvalidException (message));
-			throw new TokenInvalidException (message);
-		}
-		
-		return token;
 	}
 	
 	public boolean checkToken ()

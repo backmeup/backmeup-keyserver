@@ -8,11 +8,16 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.Random;
 
+import javax.crypto.Cipher;
 import javax.naming.InitialContext;
 import javax.sql.DataSource;
 
+import org.apache.commons.codec.binary.Base64;
 import org.backmeup.keysrv.rest.exceptions.RestAuthInfoAlreadyExistException;
 import org.backmeup.keysrv.rest.exceptions.RestAuthInfoNotFoundException;
 import org.backmeup.keysrv.rest.exceptions.RestSQLException;
@@ -30,6 +35,7 @@ public class DBManager
 	private static final String DB_URL = "jdbc:postgresql://" + DB_HOST + "/" + DB;
 
 	private static final String PS_INSERT_USER = "INSERT INTO users (bmu_user_id, bmu_user_pwd_hash) VALUES (?, (pgp_pub_encrypt (?, dearmor(?))))";
+	private static final String PS_UPDATE_USER = "UPDATE users SET bmu_user_pwd_hash=? WHERE bmu_user_id=?";
 	private static final String PS_SELECT_USER_BY_BMU_USER_ID = "SELECT id, bmu_user_id, pgp_pub_decrypt (bmu_user_pwd_hash, dearmor (?)) AS bmu_user_pwd_hash FROM users WHERE bmu_user_id=?";
 	private static final String PS_SELECT_USER_BY_ID = "SELECT id, bmu_user_id FROM users WHERE id=?";
 	private static final String PS_DELETE_USER_BY_BMU_USER_ID = "DELETE FROM users WHERE bmu_user_id=?";
@@ -39,29 +45,38 @@ public class DBManager
 	private static final String PS_SELECT_SERVICE_BY_ID = "SELECT id, bmu_service_id FROM services WHERE id=?";
 	private static final String PS_DELETE_SERVICE_BY_BMU_SERVICE_ID = "DELETE FROM services WHERE bmu_service_id=?";
 
-	private static final String PS_INSERT_AUTH_INFO = "INSERT INTO auth_infos (bmu_authinfo_id, user_id, service_id, ai_type, ai_username, ai_pwd, ai_oauth) VALUES" + "(?, ?, ?, " + "(pgp_pub_encrypt (?, dearmor(?))), " + "(pgp_pub_encrypt_bytea (?, dearmor(?))), "
-			+ "(pgp_pub_encrypt_bytea (?, dearmor(?))), " + "(pgp_pub_encrypt_bytea (?, dearmor(?))))";
+	// private static final String PS_INSERT_AUTH_INFO =
+	// "INSERT INTO auth_infos (bmu_authinfo_id, user_id, service_id, ai_type, ai_username, ai_pwd, ai_oauth) VALUES"
+	// + "(?, ?, ?, " + "(pgp_pub_encrypt (?, dearmor(?))), " +
+	// "(pgp_pub_encrypt_bytea (?, dearmor(?))), "
+	// + "(pgp_pub_encrypt_bytea (?, dearmor(?))), " +
+	// "(pgp_pub_encrypt_bytea (?, dearmor(?))))";
 
-	private static final String PS_SELECT_AUTH_INFO_BY_USER = "SELECT id, bmu_authinfo_id, user_id, service_id, " + "pgp_pub_decrypt (ai_type, dearmor (?)) AS ai_type, " + "pgp_pub_decrypt_bytea (ai_username, dearmor (?)) AS ai_username, " + "pgp_pub_decrypt_bytea (ai_pwd, dearmor (?)) AS ai_pwd, "
-			+ "pgp_pub_decrypt_bytea (ai_oauth, dearmor (?)) AS ai_oauth " + "FROM auth_infos WHERE user_id=?";
+	private static final String PS_INSERT_AUTH_INFO = "INSERT INTO auth_infos (bmu_authinfo_id, user_id, service_id, ai_key, ai_value) VALUES" + "(?, ?, ?, (pgp_pub_encrypt_bytea (?, dearmor(?))), (pgp_pub_encrypt_bytea (?, dearmor(?))))";
 
+	// private static final String PS_SELECT_AUTH_INFO_BY_USER =
+	// "SELECT id, bmu_authinfo_id, user_id, service_id, " +
+	// "pgp_pub_decrypt (ai_type, dearmor (?)) AS ai_type, " +
+	// "pgp_pub_decrypt_bytea (ai_username, dearmor (?)) AS ai_username, " +
+	// "pgp_pub_decrypt_bytea (ai_pwd, dearmor (?)) AS ai_pwd, "
+	// + "pgp_pub_decrypt_bytea (ai_oauth, dearmor (?)) AS ai_oauth " +
+	// "FROM auth_infos WHERE user_id=?";
+
+	private static final String PS_SELECT_AUTH_INFO_BY_USER = "SELECT DISTINCT auth_infos.bmu_authinfo_id FROM auth_infos WHERE user_id=? ORDER BY bmu_authinfo_id";
 	private static final String PS_SELECT_AUTH_INFO_BY_USER_SERVICE = PS_SELECT_AUTH_INFO_BY_USER + " AND service_id=?";
-
-	private static final String PS_SELECT_AUTH_INFO_BY_BMU_AUTHINFO_ID = "SELECT id, bmu_authinfo_id, user_id, service_id, " + "pgp_pub_decrypt (ai_type, dearmor (?)) AS ai_type, " + "pgp_pub_decrypt_bytea (ai_username, dearmor (?)) AS ai_username, "
-			+ "pgp_pub_decrypt_bytea (ai_pwd, dearmor (?)) AS ai_pwd, " + "pgp_pub_decrypt_bytea (ai_oauth, dearmor (?)) AS ai_oauth " + "FROM auth_infos WHERE bmu_authinfo_id=?";
-
-	private static final String PS_SELECT_AUTH_INFO_BY_ID = "SELECT id, bmu_authinfo_id, user_id, service_id, token_id, " + "pgp_pub_decrypt (name, dearmor (?)) AS name, " + "pgp_pub_decrypt (ai_type, dearmor (?)) AS ai_type, " + "pgp_pub_decrypt_bytea (ai_username, dearmor (?)) AS ai_username, "
-			+ "pgp_pub_decrypt_bytea (ai_pwd, dearmor (?)) AS ai_pwd, " + "pgp_pub_decrypt_bytea (ai_oauth, dearmor (?)) AS ai_oauth " + "FROM auth_infos WHERE id=?";
-
+	private static final String PS_SELECT_AUTH_INFO_BY_BMU_AUTHINFO_ID = "SELECT id, bmu_authinfo_id, user_id, service_id, pgp_pub_decrypt_bytea (ai_key, dearmor (?)) AS ai_key, pgp_pub_decrypt_bytea (ai_value, dearmor (?)) AS ai_value FROM auth_infos WHERE bmu_authinfo_id=?";
+	private static final String PS_SELECT_AUTH_INFO_BY_ID = "SELECT id, bmu_authinfo_id, user_id, service_id, pgp_pub_decrypt_bytea (ai_key, dearmor (?)) AS ai_key, pgp_pub_decrypt_bytea (ai_value, dearmor (?)) AS ai_value FROM auth_infos WHERE id=?";
 	private static final String PS_DELETE_AUTH_INFO_BY_BMU_AUTHINFO_ID = "DELETE FROM auth_infos WHERE bmu_authinfo_id=?";
 
-	private static final String PS_INSERT_TOKEN = "INSERT INTO tokens (token_pwd) VALUES ((pgp_pub_encrypt_bytea (?, dearmor(?))))";
-	private static final String PS_SELECT_TOKEN_BY_ID = "SELECT id, pgp_pub_decrypt_bytea (token_pwd, dearmor (?)) AS token_pwd FROM tokens WHERE id=?";
+	private static final String PS_INSERT_TOKEN = "INSERT INTO tokens (token_id, user_id, service_id, bmu_authinfo_id, token_key, token_value, backupdate) VALUES (?, ?, ?, ?, (pgp_pub_encrypt_bytea (?, dearmor(?))), (pgp_pub_encrypt_bytea (?, dearmor(?))), (pgp_pub_encrypt_bytea (?, dearmor(?))))";
+	private static final String PS_SELECT_TOKEN_BY_TOKEN_ID = "SELECT tokens.id AS id, users.bmu_user_id AS bmu_user_id, services.bmu_service_id AS bmu_service_id, tokens.bmu_authinfo_id AS bmu_authinfo_id, pgp_pub_decrypt_bytea (token_key, dearmor (?)) AS token_key, pgp_pub_decrypt_bytea (token_value, dearmor (?)) AS token_value, pgp_pub_decrypt_bytea (backupdate, dearmor (?)) AS backupdate FROM tokens INNER JOIN users ON users.id=tokens.user_id INNER JOIN services ON services.id=tokens.service_id WHERE token_id=? ORDER BY tokens.bmu_authinfo_id";
+	private static final String PS_DELETE_TOKEN_BY_TOKEN_ID = "DELETE FROM tokens WHERE token_id=?";
 	private static final String PS_DELETE_TOKEN_BY_ID = "DELETE FROM tokens WHERE id=?";
-	
-	//private static final String PS_WRITE_LOG = "INSERT INTO log (user_id, )";
+
+	// private static final String PS_WRITE_LOG = "INSERT INTO log (user_id, )";
 
 	private static PreparedStatement ps_insert_user = null;
+	private static PreparedStatement ps_update_user = null;
 	private static PreparedStatement ps_select_user_by_bmu_user_id = null;
 	private static PreparedStatement ps_select_user_by_id = null;
 	private static PreparedStatement ps_delete_user_by_bmu_user_id = null;
@@ -76,7 +91,8 @@ public class DBManager
 	private static PreparedStatement ps_select_auth_info_by_id = null;
 	private static PreparedStatement ps_delete_auth_info_by_bmu_authinfo_id = null;
 	private static PreparedStatement ps_insert_token = null;
-	private static PreparedStatement ps_select_token_by_id = null;
+	private static PreparedStatement ps_select_token_by_token_id = null;
+	private static PreparedStatement ps_delete_token_by_token_id = null;
 	private static PreparedStatement ps_delete_token_by_id = null;
 
 	private static Connection db_con = null;
@@ -108,7 +124,7 @@ public class DBManager
 	public DBManager ()
 	{
 		init ();
-		
+
 		try
 		{
 			this.pgpkeys = new PGPKeys ();
@@ -116,13 +132,14 @@ public class DBManager
 		catch (IOException e)
 		{
 			FileLogger.logException (e);
-			e.printStackTrace();
+			e.printStackTrace ();
 		}
 	}
 
 	private static void prepareStatements () throws SQLException
 	{
 		ps_insert_user = db_con.prepareStatement (PS_INSERT_USER);
+		ps_update_user = db_con.prepareStatement (PS_UPDATE_USER);
 		ps_select_user_by_bmu_user_id = db_con.prepareStatement (PS_SELECT_USER_BY_BMU_USER_ID);
 		ps_select_user_by_id = db_con.prepareStatement (PS_SELECT_USER_BY_ID);
 		ps_delete_user_by_bmu_user_id = db_con.prepareStatement (PS_DELETE_USER_BY_BMU_USER_ID);
@@ -140,7 +157,8 @@ public class DBManager
 		ps_delete_auth_info_by_bmu_authinfo_id = db_con.prepareStatement (PS_DELETE_AUTH_INFO_BY_BMU_AUTHINFO_ID);
 
 		ps_insert_token = db_con.prepareStatement (PS_INSERT_TOKEN, PreparedStatement.RETURN_GENERATED_KEYS);
-		ps_select_token_by_id = db_con.prepareStatement (PS_SELECT_TOKEN_BY_ID);
+		ps_select_token_by_token_id = db_con.prepareStatement (PS_SELECT_TOKEN_BY_TOKEN_ID);
+		ps_delete_token_by_token_id = db_con.prepareStatement (PS_DELETE_TOKEN_BY_TOKEN_ID);
 		ps_delete_token_by_id = db_con.prepareStatement (PS_DELETE_TOKEN_BY_ID);
 	}
 
@@ -154,22 +172,23 @@ public class DBManager
 		catch (RestAuthInfoNotFoundException e)
 		{
 		}
-		
+
 		try
 		{
 			ps_insert_auth_info.setLong (1, authinfo.getBmuAuthinfoId ());
 			ps_insert_auth_info.setLong (2, authinfo.getUser ().getId ());
 			ps_insert_auth_info.setLong (3, authinfo.getService ().getId ());
-			ps_insert_auth_info.setString (4, Integer.toString (authinfo.getAi_type ()));
-			ps_insert_auth_info.setString (5, pgpkeys.getPublickey ());
-			ps_insert_auth_info.setBytes (6, authinfo.getAi_username ());
-			ps_insert_auth_info.setString (7, pgpkeys.getPublickey ());
-			ps_insert_auth_info.setBytes (8, authinfo.getAi_pwd ());
-			ps_insert_auth_info.setString (9, pgpkeys.getPublickey ());
-			ps_insert_auth_info.setBytes (10, authinfo.getAi_oauth ());
-			ps_insert_auth_info.setString (11, pgpkeys.getPublickey ());
 
-			ps_insert_auth_info.executeUpdate ();
+			for (byte[] key : authinfo.getAi_data ().keySet ())
+			{
+				ps_insert_auth_info.setBytes (4, key);
+				ps_insert_auth_info.setString (5, pgpkeys.getPublickey ());
+
+				ps_insert_auth_info.setBytes (6, authinfo.getAi_data ().get (key));
+				ps_insert_auth_info.setString (7, pgpkeys.getPublickey ());
+
+				ps_insert_auth_info.executeUpdate ();
+			}
 		}
 		catch (SQLException e)
 		{
@@ -180,29 +199,36 @@ public class DBManager
 	public AuthInfo getAuthInfo (long bmu_authinfo_id, User user, Service service) throws RestSQLException, RestAuthInfoNotFoundException
 	{
 		AuthInfo ai = null;
+		HashMap<byte[], byte[]> ai_data = new HashMap<byte[], byte[]> ();
+		long id = -1;
 
 		try
 		{
 			ps_select_auth_info_by_bmu_authinfo_id.setString (1, pgpkeys.getPrivatekey ());
 			ps_select_auth_info_by_bmu_authinfo_id.setString (2, pgpkeys.getPrivatekey ());
-			ps_select_auth_info_by_bmu_authinfo_id.setString (3, pgpkeys.getPrivatekey ());
-			ps_select_auth_info_by_bmu_authinfo_id.setString (4, pgpkeys.getPrivatekey ());
-			ps_select_auth_info_by_bmu_authinfo_id.setLong (5, bmu_authinfo_id);
+			ps_select_auth_info_by_bmu_authinfo_id.setLong (3, bmu_authinfo_id);
 
 			ResultSet rs = ps_select_auth_info_by_bmu_authinfo_id.executeQuery ();
 
-			if (rs.next ())
+			while (rs.next () == true)
 			{
-				ai = new AuthInfo (rs.getLong ("id"), rs.getLong ("bmu_authinfo_id"), user, service, rs.getInt ("ai_type"), rs.getBytes ("ai_username"), rs.getBytes ("ai_pwd"), rs.getBytes ("ai_oauth"));
+				ai_data.put (rs.getBytes ("ai_key"), rs.getBytes ("ai_value"));
+
+				if (id < 0)
+				{
+					id = rs.getLong ("id");
+				}
 			}
 			rs.close ();
+
+			ai = new AuthInfo (id, bmu_authinfo_id, user, service, ai_data);
 		}
 		catch (SQLException e)
 		{
 			throw new RestSQLException (e);
 		}
 
-		if (ai == null)
+		if (ai.getAi_data ().size () == 0)
 		{
 			throw new RestAuthInfoNotFoundException (bmu_authinfo_id);
 		}
@@ -210,15 +236,37 @@ public class DBManager
 		return ai;
 	}
 	
+	public ArrayList<AuthInfo> getUserAuthInfos (User user) throws RestSQLException
+	{
+		ArrayList<AuthInfo> authinfos = null;
+		
+		try
+		{
+			ps_select_auth_info_by_user.setLong (1, user.getId ());
+			
+			ResultSet rs = ps_select_auth_info_by_user.executeQuery ();
+			
+			while (rs.next () == true)
+			{
+				//authinfos.add (this.get)
+			}
+		}
+		catch (SQLException e)
+		{
+			FileLogger.logException (e);
+			throw new RestSQLException (e);
+		}
+		
+		return authinfos;
+	}
+
 	public boolean existAuthInfo (long bmu_authinfo_id)
 	{
 		try
 		{
 			ps_select_auth_info_by_bmu_authinfo_id.setString (1, pgpkeys.getPrivatekey ());
 			ps_select_auth_info_by_bmu_authinfo_id.setString (2, pgpkeys.getPrivatekey ());
-			ps_select_auth_info_by_bmu_authinfo_id.setString (3, pgpkeys.getPrivatekey ());
-			ps_select_auth_info_by_bmu_authinfo_id.setString (4, pgpkeys.getPrivatekey ());
-			ps_select_auth_info_by_bmu_authinfo_id.setLong (5, bmu_authinfo_id);
+			ps_select_auth_info_by_bmu_authinfo_id.setLong (3, bmu_authinfo_id);
 
 			ResultSet rs = ps_select_auth_info_by_bmu_authinfo_id.executeQuery ();
 
@@ -243,7 +291,7 @@ public class DBManager
 		{
 			throw new RestAuthInfoNotFoundException (bmu_authinfo_id);
 		}
-		
+
 		try
 		{
 			ps_delete_auth_info_by_bmu_authinfo_id.setLong (1, bmu_authinfo_id);
@@ -320,6 +368,21 @@ public class DBManager
 		return user;
 	}
 
+	public void changeUser (User user) throws RestSQLException
+	{
+		try
+		{
+			ps_update_user.setString (1, user.getPwd_hash ());
+			ps_update_user.setLong (2, user.getBmuId ());
+			
+			ps_update_user.executeUpdate ();
+		}
+		catch (SQLException e)
+		{
+			FileLogger.logException (e);
+		}
+	}
+
 	public void selectUserByBmuUserId (long bmu_user_id) throws SQLException
 	{
 		ps_select_user_by_bmu_user_id.setLong (1, bmu_user_id);
@@ -333,23 +396,26 @@ public class DBManager
 		rs.close ();
 	}
 
-	public void selectUserById (long id) throws SQLException
+	public User getUserById (long id) throws SQLException
 	{
 		ps_select_user_by_id.setLong (1, id);
 
 		ResultSet rs = ps_select_user_by_id.executeQuery ();
+
+		User user = null;
 		if (rs.next ())
 		{
-			System.out.println (rs.getString ("id"));
-			System.out.println (rs.getString ("bmu_user_id"));
+			user = new User (rs.getLong ("id"), rs.getLong ("bmu_user_id"));
 		}
 		rs.close ();
+
+		return user;
 	}
 
 	public void deleteUser (User user) throws RestSQLException
 	{
 		this.getUser (user.getBmuId ());
-		
+
 		try
 		{
 			ps_delete_user_by_bmu_user_id.setLong (1, user.getBmuId ());
@@ -431,10 +497,9 @@ public class DBManager
 		rs.close ();
 	}
 
-	public void selectServiceById (long id) throws SQLException
+	public void getServiceById (long id) throws SQLException
 	{
-		ps_select_service_by_id.setString (1, pgpkeys.getPrivatekey ());
-		ps_select_service_by_id.setLong (2, id);
+		ps_select_service_by_id.setLong (1, id);
 
 		ResultSet rs = ps_select_service_by_id.executeQuery ();
 		rs.close ();
@@ -443,7 +508,7 @@ public class DBManager
 	public void deleteService (Service service) throws RestSQLException
 	{
 		this.getService (service.getBmuId ());
-		
+
 		try
 		{
 			ps_delete_service_by_bmu_service_id.setLong (1, service.getBmuId ());
@@ -457,49 +522,142 @@ public class DBManager
 		}
 	}
 
-	public long insertToken (Token token) throws SQLException
+	// "INSERT INTO tokens (token_id, user_id, service_id, bmu_authinfo_id,
+	// token_key, token_value, backupdate) VALUES
+	// (?, ?, ?, ?, (pgp_pub_encrypt_bytea (?, dearmor(?))),
+	// (pgp_pub_encrypt_bytea (?, dearmor(?))),
+	// (pgp_pub_encrypt_bytea (?, dearmor(?))))";
+	public long insertToken (Token token) throws RestSQLException
 	{
-		ps_insert_token.setBytes (1, token.getTokenpwd ().getBytes ());
-		ps_insert_token.setString (2, pgpkeys.getPublickey ());
+		long token_id = -1;
 
-		ps_insert_token.executeUpdate ();
-		ResultSet rs = ps_insert_token.getGeneratedKeys ();
-
-		if (rs.next ())
+		try
 		{
-			long id = rs.getLong (1);
-			rs.close ();
-			return id;
+			CipherGenerator cipher = new CipherGenerator ();
+
+			// Create first entry to get an valid and unique id
+			ps_insert_token.setLong (1, -1);
+			ps_insert_token.setLong (2, token.getUser ().getId ());
+			ps_insert_token.setLong (3, token.getAuthInfo (0).getService ().getId ());
+			ps_insert_token.setLong (4, token.getAuthInfo (0).getBmuAuthinfoId ());
+			ps_insert_token.setBytes (5, "asd".getBytes ());
+			ps_insert_token.setString (6, pgpkeys.getPublickey ());
+			ps_insert_token.setBytes (7, "asd".getBytes ());
+			ps_insert_token.setString (8, pgpkeys.getPublickey ());
+			ps_insert_token.setBytes (9, cipher.encData (token.getBackupdate ().getTime () + "", token.getTokenpwd ()));
+			ps_insert_token.setString (10, pgpkeys.getPublickey ());
+
+			ps_insert_token.executeUpdate ();
+			ResultSet rs = ps_insert_token.getGeneratedKeys ();
+
+			if (rs.next ())
+			{
+				token_id = rs.getLong (1);
+				rs.close ();
+			}
+
+			ps_insert_token.setLong (1, token_id);
+
+			User tokenuser = new User (-1);
+			tokenuser.setPwd (token.getTokenpwd ());
+
+			for (int i = 0; i < token.getAuthInfoCount (); i++)
+			{
+				HashMap<String, String> ai_data = token.getAuthInfo (i).getDecAi_data ();
+				HashMap<byte[], byte[]> ai_enc_data = cipher.encData (ai_data, tokenuser);
+
+				for (byte[] key : ai_enc_data.keySet ())
+				{
+					ps_insert_token.setLong (3, token.getAuthInfo (i).getService ().getId ());
+					ps_insert_token.setLong (4, token.getAuthInfo (i).getBmuAuthinfoId ());
+					ps_insert_token.setBytes (5, key);
+					ps_insert_token.setBytes (7, ai_enc_data.get (key));
+					ps_insert_token.executeUpdate ();
+				}
+			}
+
+			// remove the extra line from database
+			ps_delete_token_by_id.setLong (1, token_id);
+			ps_delete_token_by_id.executeUpdate ();
+		}
+		catch (SQLException e)
+		{
+			FileLogger.logException (e);
+			throw new RestSQLException (e);
 		}
 
-		return -1;
+		return token_id;
 	}
 
-	public String getTokenPwd (long id) throws SQLException
+	public Token getTokenData (long token_id, String token_pwd) throws RestSQLException
 	{
-		ps_select_token_by_id.setString (1, pgpkeys.getPrivatekey ());
-		ps_select_token_by_id.setLong (2, id);
+		Token token = null;
 
-		ResultSet rs = ps_select_token_by_id.executeQuery ();
-
-		String pwd = "";
-
-		if (rs.next ())
+		try
 		{
-			try
+			ps_select_token_by_token_id.setString (1, pgpkeys.getPrivatekey ());
+			ps_select_token_by_token_id.setString (2, pgpkeys.getPrivatekey ());
+			ps_select_token_by_token_id.setString (3, pgpkeys.getPrivatekey ());
+			ps_select_token_by_token_id.setLong (4, token_id);
+
+			ResultSet rs = ps_select_token_by_token_id.executeQuery ();
+
+			CipherGenerator cipher = new CipherGenerator ();
+
+			User user = null;
+			AuthInfo ai = null;
+			HashMap<byte[], byte[]> ai_data = null;
+			while (rs.next ())
 			{
-				pwd = new String (rs.getBytes ("token_pwd"), "UTF-8");
+				if (token == null)
+				{
+					user = new User (rs.getLong ("bmu_user_id"));
+					user.setPwd (token_pwd);
+					String str_backupdate = cipher.decData (rs.getBytes ("backupdate"), token_pwd);
+					Date backupdate = new Date (new Long (str_backupdate));
+
+					token = new Token (user, backupdate);
+					token.setTokenpwd (token_pwd);
+				}
+
+				Service service = new Service (rs.getLong ("bmu_service_id"));
+
+				if (ai == null)
+				{
+					ai = new AuthInfo (rs.getLong ("bmu_authinfo_id"), user, service);
+					ai_data = new HashMap<byte[], byte[]> ();
+				}
+				if (ai.getBmuAuthinfoId () != rs.getLong ("bmu_authinfo_id"))
+				{
+					ai.setAi_data (ai_data);
+					token.addAuthInfo (ai);
+
+					ai = new AuthInfo (rs.getLong ("bmu_authinfo_id"), user, service);
+					ai_data = new HashMap<byte[], byte[]> ();
+
+					ai_data.put (rs.getBytes ("token_key"), rs.getBytes ("token_value"));
+				}
+				else
+				{
+					ai_data.put (rs.getBytes ("token_key"), rs.getBytes ("token_value"));
+				}
 			}
-			catch (UnsupportedEncodingException e)
-			{
-				FileLogger.logException (e);
-				pwd = "";
-			}
+
+			ai.setAi_data (ai_data);
+			token.addAuthInfo (ai);
+
+			rs.close ();
+
+			ps_delete_token_by_token_id.setLong (1, token_id);
+			ps_delete_token_by_token_id.executeUpdate ();
+
+		}
+		catch (SQLException e)
+		{
+			FileLogger.logException (e);
+			throw new RestSQLException (e);
 		}
 
-		ps_delete_token_by_id.setLong (1, id);
-		ps_delete_token_by_id.executeUpdate ();
-
-		return pwd;
+		return token;
 	}
 }

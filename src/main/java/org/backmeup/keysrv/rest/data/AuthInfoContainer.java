@@ -12,11 +12,7 @@ public class AuthInfoContainer
 	private long bmu_authinfo_id = -1;
 	private long bmu_user_id = -1;
 	private long bmu_service_id = -1;
-
-	private String ai_username = "";
-	private String ai_pwd = "";
-	private String ai_oauth = "";
-	private String ai_type = "";
+	
 	private String user_pwd = "";
 	
 	HashMap<String, String> ai_data = new HashMap<String, String> ();
@@ -31,29 +27,12 @@ public class AuthInfoContainer
 		this.bmu_authinfo_id = ai.getBmuAuthinfoId ();
 		this.bmu_user_id = ai.getUser ().getBmuId ();
 		this.bmu_service_id = ai.getService ().getBmuId ();
-
-		if (ai.getAi_type () == AuthInfo.TYPE_PWD)
-		{
-			this.ai_type = "userpwd";
-			this.ai_username = ai.getDecAiUsername ();
-			this.ai_pwd = ai.getDecAiPwd ();
-			this.ai_oauth = null;
-		}
-		else
-		{
-			this.ai_type = "oauth";
-			this.ai_username = null;
-			this.ai_pwd = null;
-			this.ai_oauth = ai.getDecAiOAuth ();
-		}
+		this.ai_data = ai.getDecAi_data ();
 		
-		if ((this.ai_username == null) && (this.ai_oauth == null))
+		if (this.ai_data.size () == 0)
 		{
 			throw new RestWrongDecryptionKeyException (this.bmu_user_id);
 		}
-		
-		ai_data.put ("e-mail", "ft@x-net.at");
-		ai_data.put ("server-ip", "127.0.0.1");
 	}
 
 	@JsonIgnore(true)
@@ -95,46 +74,6 @@ public class AuthInfoContainer
 	public void setBmu_service_id (long bmu_service_id)
 	{
 		this.bmu_service_id = bmu_service_id;
-	}
-
-	public String getAi_username ()
-	{
-		return ai_username;
-	}
-
-	public void setAi_username (String ai_username)
-	{
-		this.ai_username = ai_username;
-	}
-
-	public String getAi_pwd ()
-	{
-		return ai_pwd;
-	}
-
-	public void setAi_pwd (String ai_pwd)
-	{
-		this.ai_pwd = ai_pwd;
-	}
-
-	public String getAi_oauth ()
-	{
-		return ai_oauth;
-	}
-
-	public void setAi_oauth (String ai_oauth)
-	{
-		this.ai_oauth = ai_oauth;
-	}
-
-	public String getAi_type ()
-	{
-		return ai_type;
-	}
-
-	public void setAi_type (String ai_type)
-	{
-		this.ai_type = ai_type;
 	}
 
 	@JsonIgnore(true)

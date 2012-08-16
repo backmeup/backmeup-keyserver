@@ -4,31 +4,22 @@ import java.sql.SQLException;
 import java.util.Date;
 
 import javax.ws.rs.Consumes;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 
 import org.backmeup.keysrv.rest.data.TokenContainer;
 import org.backmeup.keysrv.rest.data.TokenDataContainer;
 import org.backmeup.keysrv.rest.data.TokenRequestContainer;
-import org.backmeup.keysrv.rest.exceptions.RestAuthInfoNotFoundException;
-import org.backmeup.keysrv.rest.exceptions.RestServiceNotFoundException;
 import org.backmeup.keysrv.rest.exceptions.RestTokenRequestNotValidException;
-import org.backmeup.keysrv.rest.exceptions.RestUserNotFoundException;
-import org.backmeup.keysrv.rest.exceptions.RestWrongDecryptionKeyException;
-import org.backmeup.keysrv.worker.AuthInfo;
 import org.backmeup.keysrv.worker.DBManager;
 import org.backmeup.keysrv.worker.FileLogger;
 import org.backmeup.keysrv.worker.Service;
 import org.backmeup.keysrv.worker.Token;
 import org.backmeup.keysrv.worker.TokenInvalidException;
 import org.backmeup.keysrv.worker.User;
+import org.jboss.resteasy.util.Base64;
 
 @Path ("/tokens")
 public class Tokens
@@ -73,8 +64,25 @@ public class Tokens
 	public TokenDataContainer getTokenData (TokenContainer tc) throws WebApplicationException, SQLException, TokenInvalidException
 	{
 		DBManager dbm = new DBManager ();
+		
+		String token_pwd = "";
+		
+		try
+		{
+			token_pwd = new String (Base64.decode (tc.getToken ()), "UTF-8");
+		}
+		catch (Exception e)
+		{
+			// ignore -> should never come up
+			FileLogger.logException (e);
+		}
 
-		Token token = Token.decodeToken (tc.getToken (), dbm.getTokenPwd (tc.getBmu_token_id ()));
+		Token token = dbm.getTokenData (tc.getBmu_token_id (), token_pwd);
+		
+		if (token.checkToken () == false)
+		{
+			throw new RestTokenRequestNotValidException ();
+		}
 
 		return new TokenDataContainer (token);
 	}
