@@ -15,7 +15,7 @@ public class AuthInfoContainer
 	
 	private String user_pwd = "";
 	
-	HashMap<String, String> ai_data = new HashMap<String, String> ();
+	HashMap<String, String> ai_data = null;
 	
 	public AuthInfoContainer ()
 	{

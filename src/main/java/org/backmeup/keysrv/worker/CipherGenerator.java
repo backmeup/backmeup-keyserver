@@ -12,6 +12,8 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import org.backmeup.keysrv.rest.exceptions.RestWrongDecryptionKeyException;
+
 
 
 public class CipherGenerator
@@ -42,7 +44,14 @@ public class CipherGenerator
 	
 	public String decData (byte[] encdata, User user)
 	{
-		return this.decData (encdata, user.getPwd ());
+		try
+		{
+			return this.decData (encdata, user.getPwd ());
+		}
+		catch (BadPaddingException e)
+		{
+			throw new RestWrongDecryptionKeyException (user.getBmuId ());
+		}
 	}
 	
 	public HashMap<byte[], byte[]> encData (HashMap<String, String> data, User user)
@@ -66,8 +75,18 @@ public class CipherGenerator
 		
 		for (byte[] key : enc_data.keySet ())
 		{
-			String dec_key = this.decData (key, user.getPwd ());
-			String dec_value = this.decData (enc_data.get (key), user.getPwd ());
+			String dec_key = "";
+			String dec_value = "";
+			
+			try
+			{
+				dec_key = this.decData (key, user.getPwd ());
+				dec_value = this.decData (enc_data.get (key), user.getPwd ());
+			}
+			catch (BadPaddingException e)
+			{
+				throw new RestWrongDecryptionKeyException (user.getBmuId ());
+			}
 			
 			data.put (dec_key, dec_value);
 		}
@@ -134,8 +153,9 @@ public class CipherGenerator
 	 * @param encdata
 	 * @param pwd
 	 * @return
+	 * @throws BadPaddingException 
 	 */
-	public String decData (byte[] encdata, String pwd)
+	public String decData (byte[] encdata, String pwd) throws BadPaddingException
 	{
 		byte[] salt = new byte[SALT_LENGTH];
 		byte[] iv = new byte[IV_LENGTH];
@@ -171,7 +191,7 @@ public class CipherGenerator
 		catch (BadPaddingException badpadding)
 		{
 			// wrong key
-			return null;
+			throw badpadding;
 		}
 		catch (Exception e)
 		{

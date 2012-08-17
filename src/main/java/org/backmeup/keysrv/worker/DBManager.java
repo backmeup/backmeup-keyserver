@@ -13,6 +13,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Random;
 
+import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.naming.InitialContext;
 import javax.sql.DataSource;
@@ -25,6 +26,7 @@ import org.backmeup.keysrv.rest.exceptions.RestServiceAlreadyExistException;
 import org.backmeup.keysrv.rest.exceptions.RestServiceNotFoundException;
 import org.backmeup.keysrv.rest.exceptions.RestUserAlreadyExistException;
 import org.backmeup.keysrv.rest.exceptions.RestUserNotFoundException;
+import org.backmeup.keysrv.rest.exceptions.RestWrongDecryptionKeyException;
 
 public class DBManager
 {
@@ -35,7 +37,7 @@ public class DBManager
 	private static final String DB_URL = "jdbc:postgresql://" + DB_HOST + "/" + DB;
 
 	private static final String PS_INSERT_USER = "INSERT INTO users (bmu_user_id, bmu_user_pwd_hash) VALUES (?, (pgp_pub_encrypt (?, dearmor(?))))";
-	private static final String PS_UPDATE_USER = "UPDATE users SET bmu_user_pwd_hash=? WHERE bmu_user_id=?";
+	private static final String PS_UPDATE_USER = "UPDATE users SET bmu_user_pwd_hash=(pgp_pub_encrypt (?, dearmor(?))) WHERE bmu_user_id=?";
 	private static final String PS_SELECT_USER_BY_BMU_USER_ID = "SELECT id, bmu_user_id, pgp_pub_decrypt (bmu_user_pwd_hash, dearmor (?)) AS bmu_user_pwd_hash FROM users WHERE bmu_user_id=?";
 	private static final String PS_SELECT_USER_BY_ID = "SELECT id, bmu_user_id FROM users WHERE id=?";
 	private static final String PS_DELETE_USER_BY_BMU_USER_ID = "DELETE FROM users WHERE bmu_user_id=?";
@@ -62,7 +64,7 @@ public class DBManager
 	// + "pgp_pub_decrypt_bytea (ai_oauth, dearmor (?)) AS ai_oauth " +
 	// "FROM auth_infos WHERE user_id=?";
 
-	private static final String PS_SELECT_AUTH_INFO_BY_USER = "SELECT DISTINCT auth_infos.bmu_authinfo_id FROM auth_infos WHERE user_id=? ORDER BY bmu_authinfo_id";
+	private static final String PS_SELECT_AUTH_INFO_BY_USER = "SELECT DISTINCT auth_infos.bmu_authinfo_id AS bmu_authinfo_id, auth_infos.service_id AS service_id, services.bmu_service_id AS bmu_service_id FROM auth_infos INNER JOIN services ON services.id=auth_infos.service_id WHERE auth_infos.user_id=? ORDER BY auth_infos.bmu_authinfo_id";
 	private static final String PS_SELECT_AUTH_INFO_BY_USER_SERVICE = PS_SELECT_AUTH_INFO_BY_USER + " AND service_id=?";
 	private static final String PS_SELECT_AUTH_INFO_BY_BMU_AUTHINFO_ID = "SELECT id, bmu_authinfo_id, user_id, service_id, pgp_pub_decrypt_bytea (ai_key, dearmor (?)) AS ai_key, pgp_pub_decrypt_bytea (ai_value, dearmor (?)) AS ai_value FROM auth_infos WHERE bmu_authinfo_id=?";
 	private static final String PS_SELECT_AUTH_INFO_BY_ID = "SELECT id, bmu_authinfo_id, user_id, service_id, pgp_pub_decrypt_bytea (ai_key, dearmor (?)) AS ai_key, pgp_pub_decrypt_bytea (ai_value, dearmor (?)) AS ai_value FROM auth_infos WHERE id=?";
@@ -236,9 +238,12 @@ public class DBManager
 		return ai;
 	}
 	
+	// "SELECT DISTINCT auth_infos.bmu_authinfo_id AS bmu_authinfo_id, auth_infos.service_id AS service_id,
+	// services.bmu_service_id AS bmu_service_id FROM auth_infos
+	// INNER JOIN services ON services.id=auth_infos.service_id WHERE auth_infos.user_id=? ORDER BY auth_infos.bmu_authinfo_id";
 	public ArrayList<AuthInfo> getUserAuthInfos (User user) throws RestSQLException
 	{
-		ArrayList<AuthInfo> authinfos = null;
+		ArrayList<AuthInfo> authinfos = new ArrayList<AuthInfo> ();
 		
 		try
 		{
@@ -248,7 +253,8 @@ public class DBManager
 			
 			while (rs.next () == true)
 			{
-				//authinfos.add (this.get)
+				Service service = new Service (rs.getLong ("service_id"), rs.getLong ("bmu_service_id"));
+				authinfos.add (this.getAuthInfo (rs.getLong ("bmu_authinfo_id"), user, service));
 			}
 		}
 		catch (SQLException e)
@@ -373,7 +379,8 @@ public class DBManager
 		try
 		{
 			ps_update_user.setString (1, user.getPwd_hash ());
-			ps_update_user.setLong (2, user.getBmuId ());
+			ps_update_user.setString (2, pgpkeys.getPublickey ());
+			ps_update_user.setLong (3, user.getBmuId ());
 			
 			ps_update_user.executeUpdate ();
 		}
@@ -613,7 +620,9 @@ public class DBManager
 				{
 					user = new User (rs.getLong ("bmu_user_id"));
 					user.setPwd (token_pwd);
-					String str_backupdate = cipher.decData (rs.getBytes ("backupdate"), token_pwd);
+					
+					String str_backupdate = "";
+					str_backupdate = cipher.decData (rs.getBytes ("backupdate"), user);
 					Date backupdate = new Date (new Long (str_backupdate));
 
 					token = new Token (user, backupdate);

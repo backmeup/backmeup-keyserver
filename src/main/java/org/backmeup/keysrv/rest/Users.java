@@ -1,5 +1,7 @@
 package org.backmeup.keysrv.rest;
 
+import java.util.ArrayList;
+
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -11,6 +13,7 @@ import org.backmeup.keysrv.rest.data.UserContainer;
 import org.backmeup.keysrv.rest.exceptions.RestUserNotFoundException;
 import org.backmeup.keysrv.rest.exceptions.RestUserNotValidException;
 import org.backmeup.keysrv.rest.exceptions.RestWrongDecryptionKeyException;
+import org.backmeup.keysrv.worker.AuthInfo;
 import org.backmeup.keysrv.worker.DBManager;
 import org.backmeup.keysrv.worker.User;
 
@@ -79,5 +82,24 @@ public class Users
 		}
 		
 		user.setPwd (new_bmu_user_pwd);
+		dbm.changeUser (user);
+	}
+	
+	@GET
+	@Path ("{bmu_user_id}/{old_bmu_user_keyring_pwd}/{new_bmu_user_keyring_pwd}/changeuserkeyringpwd")
+	@Produces ("application/json")
+	public void changeUserKeyringPwd (@PathParam ("bmu_user_id") long bmu_user_id, @PathParam ("new_bmu_user_keyring_pwd") String new_bmu_user_keyring_pwd, @PathParam ("old_bmu_user_keyring_pwd") String old_bmu_user_keyring_pwd)
+	{
+		DBManager dbm = new DBManager ();
+		User user = dbm.getUser (bmu_user_id);
+		
+		ArrayList<AuthInfo> authinfos = dbm.getUserAuthInfos (user);
+		
+		for (AuthInfo authinfo : authinfos)
+		{
+			authinfo.changePassword (old_bmu_user_keyring_pwd, new_bmu_user_keyring_pwd);
+			dbm.deleteAuthInfo (authinfo.getBmuAuthinfoId ());
+			dbm.insertAuthInfo (authinfo);
+		}
 	}
 }

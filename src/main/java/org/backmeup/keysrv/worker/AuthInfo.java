@@ -74,8 +74,9 @@ public class AuthInfo
 		return this.ai_data;
 	}
 	
-	public void changePassword (String new_bmu_user_keyring_pwd)
+	public void changePassword (String old_bmu_user_keyring_pwd, String new_bmu_user_keyring_pwd)
 	{
+		this.user.setPwd (old_bmu_user_keyring_pwd);
 		HashMap<String, String> dec_ai_data = this.getDecAi_data ();
 		this.user.setPwd (new_bmu_user_keyring_pwd);
 		this.setDecAi_data (dec_ai_data);
