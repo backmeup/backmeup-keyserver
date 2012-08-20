@@ -13,6 +13,8 @@ public class TokenDataContainer
 	private UserContainer usercontainer;
 	private ArrayList<ServiceContainer> servicecontainers;
 	private ArrayList<AuthInfoContainer> authinfocontainers;
+	private TokenContainer newtoken;
+	private boolean ignore_new_token = true;
 	
 	
 	public TokenDataContainer()
@@ -24,6 +26,8 @@ public class TokenDataContainer
 		this.servicecontainers.add (new ServiceContainer ());
 		
 		this.authinfocontainers.add (new AuthInfoContainer ());
+		
+		this.newtoken = new TokenContainer ();
 	}
 	
 	public TokenDataContainer (Token token)
@@ -39,6 +43,8 @@ public class TokenDataContainer
 			this.servicecontainers.add (new ServiceContainer (token.getAuthInfo (i).getService ()));
 			this.authinfocontainers.add (new AuthInfoContainer (token.getAuthInfo (i)));
 		}
+		
+		this.newtoken = new TokenContainer ();
 	}
 
 	public UserContainer getUser ()
@@ -70,5 +76,16 @@ public class TokenDataContainer
 	public void setAuthinfos (ArrayList<AuthInfoContainer> authinfocontainers)
 	{
 		this.authinfocontainers = authinfocontainers;
+	}
+	
+	public TokenContainer getNewToken ()
+	{
+		return newtoken;
+	}
+
+	@JsonIgnore(true)
+	public void setNewToken (TokenContainer tokencontainer)
+	{
+		this.newtoken = tokencontainer;
 	}
 }

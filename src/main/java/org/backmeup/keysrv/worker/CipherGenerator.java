@@ -38,14 +38,14 @@ public class CipherGenerator
 
 	
 	public byte[] encData (String data, User user)
-	{
+	{	
 		return this.encData (data, user.getPwd ());
 	}
 	
 	public String decData (byte[] encdata, User user)
 	{
 		try
-		{
+		{			
 			return this.decData (encdata, user.getPwd ());
 		}
 		catch (BadPaddingException e)
@@ -70,7 +70,7 @@ public class CipherGenerator
 	}
 	
 	public HashMap<String, String> decData (HashMap<byte[], byte[]> enc_data, User user)
-	{
+	{	
 		HashMap<String, String> data = new HashMap<String, String> ();
 		
 		for (byte[] key : enc_data.keySet ())

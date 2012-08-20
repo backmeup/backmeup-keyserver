@@ -1,5 +1,6 @@
 package org.backmeup.keysrv.worker;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -18,8 +19,9 @@ public class Token
 	private User user = null;
 	private String tokenpwd = null;
 	private ArrayList<AuthInfo> auth_infos = null;
+	private boolean reusable = false;
 	
-	public Token (User user, Date backupdate)
+	public Token (User user, Date backupdate, boolean reusable)
 	{
 		auth_infos = new ArrayList<AuthInfo> ();
 		
@@ -29,8 +31,47 @@ public class Token
 		this.backupdate = backupdate;
 		
 		this.user = user;
+		this.reusable = reusable;
 	}
 	
+	public void renewTokenPwd ()
+	{
+		CipherGenerator cipher = new CipherGenerator ();
+		String new_tokenpwd = cipher.generatePassword ();
+		
+		for (AuthInfo ai : auth_infos)
+		{
+			ai.changePassword (tokenpwd, new_tokenpwd);
+		}
+		
+		this.tokenpwd = new_tokenpwd;
+	}
+	
+	public static Token genNewToken (Token token)
+	{
+		User user = new User (token.getUser ().getId (), token.getUser ().getBmuId ());
+		Date backupdate = new Date (token.getBackupdate ().getTime ());
+		Token new_token = new Token (user, backupdate, token.isReusable ());
+		user.setPwd (new_token.getTokenpwd ());
+		
+		for (int i = 0; i < token.getAuthInfoCount (); i++)
+		{
+			AuthInfo ai = token.getAuthInfo (i);
+			Service service = new Service (ai.getService ().getId (), ai.getService ().getBmuId ());
+			
+			AuthInfo new_ai = new AuthInfo (ai.getBmuAuthinfoId (), user, service);
+			new_ai.setDecAi_data (ai.getDecAi_data ());
+			new_token.addAuthInfo (new_ai);
+		}
+		
+		return new_token;
+	}
+	
+	public boolean isReusable ()
+	{
+		return reusable;
+	}
+
 	public void addAuthInfo (AuthInfo ai)
 	{
 		this.auth_infos.add (ai);
@@ -53,7 +94,17 @@ public class Token
 	
 	public String getToken ()
 	{
-		return Base64.encodeBytes (this.tokenpwd.getBytes ());
+		try
+		{
+			return Base64.encodeBytes (this.tokenpwd.getBytes (ENCODING));
+		}
+		catch (UnsupportedEncodingException e)
+		{
+			// ignore would never come up
+			FileLogger.logException (e);
+		}
+		
+		return null;
 	}
 	
 	public void setEncTokenPwd (String enc_tokenpwd)
@@ -128,6 +179,11 @@ public class Token
 	public Date getBackupdate ()
 	{
 		return this.backupdate;
+	}
+	
+	public void setBackupdate (Date backupdate)
+	{
+		this.backupdate = backupdate;
 	}
 	
 	public User getUser ()

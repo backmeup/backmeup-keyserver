@@ -3,15 +3,19 @@ package org.backmeup.keysrv.rest.data;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.backmeup.keysrv.worker.Token;
+import org.codehaus.jackson.annotate.JsonIgnore;
 
 @XmlRootElement
 public class TokenContainer
 {
-	private Long bmu_token_id;
+	private long bmu_token_id;
 	private String token;
+	private long backupdate = -1;
 	
 	public TokenContainer()
 	{
+		this.bmu_token_id = -1;
+		this.token = "";
 	}
 	
 	public TokenContainer (Token token)
@@ -38,5 +42,16 @@ public class TokenContainer
 	public void setToken (String token)
 	{
 		this.token = token;
+	}
+
+	@JsonIgnore(true)
+	public long getBackupdate ()
+	{
+		return backupdate;
+	}
+
+	public void setBackupdate (long backupdate)
+	{
+		this.backupdate = backupdate;
 	}
 }
