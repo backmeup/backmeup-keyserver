@@ -7,8 +7,8 @@ import java.io.IOException;
 
 public class PGPKeys
 {
-	private final String PUBLIC_KEY_FILE = "/tmp/public.key";
-	private final String PRIVATE_KEY_FILE = "/tmp/private.key";
+	private final String PUBLIC_KEY_FILE = "/etc/keysrv/public.key";
+	private final String PRIVATE_KEY_FILE = "/etc/keysrv/private.key";
 	private final int MAX_FILE_SIZE = 1048576; // 1 MiB
 	
 	private String publickey = "";

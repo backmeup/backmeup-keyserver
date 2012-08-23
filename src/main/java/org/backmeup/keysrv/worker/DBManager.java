@@ -17,6 +17,7 @@ import org.backmeup.keysrv.rest.exceptions.RestAuthInfoNotFoundException;
 import org.backmeup.keysrv.rest.exceptions.RestSQLException;
 import org.backmeup.keysrv.rest.exceptions.RestServiceAlreadyExistException;
 import org.backmeup.keysrv.rest.exceptions.RestServiceNotFoundException;
+import org.backmeup.keysrv.rest.exceptions.RestTokenNotFoundException;
 import org.backmeup.keysrv.rest.exceptions.RestUserAlreadyExistException;
 import org.backmeup.keysrv.rest.exceptions.RestUserNotFoundException;
 
@@ -641,6 +642,11 @@ public class DBManager
 				{
 					ai_data.put (rs.getBytes ("token_key"), rs.getBytes ("token_value"));
 				}
+			}
+			
+			if (ai_data == null)
+			{
+				throw new RestTokenNotFoundException (token_id);
 			}
 
 			ai.setAi_data (ai_data);
