@@ -14,7 +14,9 @@ import org.backmeup.keysrv.rest.exceptions.RestUserNotFoundException;
 import org.backmeup.keysrv.rest.exceptions.RestUserNotValidException;
 import org.backmeup.keysrv.rest.exceptions.RestWrongDecryptionKeyException;
 import org.backmeup.keysrv.worker.AuthInfo;
+import org.backmeup.keysrv.worker.DBLogger;
 import org.backmeup.keysrv.worker.DBManager;
+import org.backmeup.keysrv.worker.FileLogger;
 import org.backmeup.keysrv.worker.User;
 
 @Path ("/users")
@@ -40,6 +42,7 @@ public class Users
 		User user = new User (bmu_user_id);
 		
 		dbm.deleteUser (user);
+		DBLogger.deleteAllUserLogs (user);
 	}
 
 	@POST
@@ -52,6 +55,8 @@ public class Users
 		user.setPwd (bmu_user_pwd);
 		
 		dbm.insertUser (user);
+		
+		DBLogger.logUserCreated (user);
 	}
 	
 	@GET
@@ -64,8 +69,11 @@ public class Users
 		
 		if (user.validatePwd (bmu_user_pwd) == false)
 		{
+			DBLogger.logUserWrongLoginPassword (user);
 			throw new RestUserNotValidException (bmu_user_id);
 		}
+		
+		DBLogger.logUserLogin (user);
 	}
 	
 	@GET
@@ -83,6 +91,8 @@ public class Users
 		
 		user.setPwd (new_bmu_user_pwd);
 		dbm.changeUser (user);
+		
+		DBLogger.logUserChangedPassword (user);
 	}
 	
 	@GET
@@ -101,5 +111,7 @@ public class Users
 			dbm.deleteAuthInfo (authinfo.getBmuAuthinfoId ());
 			dbm.insertAuthInfo (authinfo);
 		}
+		
+		DBLogger.logUserWrongKeyringPassword (user);
 	}
 }

@@ -1,5 +1,5 @@
 #surefire
-#Thu Aug 23 15:50:48 CEST 2012
+#Thu Sep 06 15:10:25 CEST 2012
 dirscanner.0.params=/home/spawn/workspace/keysrv/target/test-classes|[**/Test*.java, **/*Test.java, **/*TestCase.java]|[**/*$*]
 enableAssertions=true
 testSuiteDefinitionTestSourceDirectory=/home/spawn/workspace/keysrv/src/test/java

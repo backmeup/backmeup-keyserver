@@ -11,6 +11,7 @@ import javax.ws.rs.Produces;
 import org.backmeup.keysrv.rest.data.AuthInfoContainer;
 import org.backmeup.keysrv.rest.exceptions.*;
 import org.backmeup.keysrv.worker.AuthInfo;
+import org.backmeup.keysrv.worker.DBLogger;
 import org.backmeup.keysrv.worker.DBManager;
 import org.backmeup.keysrv.worker.Service;
 import org.backmeup.keysrv.worker.User;
@@ -34,7 +35,9 @@ public class AuthInfos
 		user.setPwd (user_pwd);
 		
 		AuthInfo ai = dbm.getAuthInfo (bmu_authinfo_id, user, service);
-			
+		
+		DBLogger.logProvideAuthInfo (user, ai);
+		
 		return new AuthInfoContainer (ai);
 	}
 	
@@ -55,6 +58,8 @@ public class AuthInfos
 		ai.setDecAi_data (aic.getAi_data ());
 		
 		dbm.insertAuthInfo (ai);
+		
+		DBLogger.logAddAuthInfo (user, ai);
 	}
 	
 	@DELETE

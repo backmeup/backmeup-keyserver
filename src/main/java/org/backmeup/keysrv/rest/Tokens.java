@@ -15,6 +15,7 @@ import org.backmeup.keysrv.rest.data.TokenDataContainer;
 import org.backmeup.keysrv.rest.data.TokenRequestContainer;
 import org.backmeup.keysrv.rest.exceptions.RestTokenRequestNotValidException;
 import org.backmeup.keysrv.worker.CipherGenerator;
+import org.backmeup.keysrv.worker.DBLogger;
 import org.backmeup.keysrv.worker.DBManager;
 import org.backmeup.keysrv.worker.FileLogger;
 import org.backmeup.keysrv.worker.HashGenerator;
@@ -56,6 +57,9 @@ public class Tokens
 		TokenContainer tokencontainer = new TokenContainer (token);
 		
 		tokencontainer.setBmu_token_id (dbm.insertToken (token));
+		
+		token.setId (tokencontainer.getBmu_token_id ());
+		DBLogger.logCreateToken (user, token);
 
 		return tokencontainer;
 	}
@@ -87,6 +91,8 @@ public class Tokens
 			throw new RestTokenRequestNotValidException ();
 		}
 		
+		DBLogger.logUseToken (token.getUser (), token);
+		
 		TokenDataContainer tdc = new TokenDataContainer (token);
 		if ((tc.getBackupdate () != -1) && (token.isReusable () == true))
 		{
@@ -98,6 +104,9 @@ public class Tokens
 			tokencontainer.setBmu_token_id (dbm.insertToken (new_token));
 			
 			tdc.setNewToken (tokencontainer);
+			
+			new_token.setId (tokencontainer.getBmu_token_id ());
+			DBLogger.logCreateToken (token.getUser (), new_token);
 		}
 
 		return tdc;
