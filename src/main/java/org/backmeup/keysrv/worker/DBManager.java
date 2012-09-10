@@ -411,21 +411,21 @@ public class DBManager
 		rs.close ();
 	}
 
-	public User getUserById (long id) throws SQLException
-	{
-		ps_select_user_by_id.setLong (1, id);
-
-		ResultSet rs = ps_select_user_by_id.executeQuery ();
-
-		User user = null;
-		if (rs.next ())
-		{
-			user = new User (rs.getLong ("id"), rs.getLong ("bmu_user_id"));
-		}
-		rs.close ();
-
-		return user;
-	}
+//	public User getUserById (long id) throws SQLException
+//	{
+//		ps_select_user_by_id.setLong (1, id);
+//
+//		ResultSet rs = ps_select_user_by_id.executeQuery ();
+//
+//		User user = null;
+//		if (rs.next ())
+//		{
+//			user = new User (rs.getLong ("id"), rs.getLong ("bmu_user_id"));
+//		}
+//		rs.close ();
+//
+//		return user;
+//	}
 
 	public void deleteUser (User user) throws RestSQLException
 	{
