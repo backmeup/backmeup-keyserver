@@ -115,6 +115,6 @@ public class Users
 			authinfodao.insertAuthInfo (authinfo);
 		}
 		
-		DBLogger.logUserWrongKeyringPassword (user);
+		DBLogger.logUserChangedKeyringPassword (user);
 	}
 }
