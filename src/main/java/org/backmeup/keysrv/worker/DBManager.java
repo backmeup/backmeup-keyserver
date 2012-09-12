@@ -24,6 +24,7 @@ import org.backmeup.keysrv.rest.exceptions.RestTokenNotFoundException;
 import org.backmeup.keysrv.rest.exceptions.RestUserAlreadyExistException;
 import org.backmeup.keysrv.rest.exceptions.RestUserNotFoundException;
 
+@Deprecated
 public class DBManager
 {
 	private static final String DB = "db_keysrv";
@@ -125,6 +126,7 @@ public class DBManager
 		}
 	}
 
+	@Deprecated
 	public DBManager ()
 	{
 		init ();
@@ -140,6 +142,7 @@ public class DBManager
 		}
 	}
 
+	@Deprecated
 	private static void prepareStatements () throws SQLException
 	{
 		ps_insert_user = db_con.prepareStatement (PS_INSERT_USER);
@@ -170,6 +173,7 @@ public class DBManager
 		ps_delete_log_by_bmu_user_id = db_con.prepareStatement (PS_DELETE_LOG_BY_BMU_USER_ID);
 	}
 
+	@Deprecated
 	public void insertAuthInfo (AuthInfo authinfo) throws RestSQLException
 	{
 		try
@@ -204,6 +208,7 @@ public class DBManager
 		}
 	}
 
+	@Deprecated
 	public AuthInfo getAuthInfo (long bmu_authinfo_id, User user, Service service) throws RestSQLException, RestAuthInfoNotFoundException
 	{
 		AuthInfo ai = null;
@@ -244,11 +249,7 @@ public class DBManager
 		return ai;
 	}
 
-	// "SELECT DISTINCT auth_infos.bmu_authinfo_id AS bmu_authinfo_id,
-	// auth_infos.service_id AS service_id,
-	// services.bmu_service_id AS bmu_service_id FROM auth_infos
-	// INNER JOIN services ON services.id=auth_infos.service_id WHERE
-	// auth_infos.user_id=? ORDER BY auth_infos.bmu_authinfo_id";
+	@Deprecated
 	public ArrayList<AuthInfo> getUserAuthInfos (User user) throws RestSQLException
 	{
 		ArrayList<AuthInfo> authinfos = new ArrayList<AuthInfo> ();
@@ -274,6 +275,7 @@ public class DBManager
 		return authinfos;
 	}
 
+	@Deprecated
 	public boolean existAuthInfo (long bmu_authinfo_id)
 	{
 		try
@@ -286,10 +288,12 @@ public class DBManager
 
 			if (rs.next ())
 			{
+				rs.close ();
 				return true;
 			}
 			else
 			{
+				rs.close ();
 				return false;
 			}
 		}
@@ -299,6 +303,7 @@ public class DBManager
 		}
 	}
 
+	@Deprecated
 	public void deleteAuthInfo (long bmu_authinfo_id) throws RestSQLException
 	{
 		if (this.existAuthInfo (bmu_authinfo_id) == false)
@@ -318,6 +323,7 @@ public class DBManager
 		}
 	}
 
+	@Deprecated
 	public void insertUser (long bmu_user_id) throws SQLException
 	{
 		ps_insert_user.setLong (1, bmu_user_id);
@@ -325,6 +331,7 @@ public class DBManager
 		ps_insert_user.executeUpdate ();
 	}
 
+	@Deprecated
 	public void insertUser (User user) throws RestSQLException
 	{
 		try
@@ -351,6 +358,7 @@ public class DBManager
 		}
 	}
 
+	@Deprecated
 	public User getUser (long bmu_user_id) throws RestUserNotFoundException, RestSQLException
 	{
 		User user = null;
@@ -382,6 +390,7 @@ public class DBManager
 		return user;
 	}
 
+	@Deprecated
 	public void changeUser (User user) throws RestSQLException
 	{
 		try
@@ -398,6 +407,7 @@ public class DBManager
 		}
 	}
 
+	@Deprecated
 	public void selectUserByBmuUserId (long bmu_user_id) throws SQLException
 	{
 		ps_select_user_by_bmu_user_id.setLong (1, bmu_user_id);
@@ -427,6 +437,7 @@ public class DBManager
 //		return user;
 //	}
 
+	@Deprecated
 	public void deleteUser (User user) throws RestSQLException
 	{
 		this.getUser (user.getBmuId ());
@@ -444,6 +455,7 @@ public class DBManager
 		}
 	}
 
+	@Deprecated
 	public void insertService (long bmu_service_id) throws SQLException
 	{
 		ps_insert_service.setLong (1, bmu_service_id);
@@ -451,6 +463,7 @@ public class DBManager
 		ps_insert_service.executeUpdate ();
 	}
 
+	@Deprecated
 	public void insertService (Service service) throws RestSQLException, RestServiceAlreadyExistException
 	{
 		try
@@ -475,6 +488,7 @@ public class DBManager
 		}
 	}
 
+	@Deprecated
 	public Service getService (long bmu_service_id) throws RestSQLException, RestServiceNotFoundException
 	{
 		Service service = null;
@@ -504,6 +518,7 @@ public class DBManager
 		return service;
 	}
 
+	@Deprecated
 	public void selectServiceByBmuServiceId (long bmu_service_id) throws SQLException
 	{
 		ps_select_service_by_bmu_service_id.setLong (1, bmu_service_id);
@@ -512,6 +527,7 @@ public class DBManager
 		rs.close ();
 	}
 
+	@Deprecated
 	public void getServiceById (long id) throws SQLException
 	{
 		ps_select_service_by_id.setLong (1, id);
@@ -520,6 +536,7 @@ public class DBManager
 		rs.close ();
 	}
 
+	@Deprecated
 	public void deleteService (Service service) throws RestSQLException
 	{
 		this.getService (service.getBmuId ());
@@ -537,11 +554,7 @@ public class DBManager
 		}
 	}
 
-	// "INSERT INTO tokens (token_id, user_id, service_id, bmu_authinfo_id,
-	// reusable, token_key, token_value, backupdate) VALUES
-	// (?, ?, ?, ?, ?, (pgp_pub_encrypt_bytea (?, dearmor(?))),
-	// (pgp_pub_encrypt_bytea (?, dearmor(?))),
-	// (pgp_pub_encrypt_bytea (?, dearmor(?))))";
+	@Deprecated
 	public long insertToken (Token token) throws RestSQLException
 	{
 		long token_id = -1;
@@ -605,6 +618,7 @@ public class DBManager
 		return token_id;
 	}
 
+	@Deprecated
 	public Token getTokenData (long token_id, String token_pwd) throws RestSQLException
 	{
 		Token token = null;
@@ -685,6 +699,7 @@ public class DBManager
 		return token;
 	}
 
+	@Deprecated
 	public void insertLog (User user, String message, String type) throws RestSQLException
 	{
 		insertLog (user, null, null, message, type);
@@ -739,6 +754,7 @@ public class DBManager
 		}
 	}
 
+	@Deprecated
 	public List<LogContainer> getLogs (User user)
 	{
 		try
@@ -773,6 +789,7 @@ public class DBManager
 		}
 	}
 
+	@Deprecated
 	public void deleteAllUserLogs (User user)
 	{
 		try

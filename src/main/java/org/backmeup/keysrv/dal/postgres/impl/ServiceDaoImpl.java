@@ -1,6 +1,5 @@
 package org.backmeup.keysrv.dal.postgres.impl;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -34,20 +33,16 @@ public class ServiceDaoImpl implements ServiceDao
 		catch (RestServiceNotFoundException e)
 		{
 		}
-
-		Connection con = null;
+		
 		PreparedStatement ps = null;
 		
 		try
 		{
-			con = org.backmeup.keysrv.dal.postgres.impl.Connection.getInstance ();
-			ps = con.prepareStatement (PS_INSERT_SERVICE);
+			ps = Connection.getPreparedStatement (PS_INSERT_SERVICE);
 			
 			ps.setLong (1, service.getBmuId ());
 
 			ps.executeUpdate ();
-			ps.close ();
-			con.close ();
 		}
 		catch (SQLException e)
 		{
@@ -56,8 +51,7 @@ public class ServiceDaoImpl implements ServiceDao
 		}
 		finally
 		{
-			org.backmeup.keysrv.dal.postgres.impl.Connection.closeQuiet (ps);
-			org.backmeup.keysrv.dal.postgres.impl.Connection.closeQuiet (con);
+			Connection.closeQuiet (ps);
 		}
 	}
 
@@ -65,14 +59,12 @@ public class ServiceDaoImpl implements ServiceDao
 	public Service getService (long bmu_service_id)
 	{
 		Service service = null;
-		Connection con = null;
 		PreparedStatement ps = null;
 		ResultSet rs = null;
 
 		try
 		{
-			con = org.backmeup.keysrv.dal.postgres.impl.Connection.getInstance ();
-			ps = con.prepareStatement (PS_SELECT_SERVICE_BY_BMU_SERVICE_ID);
+			ps = Connection.getPreparedStatement (PS_SELECT_SERVICE_BY_BMU_SERVICE_ID);
 			
 			ps.setLong (1, bmu_service_id);
 			
@@ -81,9 +73,6 @@ public class ServiceDaoImpl implements ServiceDao
 			{
 				service = new Service (rs.getLong ("id"), rs.getLong ("bmu_service_id"));
 			}
-			rs.close ();
-			ps.close ();
-			con.close ();
 		}
 		catch (SQLException e)
 		{
@@ -92,9 +81,8 @@ public class ServiceDaoImpl implements ServiceDao
 		}
 		finally
 		{
-			org.backmeup.keysrv.dal.postgres.impl.Connection.closeQuiet (rs);
-			org.backmeup.keysrv.dal.postgres.impl.Connection.closeQuiet (ps);
-			org.backmeup.keysrv.dal.postgres.impl.Connection.closeQuiet (con);
+			Connection.closeQuiet (rs);
+			Connection.closeQuiet (ps);
 		}
 
 		if (service == null)
@@ -110,13 +98,11 @@ public class ServiceDaoImpl implements ServiceDao
 	{
 		this.getService (service.getBmuId ());
 		
-		Connection con = null;
 		PreparedStatement ps = null;
 
 		try
 		{
-			con = org.backmeup.keysrv.dal.postgres.impl.Connection.getInstance ();
-			ps = con.prepareStatement (PS_DELETE_SERVICE_BY_BMU_SERVICE_ID);
+			ps = Connection.getPreparedStatement (PS_DELETE_SERVICE_BY_BMU_SERVICE_ID);
 			
 			ps.setLong (1, service.getBmuId ());
 
@@ -129,8 +115,7 @@ public class ServiceDaoImpl implements ServiceDao
 		}
 		finally
 		{
-			org.backmeup.keysrv.dal.postgres.impl.Connection.closeQuiet (ps);
-			org.backmeup.keysrv.dal.postgres.impl.Connection.closeQuiet (con);
+			Connection.closeQuiet (ps);
 		}
 	}
 }

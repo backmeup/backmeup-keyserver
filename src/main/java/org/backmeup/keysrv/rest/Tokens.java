@@ -1,6 +1,5 @@
 package org.backmeup.keysrv.rest;
 
-import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Date;
 
@@ -10,15 +9,21 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 
+import org.backmeup.keyserver.dal.AuthInfoDao;
+import org.backmeup.keyserver.dal.ServiceDao;
+import org.backmeup.keyserver.dal.TokenDao;
+import org.backmeup.keyserver.dal.UserDao;
+import org.backmeup.keysrv.dal.postgres.impl.AuthInfoDaoImpl;
+import org.backmeup.keysrv.dal.postgres.impl.ServiceDaoImpl;
+import org.backmeup.keysrv.dal.postgres.impl.TokenDaoImpl;
+import org.backmeup.keysrv.dal.postgres.impl.UserDaoImpl;
 import org.backmeup.keysrv.rest.data.TokenContainer;
 import org.backmeup.keysrv.rest.data.TokenDataContainer;
 import org.backmeup.keysrv.rest.data.TokenRequestContainer;
 import org.backmeup.keysrv.rest.exceptions.RestTokenRequestNotValidException;
-import org.backmeup.keysrv.worker.CipherGenerator;
 import org.backmeup.keysrv.worker.DBLogger;
 import org.backmeup.keysrv.worker.DBManager;
 import org.backmeup.keysrv.worker.FileLogger;
-import org.backmeup.keysrv.worker.HashGenerator;
 import org.backmeup.keysrv.worker.Service;
 import org.backmeup.keysrv.worker.Token;
 import org.backmeup.keysrv.worker.TokenInvalidException;
@@ -34,7 +39,10 @@ public class Tokens
 	@Produces ("application/json")
 	public TokenContainer getToken (TokenRequestContainer trc) throws SQLException
 	{
-		DBManager dbm = new DBManager ();
+		UserDao userdao = new UserDaoImpl ();
+		ServiceDao servicedao = new ServiceDaoImpl ();
+		AuthInfoDao authinfodoa = new AuthInfoDaoImpl ();
+		TokenDao tokendao = new TokenDaoImpl ();
 
 		if (trc.validRequest () == false)
 		{
@@ -42,21 +50,21 @@ public class Tokens
 			throw new RestTokenRequestNotValidException ();
 		}
 
-		User user = dbm.getUser (trc.getBmu_user_id ());
+		User user = userdao.getUser (trc.getBmu_user_id ());
 		user.setPwd (trc.getUser_pwd ());
 
 		Token token = new Token (user, new Date (trc.getBackupdate ()), trc.isReusable ());
 
 		for (int i = 0; i < trc.getBmu_service_ids ().length; i++)
 		{
-			Service service = dbm.getService (trc.getBmu_service_ids ()[i]);
-			token.addAuthInfo (dbm.getAuthInfo (trc.getBmu_authinfo_ids ()[i], user, service));
+			Service service = servicedao.getService (trc.getBmu_service_ids ()[i]);
+			token.addAuthInfo (authinfodoa.getAuthInfo (trc.getBmu_authinfo_ids ()[i], user, service));
 		}
 
 		token.setId (-1);
 		TokenContainer tokencontainer = new TokenContainer (token);
 		
-		tokencontainer.setBmu_token_id (dbm.insertToken (token));
+		tokencontainer.setBmu_token_id (tokendao.insertToken (token));
 		
 		token.setId (tokencontainer.getBmu_token_id ());
 		DBLogger.logCreateToken (user, token);
@@ -69,8 +77,8 @@ public class Tokens
 	@Consumes ("application/json")
 	@Produces ("application/json")
 	public TokenDataContainer getTokenData (TokenContainer tc) throws WebApplicationException, SQLException, TokenInvalidException
-	{		
-		DBManager dbm = new DBManager ();
+	{
+		TokenDao tokendao = new TokenDaoImpl ();
 		
 		String token_pwd = "";
 		
@@ -84,7 +92,7 @@ public class Tokens
 			FileLogger.logException (e);
 		}
 		
-		Token token = dbm.getTokenData (tc.getBmu_token_id (), token_pwd);
+		Token token = tokendao.getTokenData (tc.getBmu_token_id (), token_pwd);
 		
 		if (token.checkToken () == false)
 		{
@@ -101,7 +109,7 @@ public class Tokens
 			token.setId (-1);
 			TokenContainer tokencontainer = new TokenContainer (new_token);
 			
-			tokencontainer.setBmu_token_id (dbm.insertToken (new_token));
+			tokencontainer.setBmu_token_id (tokendao.insertToken (new_token));
 			
 			tdc.setNewToken (tokencontainer);
 			

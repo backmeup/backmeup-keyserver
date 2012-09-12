@@ -9,14 +9,14 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 
+import org.backmeup.keyserver.dal.AuthInfoDao;
+import org.backmeup.keyserver.dal.UserDao;
+import org.backmeup.keysrv.dal.postgres.impl.AuthInfoDaoImpl;
+import org.backmeup.keysrv.dal.postgres.impl.UserDaoImpl;
 import org.backmeup.keysrv.rest.data.UserContainer;
-import org.backmeup.keysrv.rest.exceptions.RestUserNotFoundException;
 import org.backmeup.keysrv.rest.exceptions.RestUserNotValidException;
-import org.backmeup.keysrv.rest.exceptions.RestWrongDecryptionKeyException;
 import org.backmeup.keysrv.worker.AuthInfo;
 import org.backmeup.keysrv.worker.DBLogger;
-import org.backmeup.keysrv.worker.DBManager;
-import org.backmeup.keysrv.worker.FileLogger;
 import org.backmeup.keysrv.worker.User;
 
 @Path ("/users")
@@ -27,8 +27,8 @@ public class Users
 	@Produces ("application/json")
 	public UserContainer getUser (@PathParam ("bmu_user_id") long bmu_user_id)
 	{
-		DBManager dbm = new DBManager ();
-		User user = dbm.getUser (bmu_user_id);
+		UserDao userdao = new UserDaoImpl ();
+		User user = userdao.getUser (bmu_user_id);
 		
 		return new UserContainer (user);
 	}
@@ -38,10 +38,11 @@ public class Users
 	@Produces ("application/json")
 	public void deleteUser (@PathParam ("bmu_user_id") long bmu_user_id)
 	{
-		DBManager dbm = new DBManager ();
+		UserDao userdao = new UserDaoImpl ();
+		
 		User user = new User (bmu_user_id);
 		
-		dbm.deleteUser (user);
+		userdao.deleteUser (user);
 		DBLogger.deleteAllUserLogs (user);
 	}
 
@@ -50,11 +51,12 @@ public class Users
 	@Produces ("application/json")
 	public void registerUser (@PathParam ("bmu_user_id") long  bmu_user_id, @PathParam ("bmu_user_pwd") String  bmu_user_pwd)
 	{
-		DBManager dbm = new DBManager ();
+		UserDao userdao = new UserDaoImpl ();
+		
 		User user = new User (bmu_user_id);
 		user.setPwd (bmu_user_pwd);
 		
-		dbm.insertUser (user);
+		userdao.insertUser (user);
 		
 		DBLogger.logUserCreated (user);
 	}
@@ -64,8 +66,8 @@ public class Users
 	@Produces ("application/json")
 	public void validateUser (@PathParam ("bmu_user_id") long  bmu_user_id, @PathParam ("bmu_user_pwd") String  bmu_user_pwd)
 	{
-		DBManager dbm = new DBManager ();
-		User user = dbm.getUser (bmu_user_id);
+		UserDao userdao = new UserDaoImpl ();
+		User user = userdao.getUser (bmu_user_id);
 		
 		if (user.validatePwd (bmu_user_pwd) == false)
 		{
@@ -81,8 +83,8 @@ public class Users
 	@Produces ("application/json")
 	public void changeUserPwd (@PathParam ("bmu_user_id") long bmu_user_id, @PathParam ("new_bmu_user_pwd") String new_bmu_user_pwd, @PathParam ("old_bmu_user_pwd") String old_bmu_user_pwd)
 	{
-		DBManager dbm = new DBManager ();
-		User user = dbm.getUser (bmu_user_id);
+		UserDao userdao = new UserDaoImpl ();
+		User user = userdao.getUser (bmu_user_id);
 		
 		if (user.validatePwd (old_bmu_user_pwd) == false)
 		{
@@ -90,7 +92,7 @@ public class Users
 		}
 		
 		user.setPwd (new_bmu_user_pwd);
-		dbm.changeUser (user);
+		userdao.changeUser (user);
 		
 		DBLogger.logUserChangedPassword (user);
 	}
@@ -100,16 +102,17 @@ public class Users
 	@Produces ("application/json")
 	public void changeUserKeyringPwd (@PathParam ("bmu_user_id") long bmu_user_id, @PathParam ("new_bmu_user_keyring_pwd") String new_bmu_user_keyring_pwd, @PathParam ("old_bmu_user_keyring_pwd") String old_bmu_user_keyring_pwd)
 	{
-		DBManager dbm = new DBManager ();
-		User user = dbm.getUser (bmu_user_id);
+		UserDao userdao = new UserDaoImpl ();
+		AuthInfoDao authinfodao = new AuthInfoDaoImpl ();
+		User user = userdao.getUser (bmu_user_id);
 		
-		ArrayList<AuthInfo> authinfos = dbm.getUserAuthInfos (user);
+		ArrayList<AuthInfo> authinfos = authinfodao.getUserAuthInfos (user);
 		
 		for (AuthInfo authinfo : authinfos)
 		{
 			authinfo.changePassword (old_bmu_user_keyring_pwd, new_bmu_user_keyring_pwd);
-			dbm.deleteAuthInfo (authinfo.getBmuAuthinfoId ());
-			dbm.insertAuthInfo (authinfo);
+			authinfodao.deleteAuthInfo (authinfo.getBmuAuthinfoId ());
+			authinfodao.insertAuthInfo (authinfo);
 		}
 		
 		DBLogger.logUserWrongKeyringPassword (user);

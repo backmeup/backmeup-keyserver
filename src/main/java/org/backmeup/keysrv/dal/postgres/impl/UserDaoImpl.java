@@ -1,7 +1,6 @@
 package org.backmeup.keysrv.dal.postgres.impl;
 
 import java.io.IOException;
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -22,7 +21,7 @@ public class UserDaoImpl implements UserDao
 	private final String PS_DELETE_USER_BY_BMU_USER_ID = "DELETE FROM users WHERE bmu_user_id=?";
 
 	private PGPKeys pgpkeys;
-	
+
 	public UserDaoImpl ()
 	{
 		try
@@ -33,10 +32,10 @@ public class UserDaoImpl implements UserDao
 		{
 			// should not come up
 			FileLogger.logException (e);
-			e.printStackTrace();
+			e.printStackTrace ();
 		}
 	}
-	
+
 	@Override
 	public void insertUser (User user)
 	{
@@ -48,22 +47,18 @@ public class UserDaoImpl implements UserDao
 		catch (RestUserNotFoundException e)
 		{
 		}
-		
-		Connection con = null;
+
 		PreparedStatement ps = null;
 
 		try
 		{
-			con = org.backmeup.keysrv.dal.postgres.impl.Connection.getInstance ();
-			ps = con.prepareStatement (PS_INSERT_USER);
-			
+			ps = Connection.getPreparedStatement (PS_INSERT_USER);
+
 			ps.setLong (1, user.getBmuId ());
 			ps.setString (2, user.getPwd_hash ());
 			ps.setString (3, pgpkeys.getPublickey ());
 
 			ps.executeUpdate ();
-			ps.close ();
-			con.close ();
 		}
 		catch (SQLException e)
 		{
@@ -72,24 +67,21 @@ public class UserDaoImpl implements UserDao
 		}
 		finally
 		{
-			org.backmeup.keysrv.dal.postgres.impl.Connection.closeQuiet (ps);
-			org.backmeup.keysrv.dal.postgres.impl.Connection.closeQuiet (con);
+			Connection.closeQuiet (ps);
 		}
 	}
 
 	@Override
 	public User getUser (long bmu_user_id)
-	{	
+	{
 		User user = null;
-		Connection con = null;
 		PreparedStatement ps = null;
 		ResultSet rs = null;
 
 		try
 		{
-			con = org.backmeup.keysrv.dal.postgres.impl.Connection.getInstance ();
-			ps = con.prepareStatement (PS_SELECT_USER_BY_BMU_USER_ID);
-			
+			ps = Connection.getPreparedStatement (PS_SELECT_USER_BY_BMU_USER_ID);
+
 			ps.setString (1, pgpkeys.getPrivatekey ());
 			ps.setLong (2, bmu_user_id);
 
@@ -99,9 +91,6 @@ public class UserDaoImpl implements UserDao
 				user = new User (rs.getLong ("id"), rs.getLong ("bmu_user_id"));
 				user.setPwd_hash (rs.getString ("bmu_user_pwd_hash"));
 			}
-			rs.close ();
-			ps.close ();
-			con.close ();
 		}
 		catch (SQLException e)
 		{
@@ -110,9 +99,8 @@ public class UserDaoImpl implements UserDao
 		}
 		finally
 		{
-			org.backmeup.keysrv.dal.postgres.impl.Connection.closeQuiet (rs);
-			org.backmeup.keysrv.dal.postgres.impl.Connection.closeQuiet (ps);
-			org.backmeup.keysrv.dal.postgres.impl.Connection.closeQuiet (con);
+			Connection.closeQuiet (rs);
+			Connection.closeQuiet (ps);
 		}
 
 		if (user == null)
@@ -126,21 +114,17 @@ public class UserDaoImpl implements UserDao
 	@Override
 	public void changeUser (User user)
 	{
-		Connection con = null;
 		PreparedStatement ps = null;
-		
+
 		try
 		{
-			con = org.backmeup.keysrv.dal.postgres.impl.Connection.getInstance ();
-			ps = con.prepareStatement (PS_UPDATE_USER);
-			
+			ps = Connection.getPreparedStatement (PS_UPDATE_USER);
+
 			ps.setString (1, user.getPwd_hash ());
 			ps.setString (2, pgpkeys.getPublickey ());
 			ps.setLong (3, user.getBmuId ());
 
 			ps.executeUpdate ();
-			ps.close ();
-			con.close ();
 		}
 		catch (SQLException e)
 		{
@@ -149,7 +133,6 @@ public class UserDaoImpl implements UserDao
 		finally
 		{
 			org.backmeup.keysrv.dal.postgres.impl.Connection.closeQuiet (ps);
-			org.backmeup.keysrv.dal.postgres.impl.Connection.closeQuiet (con);
 		}
 	}
 
@@ -158,18 +141,14 @@ public class UserDaoImpl implements UserDao
 	{
 		this.getUser (user.getBmuId ());
 
-		Connection con = null;
 		PreparedStatement ps = null;
-		
+
 		try
 		{
-			con = org.backmeup.keysrv.dal.postgres.impl.Connection.getInstance ();
-			ps = con.prepareStatement (PS_DELETE_USER_BY_BMU_USER_ID);
-			
+			ps = Connection.getPreparedStatement (PS_DELETE_USER_BY_BMU_USER_ID);
+
 			ps.setLong (1, user.getBmuId ());
 			ps.executeUpdate ();
-			ps.close ();
-			con.close ();
 		}
 		catch (SQLException e)
 		{
@@ -178,8 +157,7 @@ public class UserDaoImpl implements UserDao
 		}
 		finally
 		{
-			org.backmeup.keysrv.dal.postgres.impl.Connection.closeQuiet (ps);
-			org.backmeup.keysrv.dal.postgres.impl.Connection.closeQuiet (con);
+			Connection.closeQuiet (ps);
 		}
 	}
 
