@@ -17,6 +17,7 @@ import org.backmeup.keysrv.rest.data.UserContainer;
 import org.backmeup.keysrv.rest.exceptions.RestUserNotValidException;
 import org.backmeup.keysrv.worker.AuthInfo;
 import org.backmeup.keysrv.worker.DBLogger;
+import org.backmeup.keysrv.worker.DataManager;
 import org.backmeup.keysrv.worker.User;
 
 @Path ("/users")
@@ -27,7 +28,7 @@ public class Users
 	@Produces ("application/json")
 	public UserContainer getUser (@PathParam ("bmu_user_id") long bmu_user_id)
 	{
-		UserDao userdao = new UserDaoImpl ();
+		UserDao userdao = DataManager.getUserDao ();
 		User user = userdao.getUser (bmu_user_id);
 		
 		return new UserContainer (user);
@@ -38,7 +39,7 @@ public class Users
 	@Produces ("application/json")
 	public void deleteUser (@PathParam ("bmu_user_id") long bmu_user_id)
 	{
-		UserDao userdao = new UserDaoImpl ();
+		UserDao userdao = DataManager.getUserDao ();
 		
 		User user = new User (bmu_user_id);
 		
@@ -51,7 +52,7 @@ public class Users
 	@Produces ("application/json")
 	public void registerUser (@PathParam ("bmu_user_id") long  bmu_user_id, @PathParam ("bmu_user_pwd") String  bmu_user_pwd)
 	{
-		UserDao userdao = new UserDaoImpl ();
+		UserDao userdao = DataManager.getUserDao ();
 		
 		User user = new User (bmu_user_id);
 		user.setPwd (bmu_user_pwd);
@@ -66,7 +67,7 @@ public class Users
 	@Produces ("application/json")
 	public void validateUser (@PathParam ("bmu_user_id") long  bmu_user_id, @PathParam ("bmu_user_pwd") String  bmu_user_pwd)
 	{
-		UserDao userdao = new UserDaoImpl ();
+		UserDao userdao = DataManager.getUserDao ();
 		User user = userdao.getUser (bmu_user_id);
 		
 		if (user.validatePwd (bmu_user_pwd) == false)
@@ -83,7 +84,7 @@ public class Users
 	@Produces ("application/json")
 	public void changeUserPwd (@PathParam ("bmu_user_id") long bmu_user_id, @PathParam ("new_bmu_user_pwd") String new_bmu_user_pwd, @PathParam ("old_bmu_user_pwd") String old_bmu_user_pwd)
 	{
-		UserDao userdao = new UserDaoImpl ();
+		UserDao userdao = DataManager.getUserDao ();
 		User user = userdao.getUser (bmu_user_id);
 		
 		if (user.validatePwd (old_bmu_user_pwd) == false)
@@ -102,8 +103,8 @@ public class Users
 	@Produces ("application/json")
 	public void changeUserKeyringPwd (@PathParam ("bmu_user_id") long bmu_user_id, @PathParam ("new_bmu_user_keyring_pwd") String new_bmu_user_keyring_pwd, @PathParam ("old_bmu_user_keyring_pwd") String old_bmu_user_keyring_pwd)
 	{
-		UserDao userdao = new UserDaoImpl ();
-		AuthInfoDao authinfodao = new AuthInfoDaoImpl ();
+		UserDao userdao = DataManager.getUserDao ();
+		AuthInfoDao authinfodao = DataManager.getAuthInfoDao ();
 		User user = userdao.getUser (bmu_user_id);
 		
 		ArrayList<AuthInfo> authinfos = authinfodao.getUserAuthInfos (user);

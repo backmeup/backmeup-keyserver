@@ -18,6 +18,7 @@ import org.backmeup.keysrv.rest.data.AuthInfoContainer;
 import org.backmeup.keysrv.rest.exceptions.*;
 import org.backmeup.keysrv.worker.AuthInfo;
 import org.backmeup.keysrv.worker.DBLogger;
+import org.backmeup.keysrv.worker.DataManager;
 import org.backmeup.keysrv.worker.Service;
 import org.backmeup.keysrv.worker.User;
 
@@ -29,9 +30,9 @@ public class AuthInfos
 	@Produces ("application/json")
 	public AuthInfoContainer getAuthInfo (@PathParam ("bmu_authinfo_id") long bmu_authinfo_id, @PathParam ("bmu_user_id") long bmu_user_id, @PathParam ("bmu_service_id") long bmu_service_id, @PathParam ("user_pwd") String user_pwd) throws RestSQLException
 	{
-		UserDao userdao = new UserDaoImpl ();
-		ServiceDao servicedao = new ServiceDaoImpl ();
-		AuthInfoDao authinfodoa = new AuthInfoDaoImpl ();
+		UserDao userdao = DataManager.getUserDao ();
+		ServiceDao servicedao = DataManager.getServiceDao ();
+		AuthInfoDao authinfodoa = DataManager.getAuthInfoDao ();
 		
 		User user = null;
 		Service service = null;
@@ -54,9 +55,9 @@ public class AuthInfos
 	@Produces ("application/json")
 	public void addAuthInfo (AuthInfoContainer aic) throws RestUserNotFoundException, RestSQLException
 	{
-		UserDao userdao = new UserDaoImpl ();
-		ServiceDao servicedao = new ServiceDaoImpl ();
-		AuthInfoDao authinfodoa = new AuthInfoDaoImpl ();
+		UserDao userdao = DataManager.getUserDao ();
+		ServiceDao servicedao = DataManager.getServiceDao ();
+		AuthInfoDao authinfodoa = DataManager.getAuthInfoDao ();
 		
 		User user = userdao.getUser (aic.getBmu_user_id ());
 		user.setPwd (aic.getUser_pwd ());
@@ -76,7 +77,7 @@ public class AuthInfos
 	@Produces ("application/json")
 	public void deleteAuthInfo (@PathParam ("bmu_authinfo_id") long bmu_authinfo_id) throws RestSQLException
 	{
-		AuthInfoDao authinfodoa = new AuthInfoDaoImpl ();
+		AuthInfoDao authinfodoa = DataManager.getAuthInfoDao ();
 		
 		authinfodoa.deleteAuthInfo (bmu_authinfo_id);
 	}

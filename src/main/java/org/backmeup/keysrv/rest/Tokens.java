@@ -22,7 +22,7 @@ import org.backmeup.keysrv.rest.data.TokenDataContainer;
 import org.backmeup.keysrv.rest.data.TokenRequestContainer;
 import org.backmeup.keysrv.rest.exceptions.RestTokenRequestNotValidException;
 import org.backmeup.keysrv.worker.DBLogger;
-import org.backmeup.keysrv.worker.DBManager;
+import org.backmeup.keysrv.worker.DataManager;
 import org.backmeup.keysrv.worker.FileLogger;
 import org.backmeup.keysrv.worker.Service;
 import org.backmeup.keysrv.worker.Token;
@@ -39,10 +39,10 @@ public class Tokens
 	@Produces ("application/json")
 	public TokenContainer getToken (TokenRequestContainer trc) throws SQLException
 	{
-		UserDao userdao = new UserDaoImpl ();
-		ServiceDao servicedao = new ServiceDaoImpl ();
-		AuthInfoDao authinfodoa = new AuthInfoDaoImpl ();
-		TokenDao tokendao = new TokenDaoImpl ();
+		UserDao userdao = DataManager.getUserDao ();
+		ServiceDao servicedao = DataManager.getServiceDao ();
+		AuthInfoDao authinfodoa = DataManager.getAuthInfoDao ();
+		TokenDao tokendao = DataManager.getTokenDao ();
 
 		if (trc.validRequest () == false)
 		{
@@ -78,7 +78,7 @@ public class Tokens
 	@Produces ("application/json")
 	public TokenDataContainer getTokenData (TokenContainer tc) throws WebApplicationException, SQLException, TokenInvalidException
 	{
-		TokenDao tokendao = new TokenDaoImpl ();
+		TokenDao tokendao = DataManager.getTokenDao ();
 		
 		String token_pwd = "";
 		

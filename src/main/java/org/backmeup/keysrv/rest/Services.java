@@ -10,6 +10,7 @@ import javax.ws.rs.Produces;
 import org.backmeup.keyserver.dal.ServiceDao;
 import org.backmeup.keysrv.dal.postgres.impl.ServiceDaoImpl;
 import org.backmeup.keysrv.rest.data.ServiceContainer;
+import org.backmeup.keysrv.worker.DataManager;
 import org.backmeup.keysrv.worker.Service;
 
 @Path ("/services")
@@ -20,7 +21,7 @@ public class Services
 	@Produces ("application/json")
 	public ServiceContainer getService (@PathParam ("bmu_service_id") long bmu_service_id)
 	{
-		ServiceDao servicedao = new ServiceDaoImpl ();
+		ServiceDao servicedao = DataManager.getServiceDao ();
 		Service service = servicedao.getService (bmu_service_id);
 
 		return new ServiceContainer (service);
@@ -31,7 +32,7 @@ public class Services
 	@Produces ("application/json")
 	public void deleteService (@PathParam ("bmu_service_id") long bmu_service_id)
 	{
-		ServiceDao servicedao = new ServiceDaoImpl ();
+		ServiceDao servicedao = DataManager.getServiceDao ();
 		Service service = new Service (bmu_service_id);
 		
 		servicedao.deleteService (service);
@@ -42,7 +43,7 @@ public class Services
 	@Produces ("application/json")
 	public void registerUser (@PathParam ("bmu_service_id") long bmu_service_id)
 	{
-		ServiceDao servicedao = new ServiceDaoImpl ();
+		ServiceDao servicedao = DataManager.getServiceDao ();
 		Service service = new Service (bmu_service_id);
 
 		servicedao.insertService (service);

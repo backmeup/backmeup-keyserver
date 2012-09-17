@@ -28,7 +28,7 @@ public class DBLogger
 	{
 		if (logdao == null)
 		{
-			logdao = new LogDaoImpl ();
+			logdao = DataManager.getLogDao ();
 		}
 	}
 	
