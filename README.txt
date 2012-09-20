@@ -17,8 +17,29 @@ To get the newest codeset from the repo:
 cd /root/keysrv
 git pull
 
-To build everything:
+
+Before you build the keyserver code import the new schema to database!
+See SQL section below.
+
+To build and deploy everything:
 mvn clean tomcat:redeploy
+
 
 Get the local ip address:
 ifconfig
+
+
+
+
+SQL:
+!!WARNING!!
+This will wipe all data from the keyserver database!
+
+cd /root/keysrv
+git pull
+cp db_keysrv.sql /tmp/
+chmod 777 /tmp/db_keysrv.sql
+su - postgres
+psql db_keysrv < /tmp/db_keysrv.sql
+exit
+rm /tmp/db_keysrv.sql
