@@ -1,4 +1,5 @@
 package org.backmeup.keysrv.worker;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.SecureRandom;
 import java.util.HashMap;
@@ -13,6 +14,7 @@ import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.backmeup.keysrv.rest.exceptions.RestWrongDecryptionKeyException;
+import org.jboss.resteasy.util.Base64;
 
 
 
@@ -111,7 +113,7 @@ public class CipherGenerator
 		byte[] iv = null;
 		byte[] encdata = null;
 		
-		PBEKeySpec keyspec = new PBEKeySpec (pwd.toCharArray (), salt, NUM_PWD_ITERATIONS, AES_KEY_LENGTH);
+		PBEKeySpec keyspec = new PBEKeySpec (toCharArray (pwd), salt, NUM_PWD_ITERATIONS, AES_KEY_LENGTH);
 	
 		try
 		{
@@ -167,7 +169,8 @@ public class CipherGenerator
 		System.arraycopy (encdata, salt.length, iv, 0, iv.length);
 		System.arraycopy (encdata, salt.length + iv.length, data, 0, data.length);
 		
-		PBEKeySpec keyspec = new PBEKeySpec (pwd.toCharArray (), salt, NUM_PWD_ITERATIONS, AES_KEY_LENGTH);
+		PBEKeySpec keyspec = new PBEKeySpec (toCharArray (pwd), salt, NUM_PWD_ITERATIONS, AES_KEY_LENGTH);
+		
 		
 		try
 		{
@@ -206,30 +209,67 @@ public class CipherGenerator
 	public String generatePassword ()
 	{
 		SecureRandom sr =  new SecureRandom ();
-		byte[] key = new byte[128];
+		byte[] key = new byte[64];
 		
-		String pwd = "";
+		//String pwd = "";
+		
+		sr.nextBytes (key);
 
-		// make sure that the string is at least 65 chars long
-		while (pwd.length () < 65)
-		{
-			// transform the key to UTF8 format length is variable
-			try
-			{
-				// generate an random 128 bit key 
-				sr.nextBytes (key);
-				pwd = new String (key, ENCODING);
-			}
-			catch (UnsupportedEncodingException e)
-			{
-				FileLogger.logException (e);
-				e.printStackTrace();
-			}
-		}
+//		// make sure that the string is at least 65 chars long
+//		while (pwd.length () < 65)
+//		{
+//			// transform the key to UTF8 format length is variable
+//			try
+//			{
+//				// generate an random 128 bit key 
+//				sr.nextBytes (key);
+//				pwd = new String (key, ENCODING);
+//			}
+//			catch (UnsupportedEncodingException e)
+//			{
+//				FileLogger.logException (e);
+//				e.printStackTrace();
+//			}
+//		}
 		
 		// create a fixed 64 chars long UTF8 String
-		pwd = pwd.substring (0, 64);
+		//pwd = pwd.substring (0, 64);
 		
-		return pwd;
+		return Base64.encodeBytes (key);
+	}
+	
+	private boolean isBase64 (String pwd)
+	{
+		// tests if the password is a 88 chars long base64 conform string
+		return pwd.matches ("^(([A-Za-z0-9+/]{4}){21})([A-Za-z0-9+/]{2}==)$");
+	}
+	
+	private char[] toCharArray (String pwd)
+	{
+		if (isBase64 (pwd) == false)
+		{
+			return pwd.toCharArray ();
+		}
+		
+		byte[] bytes;
+		try
+		{
+			bytes = Base64.decode (pwd);
+		}
+		catch (IOException e)
+		{
+			// Should not come up
+			FileLogger.logException (e);
+			return null;
+		}
+		
+		char[] chars = new char[bytes.length];
+		
+		for (int i = 0; i < bytes.length; i++)
+		{
+			chars[i] = (char) bytes[i];
+		}
+		
+		return chars;
 	}
 }

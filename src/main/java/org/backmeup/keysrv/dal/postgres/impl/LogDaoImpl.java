@@ -21,7 +21,7 @@ public class LogDaoImpl implements LogDao
 {
 	private static final String PS_INSERT_LOG = "INSERT INTO logs (bmu_user_id, bmu_service_id, bmu_authinfo_id, bmu_token_id, date, type, description) VALUES (?, ?, ?, ?, ?, (pgp_pub_encrypt (?, dearmor(?))), (pgp_pub_encrypt (?, dearmor(?))))";
 	private static final String PS_DELETE_LOG_BY_BMU_USER_ID = "DELETE FROM logs WHERE bmu_user_id=?";
-	private static final String PS_SELECT_LOG_BY_BMU_USER_ID = "SELECT bmu_user_id, bmu_service_id, bmu_authinfo_id, bmu_token_id, date, pgp_pub_decrypt (type, dearmor (?)) AS type, pgp_pub_decrypt (description, dearmor (?)) AS description FROM logs WHERE bmu_user_id=?";
+	private static final String PS_SELECT_LOG_BY_BMU_USER_ID = "SELECT bmu_user_id, bmu_service_id, bmu_authinfo_id, bmu_token_id, date, pgp_pub_decrypt (type, dearmor (?)) AS type, pgp_pub_decrypt (description, dearmor (?)) AS description FROM logs WHERE bmu_user_id=? ORDER BY logs.id";
 	
 	private PGPKeys pgpkeys;
 
