@@ -1,7 +1,6 @@
 package org.backmeup.keysrv.worker;
 
 import org.backmeup.keyserver.dal.LogDao;
-import org.backmeup.keysrv.dal.postgres.impl.LogDaoImpl;
 
 public class DBLogger
 {
@@ -20,7 +19,7 @@ public class DBLogger
 	
 	private static final String TYPE_INFO = "info";
 	private static final String TYPE_WARNING = "warning";
-	private static final String TYPE_ERROR = "error";
+	//private static final String TYPE_ERROR = "error";
 	
 	private static LogDao logdao = null;
 	

@@ -79,6 +79,10 @@ public class AuthInfos
 	{
 		AuthInfoDao authinfodoa = DataManager.getAuthInfoDao ();
 		
+		AuthInfo ai = authinfodoa.getAuthInfo (bmu_authinfo_id);
+		
 		authinfodoa.deleteAuthInfo (bmu_authinfo_id);
+		
+		DBLogger.logDeleteAuthInfo (ai.getUser (), ai);
 	}
 }

@@ -23,6 +23,7 @@ public class AuthInfoDaoImpl implements AuthInfoDao
 	private static final String PS_SELECT_AUTH_INFO_BY_USER = "SELECT DISTINCT auth_infos.bmu_authinfo_id AS bmu_authinfo_id, auth_infos.service_id AS service_id, services.bmu_service_id AS bmu_service_id FROM auth_infos INNER JOIN services ON services.id=auth_infos.service_id WHERE auth_infos.user_id=? ORDER BY auth_infos.bmu_authinfo_id";
 	private static final String PS_SELECT_AUTH_INFO_BY_BMU_AUTHINFO_ID = "SELECT id, bmu_authinfo_id, user_id, service_id, pgp_pub_decrypt_bytea (ai_key, dearmor (?)) AS ai_key, pgp_pub_decrypt_bytea (ai_value, dearmor (?)) AS ai_value FROM auth_infos WHERE bmu_authinfo_id=?";
 	private static final String PS_DELETE_AUTH_INFO_BY_BMU_AUTHINFO_ID = "DELETE FROM auth_infos WHERE bmu_authinfo_id=?";
+	private static final String PS_SELECT_USER_SERVICE_BY_BMU_AUTHINFO_ID = "SELECT users.bmu_user_id AS bmu_user_id, services.bmu_service_id AS bmu_service_id FROM auth_infos INNER JOIN users ON auth_infos.user_id=users.id INNER JOIN services ON auth_infos.service_id=services.id WHERE auth_infos.bmu_authinfo_id=? LIMIT 1";
 	
 	private PGPKeys pgpkeys;
 
@@ -126,6 +127,53 @@ public class AuthInfoDaoImpl implements AuthInfoDao
 		}
 
 		if (ai.getAi_data ().size () == 0)
+		{
+			throw new RestAuthInfoNotFoundException (bmu_authinfo_id);
+		}
+
+		return ai;
+	}
+	
+	@Override
+	public AuthInfo getAuthInfo (long bmu_authinfo_id)
+	{
+		AuthInfo ai = null;
+
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		
+		try
+		{
+			ps = Connection.getPreparedStatement (PS_SELECT_USER_SERVICE_BY_BMU_AUTHINFO_ID);
+			
+			ps.setLong (1, bmu_authinfo_id);
+
+			rs = ps.executeQuery ();
+
+			User user = null;
+			Service service = null;
+			if (rs.next () == true)
+			{
+				long bmu_user_id = rs.getLong ("bmu_user_id");
+				long bmu_service_id = rs.getLong ("bmu_service_id");
+				
+				user = new User (bmu_user_id);
+				service = new Service (bmu_service_id);
+				
+				ai = new AuthInfo (bmu_authinfo_id, user, service);
+			}
+		}
+		catch (SQLException e)
+		{
+			throw new RestSQLException (e);
+		}
+		finally
+		{
+			Connection.closeQuiet (rs);
+			Connection.closeQuiet (ps);
+		}
+
+		if (ai == null)
 		{
 			throw new RestAuthInfoNotFoundException (bmu_authinfo_id);
 		}
