@@ -35,7 +35,7 @@ SQL:
 !!WARNING!!
 This will wipe all data from the keyserver database!
 
-cd /root/keysrv
+cd /root/backmeup-keyserver
 git pull
 cp db_keysrv.sql /tmp/
 chmod 777 /tmp/db_keysrv.sql
