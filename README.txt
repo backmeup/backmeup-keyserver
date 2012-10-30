@@ -14,7 +14,7 @@ User: root
 PWD: toor
 
 To get the newest codeset from the repo:
-cd /root/keysrv
+cd /root/backmeup-keyserver
 git pull
 
 
