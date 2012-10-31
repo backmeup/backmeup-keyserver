@@ -18,6 +18,7 @@ import org.backmeup.keysrv.rest.exceptions.RestUserNotValidException;
 import org.backmeup.keysrv.worker.AuthInfo;
 import org.backmeup.keysrv.worker.DBLogger;
 import org.backmeup.keysrv.worker.DataManager;
+import org.backmeup.keysrv.worker.FileLogger;
 import org.backmeup.keysrv.worker.User;
 
 @Path ("/users")

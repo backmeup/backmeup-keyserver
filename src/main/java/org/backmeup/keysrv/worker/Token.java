@@ -11,7 +11,8 @@ public class Token
 	private static final String ENCODING = "UTF-8";
 
 	// the time the token would be valid +/- in milliseconds. 600000 = 10 Minutes
-	public final long TIME_WINDOW = 600000;
+	public final long TIME_WINDOW_PREV = 600000;
+	public final long TIME_WINDOW_AFTER = 86400000; // 1 Day
 	
 	private long id = -1;
 	private boolean extendable = false;
@@ -160,8 +161,8 @@ public class Token
 		Date not_valid_before = new Date ();
 		Date not_valid_after  = new Date ();
 		
-		not_valid_before.setTime (this.backupdate.getTime () - this.TIME_WINDOW);
-		not_valid_after.setTime (this.backupdate.getTime () + this.TIME_WINDOW);
+		not_valid_before.setTime (this.backupdate.getTime () - this.TIME_WINDOW_PREV);
+		not_valid_after.setTime (this.backupdate.getTime () + this.TIME_WINDOW_AFTER);
 		
 		if (now.before (not_valid_before) == true)
 		{
