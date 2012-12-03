@@ -1,0 +1,24 @@
+BackMeUp Keyserver
+The BackMeUp Keyserver is part of the BackMeUp suite and ensures a secure storage of user and authentication data for BackMeUp Core and various BackMeUp Plugins. 
+Copyright (C) 2010-2012 X-Net Services GmbH
+
+Limitation: The licence terms stated below only apply to the BackMeUp Keyserver module, neither to other parts of the BackMeUp suite (Core, Datasource/-sink Plugins, Job-Action Plugins, Webfrontend,...) nor to the BackMeUp trademark itself. Unless otherwise identified all source code and program modules located in this repository belong to BackMeUp Keyserver module. Please note that the used programming languages, libraries and frameworks also have their own licence agreements.
+
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+Contact information:
+X-Net Services GmbH, Elisabethstrasse 1, 4020 Linz, Austria
+www.x-net.at, office@x-net.at
