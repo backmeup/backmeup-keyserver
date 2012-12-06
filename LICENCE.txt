@@ -28,5 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 Contact information:
-X-Net Services GmbH, Elisabethstrasse 1, 4020 Linz, Austria
+X-Net Services GmbH 
+Elisabethstrasse 1 
+4020 Linz, Austria
 www.x-net.at, office@x-net.at
