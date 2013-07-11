@@ -48,7 +48,7 @@
 				<artifactId>tomcat-maven-plugin</artifactId>
 				<version>1.1</version>
 				<configuration>
-					<url>http://bmu-keysrv01.l.x/manager/html</url>
+					<url>http://bmu-keysrv01/manager/html</url>
 					<server>keysrv</server>
 					<path>/keysrv</path>
 				</configuration>
