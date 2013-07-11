@@ -24,6 +24,7 @@ import org.backmeup.keysrv.rest.exceptions.RestTokenRequestNotValidException;
 import org.backmeup.keysrv.worker.DBLogger;
 import org.backmeup.keysrv.worker.DataManager;
 import org.backmeup.keysrv.worker.FileLogger;
+import org.backmeup.keysrv.worker.Mailer;
 import org.backmeup.keysrv.worker.Service;
 import org.backmeup.keysrv.worker.Token;
 import org.backmeup.keysrv.worker.TokenInvalidException;
@@ -96,6 +97,7 @@ public class Tokens
 		
 		if (token.checkToken () == false)
 		{
+			Mailer.sendAdminMail ("Token exploited", "Token with id " + token.getId () + " was used under a not valid condition!");
 			throw new RestTokenRequestNotValidException ();
 		}
 		
