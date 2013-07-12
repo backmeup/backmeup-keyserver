@@ -15,6 +15,7 @@ public class TokenDataContainer
 	private ArrayList<AuthInfoContainer> authinfocontainers;
 	private TokenContainer newtoken;
 	private boolean ignore_new_token = true;
+	private String encryption_pwd = null;
 	
 	
 	public TokenDataContainer()
@@ -87,5 +88,15 @@ public class TokenDataContainer
 	public void setNewToken (TokenContainer tokencontainer)
 	{
 		this.newtoken = tokencontainer;
+	}
+
+	public String getEncryption_pwd ()
+	{
+		return encryption_pwd;
+	}
+
+	public void setEncryption_pwd (String encryption_pwd)
+	{
+		this.encryption_pwd = encryption_pwd;
 	}
 }

@@ -21,6 +21,7 @@ public class Token
 	private String tokenpwd = null;
 	private ArrayList<AuthInfo> auth_infos = null;
 	private boolean reusable = false;
+	private String encryption_pwd = null;
 	
 	public Token (User user, Date backupdate, boolean reusable)
 	{
@@ -33,6 +34,7 @@ public class Token
 		
 		this.user = user;
 		this.reusable = reusable;
+		this.encryption_pwd = null;
 	}
 	
 	public void renewTokenPwd ()
