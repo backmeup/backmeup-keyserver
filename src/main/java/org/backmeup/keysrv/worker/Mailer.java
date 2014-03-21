@@ -15,81 +15,89 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
 public class Mailer {
-  private static ExecutorService service;
-  static {
-    service = Executors.newFixedThreadPool(4);
-  }
-  
-  public static void sendAdminMail(final String subject, final String text)
-	{
-		getMailSettings ();
-		send (mailSettings.getProperty ("mail.admin.address"), subject, text);
+	private static ExecutorService service;
+	static {
+		service = Executors.newFixedThreadPool(4);
 	}
-  
-  public static void send(final String to, final String subject, final String text) {
-    send(to, subject, text, "text/plain");
-  }
-  
-  public static void synchronousSend(final String to, final String subject, final String text, final String mimeType) {
-    executeSend(to, subject, text, mimeType);
-  }
-  
-  private static void executeSend(final String to, final String subject, final String text, final String mimeType) {
-    final Properties props = getMailSettings();
-    try {      
-      // Get session
-      Session session = Session.getDefaultInstance(props, new Authenticator() {      
-        @Override
-        protected PasswordAuthentication getPasswordAuthentication() {
-          return new PasswordAuthentication(props.getProperty("mail.user"), props.getProperty("mail.password"));
-        }
-      });
-      // Define message
-      MimeMessage message = new MimeMessage(session);
 
-      message.setFrom(new InternetAddress(props.getProperty("mail.from")));
-      message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
-      message.setSubject(subject);
-      message.setContent(text, mimeType);
+	public static void sendAdminMail(final String subject, final String text) {
+		getMailSettings();
+		send(mailSettings.getProperty("mail.admin.address"), subject, text);
+	}
 
-      // Send message
-      Transport.send(message);
-    } catch (Exception e) {
-      //TODO: Log exception
-      throw new RuntimeException(e);
-      //e.printStackTrace();
-    } 
-  }
-  
-  public static void send(final String to, final String subject, final String text, final String mimeType) {    
-    // Get system properties
-    service.submit(new Runnable() {
-      public void run() {
-        executeSend(to, subject, text, mimeType);
-      }
-    });    
-  }
-  
-  private static Properties mailSettings;
-  
-  private static Properties getMailSettings() {
-    if (mailSettings == null) {
-      Properties props = new Properties();
-      InputStream is = null;
-      try {
-        is = Mailer.class.getClassLoader().getResourceAsStream("mail.properties");
-        props.load(is);          
-        mailSettings = props;
-      } catch (Exception e) {
-      } finally {
-        if (is != null)
-          try {
-            is.close();
-          } catch (IOException e) {
-            e.printStackTrace();
-          }
-      }
-    }
-    return mailSettings;
-  }
+	public static void send(final String to, final String subject,
+			final String text) {
+		send(to, subject, text, "text/plain");
+	}
+
+	public static void synchronousSend(final String to, final String subject,
+			final String text, final String mimeType) {
+		executeSend(to, subject, text, mimeType);
+	}
+
+	private static void executeSend(final String to, final String subject,
+			final String text, final String mimeType) {
+		final Properties props = getMailSettings();
+		try {
+			// Get session
+			Session session = Session.getDefaultInstance(props,
+					new Authenticator() {
+						@Override
+						protected PasswordAuthentication getPasswordAuthentication() {
+							return new PasswordAuthentication(props
+									.getProperty("mail.user"), props
+									.getProperty("mail.password"));
+						}
+					});
+			// Define message
+			MimeMessage message = new MimeMessage(session);
+
+			message.setFrom(new InternetAddress(props.getProperty("mail.from")));
+			message.addRecipient(Message.RecipientType.TO, new InternetAddress(
+					to));
+			message.setSubject(subject);
+			message.setContent(text, mimeType);
+
+			// Send message
+			Transport.send(message);
+		} catch (Exception e) {
+			// TODO: Log exception
+			throw new RuntimeException(e);
+			// e.printStackTrace();
+		}
+	}
+
+	public static void send(final String to, final String subject,
+			final String text, final String mimeType) {
+		// Get system properties
+		service.submit(new Runnable() {
+			public void run() {
+				executeSend(to, subject, text, mimeType);
+			}
+		});
+	}
+
+	private static Properties mailSettings;
+
+	private static Properties getMailSettings() {
+		if (mailSettings == null) {
+			Properties props = new Properties();
+			InputStream is = null;
+			try {
+				is = Mailer.class.getClassLoader().getResourceAsStream(
+						"mail.properties");
+				props.load(is);
+				mailSettings = props;
+			} catch (Exception e) {
+			} finally {
+				if (is != null)
+					try {
+						is.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+			}
+		}
+		return mailSettings;
+	}
 }

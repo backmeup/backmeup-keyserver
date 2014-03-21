@@ -11,30 +11,24 @@ import org.backmeup.keysrv.dal.postgres.impl.ServiceDaoImpl;
 import org.backmeup.keysrv.dal.postgres.impl.TokenDaoImpl;
 import org.backmeup.keysrv.dal.postgres.impl.UserDaoImpl;
 
-public class DataManager
-{
-	public static UserDao getUserDao ()
-	{
-		return new UserDaoImpl ();
+public class DataManager {
+	public static UserDao getUserDao() {
+		return new UserDaoImpl();
 	}
-	
-	public static ServiceDao getServiceDao ()
-	{
-		return new ServiceDaoImpl ();
+
+	public static ServiceDao getServiceDao() {
+		return new ServiceDaoImpl();
 	}
-	
-	public static AuthInfoDao getAuthInfoDao ()
-	{
-		return new AuthInfoDaoImpl ();
+
+	public static AuthInfoDao getAuthInfoDao() {
+		return new AuthInfoDaoImpl();
 	}
-	
-	public static TokenDao getTokenDao ()
-	{
-		return new TokenDaoImpl ();
+
+	public static TokenDao getTokenDao() {
+		return new TokenDaoImpl();
 	}
-	
-	public static LogDao getLogDao ()
-	{
-		return new LogDaoImpl ();
+
+	public static LogDao getLogDao() {
+		return new LogDaoImpl();
 	}
 }

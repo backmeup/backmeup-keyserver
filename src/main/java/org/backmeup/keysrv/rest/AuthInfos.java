@@ -22,67 +22,70 @@ import org.backmeup.keysrv.worker.DataManager;
 import org.backmeup.keysrv.worker.Service;
 import org.backmeup.keysrv.worker.User;
 
-@Path ("/authinfos")
-public class AuthInfos
-{
+@Path("/authinfos")
+public class AuthInfos {
 	@GET
-	@Path ("{bmu_authinfo_id}/{bmu_user_id}/{bmu_service_id}/{user_pwd}")
-	@Produces ("application/json")
-	public AuthInfoContainer getAuthInfo (@PathParam ("bmu_authinfo_id") long bmu_authinfo_id, @PathParam ("bmu_user_id") long bmu_user_id, @PathParam ("bmu_service_id") long bmu_service_id, @PathParam ("user_pwd") String user_pwd) throws RestSQLException
-	{
-		UserDao userdao = DataManager.getUserDao ();
-		ServiceDao servicedao = DataManager.getServiceDao ();
-		AuthInfoDao authinfodoa = DataManager.getAuthInfoDao ();
-		
+	@Path("{bmu_authinfo_id}/{bmu_user_id}/{bmu_service_id}/{user_pwd}")
+	@Produces("application/json")
+	public AuthInfoContainer getAuthInfo(
+			@PathParam("bmu_authinfo_id") long bmu_authinfo_id,
+			@PathParam("bmu_user_id") long bmu_user_id,
+			@PathParam("bmu_service_id") long bmu_service_id,
+			@PathParam("user_pwd") String user_pwd) throws RestSQLException {
+		UserDao userdao = DataManager.getUserDao();
+		ServiceDao servicedao = DataManager.getServiceDao();
+		AuthInfoDao authinfodoa = DataManager.getAuthInfoDao();
+
 		User user = null;
 		Service service = null;
 
-		user = userdao.getUser (bmu_user_id);
-		service = servicedao.getService (bmu_service_id);
-		
-		user.setPwd (user_pwd);
-		
-		AuthInfo ai = authinfodoa.getAuthInfo (bmu_authinfo_id, user, service);
-		
-		DBLogger.logProvideAuthInfo (user, ai);
-		
-		return new AuthInfoContainer (ai);
+		user = userdao.getUser(bmu_user_id);
+		service = servicedao.getService(bmu_service_id);
+
+		user.setPwd(user_pwd);
+
+		AuthInfo ai = authinfodoa.getAuthInfo(bmu_authinfo_id, user, service);
+
+		DBLogger.logProvideAuthInfo(user, ai);
+
+		return new AuthInfoContainer(ai);
 	}
-	
+
 	@POST
-	@Path ("add")
-	@Consumes ("application/json")
-	@Produces ("application/json")
-	public void addAuthInfo (AuthInfoContainer aic) throws RestUserNotFoundException, RestSQLException
-	{
-		UserDao userdao = DataManager.getUserDao ();
-		ServiceDao servicedao = DataManager.getServiceDao ();
-		AuthInfoDao authinfodoa = DataManager.getAuthInfoDao ();
-		
-		User user = userdao.getUser (aic.getBmu_user_id ());
-		user.setPwd (aic.getUser_pwd ());
-		
-		Service service = servicedao.getService (aic.getBmu_service_id ());
-		
-		AuthInfo ai = new AuthInfo (aic.getBmu_authinfo_id (), user, service);
-		ai.setDecAi_data (aic.getAi_data ());
-		
-		authinfodoa.insertAuthInfo (ai);
-		
-		DBLogger.logAddAuthInfo (user, ai);
+	@Path("add")
+	@Consumes("application/json")
+	@Produces("application/json")
+	public void addAuthInfo(AuthInfoContainer aic)
+			throws RestUserNotFoundException, RestSQLException {
+		UserDao userdao = DataManager.getUserDao();
+		ServiceDao servicedao = DataManager.getServiceDao();
+		AuthInfoDao authinfodoa = DataManager.getAuthInfoDao();
+
+		User user = userdao.getUser(aic.getBmu_user_id());
+		user.setPwd(aic.getUser_pwd());
+
+		Service service = servicedao.getService(aic.getBmu_service_id());
+
+		AuthInfo ai = new AuthInfo(aic.getBmu_authinfo_id(), user, service);
+		ai.setDecAi_data(aic.getAi_data());
+
+		authinfodoa.insertAuthInfo(ai);
+
+		DBLogger.logAddAuthInfo(user, ai);
 	}
-	
+
 	@DELETE
-	@Path ("{bmu_authinfo_id}")
-	@Produces ("application/json")
-	public void deleteAuthInfo (@PathParam ("bmu_authinfo_id") long bmu_authinfo_id) throws RestSQLException
-	{
-		AuthInfoDao authinfodoa = DataManager.getAuthInfoDao ();
-		
-		AuthInfo ai = authinfodoa.getAuthInfo (bmu_authinfo_id);
-		
-		authinfodoa.deleteAuthInfo (bmu_authinfo_id);
-		
-		DBLogger.logDeleteAuthInfo (ai.getUser (), ai);
+	@Path("{bmu_authinfo_id}")
+	@Produces("application/json")
+	public void deleteAuthInfo(
+			@PathParam("bmu_authinfo_id") long bmu_authinfo_id)
+			throws RestSQLException {
+		AuthInfoDao authinfodoa = DataManager.getAuthInfoDao();
+
+		AuthInfo ai = authinfodoa.getAuthInfo(bmu_authinfo_id);
+
+		authinfodoa.deleteAuthInfo(bmu_authinfo_id);
+
+		DBLogger.logDeleteAuthInfo(ai.getUser(), ai);
 	}
 }

@@ -13,40 +13,37 @@ import org.backmeup.keysrv.rest.data.ServiceContainer;
 import org.backmeup.keysrv.worker.DataManager;
 import org.backmeup.keysrv.worker.Service;
 
-@Path ("/services")
-public class Services
-{
+@Path("/services")
+public class Services {
 	@GET
-	@Path ("{bmu_service_id}")
-	@Produces ("application/json")
-	public ServiceContainer getService (@PathParam ("bmu_service_id") long bmu_service_id)
-	{
-		ServiceDao servicedao = DataManager.getServiceDao ();
-		Service service = servicedao.getService (bmu_service_id);
+	@Path("{bmu_service_id}")
+	@Produces("application/json")
+	public ServiceContainer getService(
+			@PathParam("bmu_service_id") long bmu_service_id) {
+		ServiceDao servicedao = DataManager.getServiceDao();
+		Service service = servicedao.getService(bmu_service_id);
 
-		return new ServiceContainer (service);
+		return new ServiceContainer(service);
 	}
 
 	@DELETE
-	@Path ("{bmu_service_id}")
-	@Produces ("application/json")
-	public void deleteService (@PathParam ("bmu_service_id") long bmu_service_id)
-	{
-		ServiceDao servicedao = DataManager.getServiceDao ();
-		Service service = new Service (bmu_service_id);
-		
-		servicedao.deleteService (service);
+	@Path("{bmu_service_id}")
+	@Produces("application/json")
+	public void deleteService(@PathParam("bmu_service_id") long bmu_service_id) {
+		ServiceDao servicedao = DataManager.getServiceDao();
+		Service service = new Service(bmu_service_id);
+
+		servicedao.deleteService(service);
 	}
 
 	@POST
-	@Path ("{bmu_service_id}/register")
-	@Produces ("application/json")
-	public void registerUser (@PathParam ("bmu_service_id") long bmu_service_id)
-	{
-		ServiceDao servicedao = DataManager.getServiceDao ();
-		Service service = new Service (bmu_service_id);
+	@Path("{bmu_service_id}/register")
+	@Produces("application/json")
+	public void registerUser(@PathParam("bmu_service_id") long bmu_service_id) {
+		ServiceDao servicedao = DataManager.getServiceDao();
+		Service service = new Service(bmu_service_id);
 
-		servicedao.insertService (service);
+		servicedao.insertService(service);
 	}
 
 }
