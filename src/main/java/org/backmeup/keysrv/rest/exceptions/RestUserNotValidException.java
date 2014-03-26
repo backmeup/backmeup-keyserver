@@ -5,15 +5,17 @@ import javax.ws.rs.core.Response;
 
 import org.backmeup.keysrv.rest.data.ExceptionContainer;
 
-public class RestUserNotValidException extends WebApplicationException
-{
+public class RestUserNotValidException extends WebApplicationException {
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
 
-	public RestUserNotValidException (long bmu_user_id)
-	{
-		super (Response.status (400).entity (new ExceptionContainer ("RestUserNotValidException", "The password provided for this user (" + bmu_user_id + ") is not correct")).build ());
+	public RestUserNotValidException(long bmu_user_id) {
+		super(Response
+				.status(400)
+				.entity(new ExceptionContainer("RestUserNotValidException",
+						"The password provided for this user (" + bmu_user_id
+								+ ") is not correct")).build());
 	}
 }

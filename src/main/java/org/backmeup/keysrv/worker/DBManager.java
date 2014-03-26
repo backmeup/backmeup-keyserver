@@ -25,13 +25,13 @@ import org.backmeup.keysrv.rest.exceptions.RestUserAlreadyExistException;
 import org.backmeup.keysrv.rest.exceptions.RestUserNotFoundException;
 
 @Deprecated
-public class DBManager
-{
+public class DBManager {
 	private static final String DB = "db_keysrv";
 	private static final String DB_USER = "dbu_keysrv";
 	private static final String DB_PWD = "SAQ*$X2tX1bF.,%";
 	private static final String DB_HOST = "bmu-keysrv01";
-	private static final String DB_URL = "jdbc:postgresql://" + DB_HOST + "/" + DB;
+	private static final String DB_URL = "jdbc:postgresql://" + DB_HOST + "/"
+			+ DB;
 
 	private static final String PS_INSERT_USER = "INSERT INTO users (bmu_user_id, bmu_user_pwd_hash) VALUES (?, (pgp_pub_encrypt (?, dearmor(?))))";
 	private static final String PS_UPDATE_USER = "UPDATE users SET bmu_user_pwd_hash=(pgp_pub_encrypt (?, dearmor(?))) WHERE bmu_user_id=?";
@@ -51,7 +51,8 @@ public class DBManager
 	// + "(pgp_pub_encrypt_bytea (?, dearmor(?))), " +
 	// "(pgp_pub_encrypt_bytea (?, dearmor(?))))";
 
-	private static final String PS_INSERT_AUTH_INFO = "INSERT INTO auth_infos (bmu_authinfo_id, user_id, service_id, ai_key, ai_value) VALUES" + "(?, ?, ?, (pgp_pub_encrypt_bytea (?, dearmor(?))), (pgp_pub_encrypt_bytea (?, dearmor(?))))";
+	private static final String PS_INSERT_AUTH_INFO = "INSERT INTO auth_infos (bmu_authinfo_id, user_id, service_id, ai_key, ai_value) VALUES"
+			+ "(?, ?, ?, (pgp_pub_encrypt_bytea (?, dearmor(?))), (pgp_pub_encrypt_bytea (?, dearmor(?))))";
 
 	// private static final String PS_SELECT_AUTH_INFO_BY_USER =
 	// "SELECT id, bmu_authinfo_id, user_id, service_id, " +
@@ -62,7 +63,8 @@ public class DBManager
 	// "FROM auth_infos WHERE user_id=?";
 
 	private static final String PS_SELECT_AUTH_INFO_BY_USER = "SELECT DISTINCT auth_infos.bmu_authinfo_id AS bmu_authinfo_id, auth_infos.service_id AS service_id, services.bmu_service_id AS bmu_service_id FROM auth_infos INNER JOIN services ON services.id=auth_infos.service_id WHERE auth_infos.user_id=? ORDER BY auth_infos.bmu_authinfo_id";
-	private static final String PS_SELECT_AUTH_INFO_BY_USER_SERVICE = PS_SELECT_AUTH_INFO_BY_USER + " AND service_id=?";
+	private static final String PS_SELECT_AUTH_INFO_BY_USER_SERVICE = PS_SELECT_AUTH_INFO_BY_USER
+			+ " AND service_id=?";
 	private static final String PS_SELECT_AUTH_INFO_BY_BMU_AUTHINFO_ID = "SELECT id, bmu_authinfo_id, user_id, service_id, pgp_pub_decrypt_bytea (ai_key, dearmor (?)) AS ai_key, pgp_pub_decrypt_bytea (ai_value, dearmor (?)) AS ai_value FROM auth_infos WHERE bmu_authinfo_id=?";
 	private static final String PS_SELECT_AUTH_INFO_BY_ID = "SELECT id, bmu_authinfo_id, user_id, service_id, pgp_pub_decrypt_bytea (ai_key, dearmor (?)) AS ai_key, pgp_pub_decrypt_bytea (ai_value, dearmor (?)) AS ai_value FROM auth_infos WHERE id=?";
 	private static final String PS_DELETE_AUTH_INFO_BY_BMU_AUTHINFO_ID = "DELETE FROM auth_infos WHERE bmu_authinfo_id=?";
@@ -105,703 +107,630 @@ public class DBManager
 
 	private static DataSource ds = null;
 
-	private static void init ()
-	{
-		try
-		{
-			if ( (db_con == null) || (db_con.isClosed () == true))
-			{
-				InitialContext ctx = new InitialContext ();
-				ds = (DataSource) ctx.lookup ("java:comp/env/jdbc/keysrvdb");
-				db_con = ds.getConnection ();
-				db_con.setAutoCommit (true);
+	private static void init() {
+		try {
+			if ((db_con == null) || (db_con.isClosed() == true)) {
+				InitialContext ctx = new InitialContext();
+				ds = (DataSource) ctx.lookup("java:comp/env/jdbc/keysrvdb");
+				db_con = ds.getConnection();
+				db_con.setAutoCommit(true);
 
-				prepareStatements ();
+				prepareStatements();
 			}
-		}
-		catch (Exception e)
-		{
-			FileLogger.logException (e);
-			e.printStackTrace ();
+		} catch (Exception e) {
+			FileLogger.logException(e);
+			e.printStackTrace();
 		}
 	}
 
 	@Deprecated
-	public DBManager ()
-	{
-		init ();
+	public DBManager() {
+		init();
 
-		try
-		{
-			this.pgpkeys = new PGPKeys ();
-		}
-		catch (IOException e)
-		{
-			FileLogger.logException (e);
-			e.printStackTrace ();
+		try {
+			this.pgpkeys = new PGPKeys();
+		} catch (IOException e) {
+			FileLogger.logException(e);
+			e.printStackTrace();
 		}
 	}
 
 	@Deprecated
-	private static void prepareStatements () throws SQLException
-	{
-		ps_insert_user = db_con.prepareStatement (PS_INSERT_USER);
-		ps_update_user = db_con.prepareStatement (PS_UPDATE_USER);
-		ps_select_user_by_bmu_user_id = db_con.prepareStatement (PS_SELECT_USER_BY_BMU_USER_ID);
-		ps_select_user_by_id = db_con.prepareStatement (PS_SELECT_USER_BY_ID);
-		ps_delete_user_by_bmu_user_id = db_con.prepareStatement (PS_DELETE_USER_BY_BMU_USER_ID);
+	private static void prepareStatements() throws SQLException {
+		ps_insert_user = db_con.prepareStatement(PS_INSERT_USER);
+		ps_update_user = db_con.prepareStatement(PS_UPDATE_USER);
+		ps_select_user_by_bmu_user_id = db_con
+				.prepareStatement(PS_SELECT_USER_BY_BMU_USER_ID);
+		ps_select_user_by_id = db_con.prepareStatement(PS_SELECT_USER_BY_ID);
+		ps_delete_user_by_bmu_user_id = db_con
+				.prepareStatement(PS_DELETE_USER_BY_BMU_USER_ID);
 
-		ps_insert_service = db_con.prepareStatement (PS_INSERT_SERVICE);
-		ps_select_service_by_bmu_service_id = db_con.prepareStatement (PS_SELECT_SERVICE_BY_BMU_SERVICE_ID);
-		ps_select_service_by_id = db_con.prepareStatement (PS_SELECT_SERVICE_BY_ID);
-		ps_delete_service_by_bmu_service_id = db_con.prepareStatement (PS_DELETE_SERVICE_BY_BMU_SERVICE_ID);
+		ps_insert_service = db_con.prepareStatement(PS_INSERT_SERVICE);
+		ps_select_service_by_bmu_service_id = db_con
+				.prepareStatement(PS_SELECT_SERVICE_BY_BMU_SERVICE_ID);
+		ps_select_service_by_id = db_con
+				.prepareStatement(PS_SELECT_SERVICE_BY_ID);
+		ps_delete_service_by_bmu_service_id = db_con
+				.prepareStatement(PS_DELETE_SERVICE_BY_BMU_SERVICE_ID);
 
-		ps_insert_auth_info = db_con.prepareStatement (PS_INSERT_AUTH_INFO);
-		ps_select_auth_info_by_user = db_con.prepareStatement (PS_SELECT_AUTH_INFO_BY_USER);
-		ps_select_auth_info_by_user_service = db_con.prepareStatement (PS_SELECT_AUTH_INFO_BY_USER_SERVICE);
-		ps_select_auth_info_by_bmu_authinfo_id = db_con.prepareStatement (PS_SELECT_AUTH_INFO_BY_BMU_AUTHINFO_ID);
-		ps_select_auth_info_by_id = db_con.prepareStatement (PS_SELECT_AUTH_INFO_BY_ID);
-		ps_delete_auth_info_by_bmu_authinfo_id = db_con.prepareStatement (PS_DELETE_AUTH_INFO_BY_BMU_AUTHINFO_ID);
+		ps_insert_auth_info = db_con.prepareStatement(PS_INSERT_AUTH_INFO);
+		ps_select_auth_info_by_user = db_con
+				.prepareStatement(PS_SELECT_AUTH_INFO_BY_USER);
+		ps_select_auth_info_by_user_service = db_con
+				.prepareStatement(PS_SELECT_AUTH_INFO_BY_USER_SERVICE);
+		ps_select_auth_info_by_bmu_authinfo_id = db_con
+				.prepareStatement(PS_SELECT_AUTH_INFO_BY_BMU_AUTHINFO_ID);
+		ps_select_auth_info_by_id = db_con
+				.prepareStatement(PS_SELECT_AUTH_INFO_BY_ID);
+		ps_delete_auth_info_by_bmu_authinfo_id = db_con
+				.prepareStatement(PS_DELETE_AUTH_INFO_BY_BMU_AUTHINFO_ID);
 
-		ps_insert_token = db_con.prepareStatement (PS_INSERT_TOKEN, PreparedStatement.RETURN_GENERATED_KEYS);
-		ps_select_token_by_token_id = db_con.prepareStatement (PS_SELECT_TOKEN_BY_TOKEN_ID);
-		ps_delete_token_by_token_id = db_con.prepareStatement (PS_DELETE_TOKEN_BY_TOKEN_ID);
-		ps_delete_token_by_id = db_con.prepareStatement (PS_DELETE_TOKEN_BY_ID);
+		ps_insert_token = db_con.prepareStatement(PS_INSERT_TOKEN,
+				PreparedStatement.RETURN_GENERATED_KEYS);
+		ps_select_token_by_token_id = db_con
+				.prepareStatement(PS_SELECT_TOKEN_BY_TOKEN_ID);
+		ps_delete_token_by_token_id = db_con
+				.prepareStatement(PS_DELETE_TOKEN_BY_TOKEN_ID);
+		ps_delete_token_by_id = db_con.prepareStatement(PS_DELETE_TOKEN_BY_ID);
 
-		ps_insert_log = db_con.prepareStatement (PS_INSERT_LOG);
-		ps_select_log_by_bmu_user_id = db_con.prepareStatement (PS_SELECT_LOG_BY_BMU_USER_ID);
-		ps_delete_log_by_bmu_user_id = db_con.prepareStatement (PS_DELETE_LOG_BY_BMU_USER_ID);
+		ps_insert_log = db_con.prepareStatement(PS_INSERT_LOG);
+		ps_select_log_by_bmu_user_id = db_con
+				.prepareStatement(PS_SELECT_LOG_BY_BMU_USER_ID);
+		ps_delete_log_by_bmu_user_id = db_con
+				.prepareStatement(PS_DELETE_LOG_BY_BMU_USER_ID);
 	}
 
 	@Deprecated
-	public void insertAuthInfo (AuthInfo authinfo) throws RestSQLException
-	{
-		try
-		{
-			this.getAuthInfo (authinfo.getBmuAuthinfoId (), authinfo.getUser (), authinfo.getService ());
-			throw new RestAuthInfoAlreadyExistException (authinfo.getBmuAuthinfoId ());
-		}
-		catch (RestAuthInfoNotFoundException e)
-		{
+	public void insertAuthInfo(AuthInfo authinfo) throws RestSQLException {
+		try {
+			this.getAuthInfo(authinfo.getBmuAuthinfoId(), authinfo.getUser(),
+					authinfo.getService());
+			throw new RestAuthInfoAlreadyExistException(
+					authinfo.getBmuAuthinfoId());
+		} catch (RestAuthInfoNotFoundException e) {
 		}
 
-		try
-		{
-			ps_insert_auth_info.setLong (1, authinfo.getBmuAuthinfoId ());
-			ps_insert_auth_info.setLong (2, authinfo.getUser ().getId ());
-			ps_insert_auth_info.setLong (3, authinfo.getService ().getId ());
+		try {
+			ps_insert_auth_info.setLong(1, authinfo.getBmuAuthinfoId());
+			ps_insert_auth_info.setLong(2, authinfo.getUser().getId());
+			ps_insert_auth_info.setLong(3, authinfo.getService().getId());
 
-			for (byte[] key : authinfo.getAi_data ().keySet ())
-			{
-				ps_insert_auth_info.setBytes (4, key);
-				ps_insert_auth_info.setString (5, pgpkeys.getPublickey ());
+			for (byte[] key : authinfo.getAi_data().keySet()) {
+				ps_insert_auth_info.setBytes(4, key);
+				ps_insert_auth_info.setString(5, pgpkeys.getPublickey());
 
-				ps_insert_auth_info.setBytes (6, authinfo.getAi_data ().get (key));
-				ps_insert_auth_info.setString (7, pgpkeys.getPublickey ());
+				ps_insert_auth_info.setBytes(6, authinfo.getAi_data().get(key));
+				ps_insert_auth_info.setString(7, pgpkeys.getPublickey());
 
-				ps_insert_auth_info.executeUpdate ();
+				ps_insert_auth_info.executeUpdate();
 			}
-		}
-		catch (SQLException e)
-		{
-			throw new RestSQLException (e);
+		} catch (SQLException e) {
+			throw new RestSQLException(e);
 		}
 	}
 
 	@Deprecated
-	public AuthInfo getAuthInfo (long bmu_authinfo_id, User user, Service service) throws RestSQLException, RestAuthInfoNotFoundException
-	{
+	public AuthInfo getAuthInfo(long bmu_authinfo_id, User user, Service service)
+			throws RestSQLException, RestAuthInfoNotFoundException {
 		AuthInfo ai = null;
-		HashMap<byte[], byte[]> ai_data = new HashMap<byte[], byte[]> ();
+		HashMap<byte[], byte[]> ai_data = new HashMap<byte[], byte[]>();
 		long id = -1;
 
-		try
-		{
-			ps_select_auth_info_by_bmu_authinfo_id.setString (1, pgpkeys.getPrivatekey ());
-			ps_select_auth_info_by_bmu_authinfo_id.setString (2, pgpkeys.getPrivatekey ());
-			ps_select_auth_info_by_bmu_authinfo_id.setLong (3, bmu_authinfo_id);
+		try {
+			ps_select_auth_info_by_bmu_authinfo_id.setString(1,
+					pgpkeys.getPrivatekey());
+			ps_select_auth_info_by_bmu_authinfo_id.setString(2,
+					pgpkeys.getPrivatekey());
+			ps_select_auth_info_by_bmu_authinfo_id.setLong(3, bmu_authinfo_id);
 
-			ResultSet rs = ps_select_auth_info_by_bmu_authinfo_id.executeQuery ();
+			ResultSet rs = ps_select_auth_info_by_bmu_authinfo_id
+					.executeQuery();
 
-			while (rs.next () == true)
-			{
-				ai_data.put (rs.getBytes ("ai_key"), rs.getBytes ("ai_value"));
+			while (rs.next() == true) {
+				ai_data.put(rs.getBytes("ai_key"), rs.getBytes("ai_value"));
 
-				if (id < 0)
-				{
-					id = rs.getLong ("id");
+				if (id < 0) {
+					id = rs.getLong("id");
 				}
 			}
-			rs.close ();
+			rs.close();
 
-			ai = new AuthInfo (id, bmu_authinfo_id, user, service, ai_data);
-		}
-		catch (SQLException e)
-		{
-			throw new RestSQLException (e);
+			ai = new AuthInfo(id, bmu_authinfo_id, user, service, ai_data);
+		} catch (SQLException e) {
+			throw new RestSQLException(e);
 		}
 
-		if (ai.getAi_data ().size () == 0)
-		{
-			throw new RestAuthInfoNotFoundException (bmu_authinfo_id);
+		if (ai.getAi_data().size() == 0) {
+			throw new RestAuthInfoNotFoundException(bmu_authinfo_id);
 		}
 
 		return ai;
 	}
 
 	@Deprecated
-	public ArrayList<AuthInfo> getUserAuthInfos (User user) throws RestSQLException
-	{
-		ArrayList<AuthInfo> authinfos = new ArrayList<AuthInfo> ();
+	public ArrayList<AuthInfo> getUserAuthInfos(User user)
+			throws RestSQLException {
+		ArrayList<AuthInfo> authinfos = new ArrayList<AuthInfo>();
 
-		try
-		{
-			ps_select_auth_info_by_user.setLong (1, user.getId ());
+		try {
+			ps_select_auth_info_by_user.setLong(1, user.getId());
 
-			ResultSet rs = ps_select_auth_info_by_user.executeQuery ();
+			ResultSet rs = ps_select_auth_info_by_user.executeQuery();
 
-			while (rs.next () == true)
-			{
-				Service service = new Service (rs.getLong ("service_id"), rs.getLong ("bmu_service_id"));
-				authinfos.add (this.getAuthInfo (rs.getLong ("bmu_authinfo_id"), user, service));
+			while (rs.next() == true) {
+				Service service = new Service(rs.getLong("service_id"),
+						rs.getLong("bmu_service_id"));
+				authinfos.add(this.getAuthInfo(rs.getLong("bmu_authinfo_id"),
+						user, service));
 			}
-		}
-		catch (SQLException e)
-		{
-			FileLogger.logException (e);
-			throw new RestSQLException (e);
+		} catch (SQLException e) {
+			FileLogger.logException(e);
+			throw new RestSQLException(e);
 		}
 
 		return authinfos;
 	}
 
 	@Deprecated
-	public boolean existAuthInfo (long bmu_authinfo_id)
-	{
-		try
-		{
-			ps_select_auth_info_by_bmu_authinfo_id.setString (1, pgpkeys.getPrivatekey ());
-			ps_select_auth_info_by_bmu_authinfo_id.setString (2, pgpkeys.getPrivatekey ());
-			ps_select_auth_info_by_bmu_authinfo_id.setLong (3, bmu_authinfo_id);
+	public boolean existAuthInfo(long bmu_authinfo_id) {
+		try {
+			ps_select_auth_info_by_bmu_authinfo_id.setString(1,
+					pgpkeys.getPrivatekey());
+			ps_select_auth_info_by_bmu_authinfo_id.setString(2,
+					pgpkeys.getPrivatekey());
+			ps_select_auth_info_by_bmu_authinfo_id.setLong(3, bmu_authinfo_id);
 
-			ResultSet rs = ps_select_auth_info_by_bmu_authinfo_id.executeQuery ();
+			ResultSet rs = ps_select_auth_info_by_bmu_authinfo_id
+					.executeQuery();
 
-			if (rs.next ())
-			{
-				rs.close ();
+			if (rs.next()) {
+				rs.close();
 				return true;
-			}
-			else
-			{
-				rs.close ();
+			} else {
+				rs.close();
 				return false;
 			}
-		}
-		catch (SQLException e)
-		{
-			throw new RestSQLException (e);
+		} catch (SQLException e) {
+			throw new RestSQLException(e);
 		}
 	}
 
 	@Deprecated
-	public void deleteAuthInfo (long bmu_authinfo_id) throws RestSQLException
-	{
-		if (this.existAuthInfo (bmu_authinfo_id) == false)
-		{
-			throw new RestAuthInfoNotFoundException (bmu_authinfo_id);
+	public void deleteAuthInfo(long bmu_authinfo_id) throws RestSQLException {
+		if (this.existAuthInfo(bmu_authinfo_id) == false) {
+			throw new RestAuthInfoNotFoundException(bmu_authinfo_id);
 		}
 
-		try
-		{
-			ps_delete_auth_info_by_bmu_authinfo_id.setLong (1, bmu_authinfo_id);
+		try {
+			ps_delete_auth_info_by_bmu_authinfo_id.setLong(1, bmu_authinfo_id);
 
-			ps_delete_auth_info_by_bmu_authinfo_id.executeUpdate ();
-		}
-		catch (SQLException e)
-		{
-			throw new RestSQLException (e);
+			ps_delete_auth_info_by_bmu_authinfo_id.executeUpdate();
+		} catch (SQLException e) {
+			throw new RestSQLException(e);
 		}
 	}
 
 	@Deprecated
-	public void insertUser (long bmu_user_id) throws SQLException
-	{
-		ps_insert_user.setLong (1, bmu_user_id);
+	public void insertUser(long bmu_user_id) throws SQLException {
+		ps_insert_user.setLong(1, bmu_user_id);
 
-		ps_insert_user.executeUpdate ();
+		ps_insert_user.executeUpdate();
 	}
 
 	@Deprecated
-	public void insertUser (User user) throws RestSQLException
-	{
-		try
-		{
-			this.getUser (user.getBmuId ());
-			throw new RestUserAlreadyExistException (user.getBmuId ());
-		}
-		catch (RestUserNotFoundException e)
-		{
+	public void insertUser(User user) throws RestSQLException {
+		try {
+			this.getUser(user.getBmuId());
+			throw new RestUserAlreadyExistException(user.getBmuId());
+		} catch (RestUserNotFoundException e) {
 		}
 
-		try
-		{
-			ps_insert_user.setLong (1, user.getBmuId ());
-			ps_insert_user.setString (2, user.getPwd_hash ());
-			ps_insert_user.setString (3, pgpkeys.getPublickey ());
+		try {
+			ps_insert_user.setLong(1, user.getBmuId());
+			ps_insert_user.setString(2, user.getPwd_hash());
+			ps_insert_user.setString(3, pgpkeys.getPublickey());
 
-			ps_insert_user.executeUpdate ();
-		}
-		catch (SQLException e)
-		{
-			FileLogger.logException (e);
-			throw new RestSQLException (e);
+			ps_insert_user.executeUpdate();
+		} catch (SQLException e) {
+			FileLogger.logException(e);
+			throw new RestSQLException(e);
 		}
 	}
 
 	@Deprecated
-	public User getUser (long bmu_user_id) throws RestUserNotFoundException, RestSQLException
-	{
+	public User getUser(long bmu_user_id) throws RestUserNotFoundException,
+			RestSQLException {
 		User user = null;
 
-		try
-		{
-			ps_select_user_by_bmu_user_id.setString (1, pgpkeys.getPrivatekey ());
-			ps_select_user_by_bmu_user_id.setLong (2, bmu_user_id);
+		try {
+			ps_select_user_by_bmu_user_id.setString(1, pgpkeys.getPrivatekey());
+			ps_select_user_by_bmu_user_id.setLong(2, bmu_user_id);
 
-			ResultSet rs = ps_select_user_by_bmu_user_id.executeQuery ();
-			if (rs.next ())
-			{
-				user = new User (rs.getLong ("id"), rs.getLong ("bmu_user_id"));
-				user.setPwd_hash (rs.getString ("bmu_user_pwd_hash"));
+			ResultSet rs = ps_select_user_by_bmu_user_id.executeQuery();
+			if (rs.next()) {
+				user = new User(rs.getLong("id"), rs.getLong("bmu_user_id"));
+				user.setPwd_hash(rs.getString("bmu_user_pwd_hash"));
 			}
-			rs.close ();
-		}
-		catch (SQLException e)
-		{
-			FileLogger.logException (e);
-			throw new RestSQLException (e);
+			rs.close();
+		} catch (SQLException e) {
+			FileLogger.logException(e);
+			throw new RestSQLException(e);
 		}
 
-		if (user == null)
-		{
-			throw new RestUserNotFoundException (bmu_user_id);
+		if (user == null) {
+			throw new RestUserNotFoundException(bmu_user_id);
 		}
 
 		return user;
 	}
 
 	@Deprecated
-	public void changeUser (User user) throws RestSQLException
-	{
-		try
-		{
-			ps_update_user.setString (1, user.getPwd_hash ());
-			ps_update_user.setString (2, pgpkeys.getPublickey ());
-			ps_update_user.setLong (3, user.getBmuId ());
+	public void changeUser(User user) throws RestSQLException {
+		try {
+			ps_update_user.setString(1, user.getPwd_hash());
+			ps_update_user.setString(2, pgpkeys.getPublickey());
+			ps_update_user.setLong(3, user.getBmuId());
 
-			ps_update_user.executeUpdate ();
-		}
-		catch (SQLException e)
-		{
-			FileLogger.logException (e);
+			ps_update_user.executeUpdate();
+		} catch (SQLException e) {
+			FileLogger.logException(e);
 		}
 	}
 
 	@Deprecated
-	public void selectUserByBmuUserId (long bmu_user_id) throws SQLException
-	{
-		ps_select_user_by_bmu_user_id.setLong (1, bmu_user_id);
+	public void selectUserByBmuUserId(long bmu_user_id) throws SQLException {
+		ps_select_user_by_bmu_user_id.setLong(1, bmu_user_id);
 
-		ResultSet rs = ps_select_user_by_bmu_user_id.executeQuery ();
-		if (rs.next ())
-		{
-			System.out.println (rs.getString ("id"));
-			System.out.println (rs.getString ("bmu_user_id"));
+		ResultSet rs = ps_select_user_by_bmu_user_id.executeQuery();
+		if (rs.next()) {
+			System.out.println(rs.getString("id"));
+			System.out.println(rs.getString("bmu_user_id"));
 		}
-		rs.close ();
+		rs.close();
 	}
 
-//	public User getUserById (long id) throws SQLException
-//	{
-//		ps_select_user_by_id.setLong (1, id);
-//
-//		ResultSet rs = ps_select_user_by_id.executeQuery ();
-//
-//		User user = null;
-//		if (rs.next ())
-//		{
-//			user = new User (rs.getLong ("id"), rs.getLong ("bmu_user_id"));
-//		}
-//		rs.close ();
-//
-//		return user;
-//	}
+	// public User getUserById (long id) throws SQLException
+	// {
+	// ps_select_user_by_id.setLong (1, id);
+	//
+	// ResultSet rs = ps_select_user_by_id.executeQuery ();
+	//
+	// User user = null;
+	// if (rs.next ())
+	// {
+	// user = new User (rs.getLong ("id"), rs.getLong ("bmu_user_id"));
+	// }
+	// rs.close ();
+	//
+	// return user;
+	// }
 
 	@Deprecated
-	public void deleteUser (User user) throws RestSQLException
-	{
-		this.getUser (user.getBmuId ());
+	public void deleteUser(User user) throws RestSQLException {
+		this.getUser(user.getBmuId());
 
-		try
-		{
-			ps_delete_user_by_bmu_user_id.setLong (1, user.getBmuId ());
+		try {
+			ps_delete_user_by_bmu_user_id.setLong(1, user.getBmuId());
 
-			ps_delete_user_by_bmu_user_id.executeUpdate ();
-		}
-		catch (SQLException e)
-		{
-			FileLogger.logException (e);
-			throw new RestSQLException (e);
+			ps_delete_user_by_bmu_user_id.executeUpdate();
+		} catch (SQLException e) {
+			FileLogger.logException(e);
+			throw new RestSQLException(e);
 		}
 	}
 
 	@Deprecated
-	public void insertService (long bmu_service_id) throws SQLException
-	{
-		ps_insert_service.setLong (1, bmu_service_id);
+	public void insertService(long bmu_service_id) throws SQLException {
+		ps_insert_service.setLong(1, bmu_service_id);
 
-		ps_insert_service.executeUpdate ();
+		ps_insert_service.executeUpdate();
 	}
 
 	@Deprecated
-	public void insertService (Service service) throws RestSQLException, RestServiceAlreadyExistException
-	{
-		try
-		{
-			this.getService (service.getBmuId ());
-			throw new RestServiceAlreadyExistException (service.getBmuId ());
-		}
-		catch (RestServiceNotFoundException e)
-		{
+	public void insertService(Service service) throws RestSQLException,
+			RestServiceAlreadyExistException {
+		try {
+			this.getService(service.getBmuId());
+			throw new RestServiceAlreadyExistException(service.getBmuId());
+		} catch (RestServiceNotFoundException e) {
 		}
 
-		try
-		{
-			ps_insert_service.setLong (1, service.getBmuId ());
+		try {
+			ps_insert_service.setLong(1, service.getBmuId());
 
-			ps_insert_service.executeUpdate ();
-		}
-		catch (SQLException e)
-		{
-			FileLogger.logException (e);
-			throw new RestSQLException (e);
+			ps_insert_service.executeUpdate();
+		} catch (SQLException e) {
+			FileLogger.logException(e);
+			throw new RestSQLException(e);
 		}
 	}
 
 	@Deprecated
-	public Service getService (long bmu_service_id) throws RestSQLException, RestServiceNotFoundException
-	{
+	public Service getService(long bmu_service_id) throws RestSQLException,
+			RestServiceNotFoundException {
 		Service service = null;
 
-		try
-		{
-			ps_select_service_by_bmu_service_id.setLong (1, bmu_service_id);
+		try {
+			ps_select_service_by_bmu_service_id.setLong(1, bmu_service_id);
 
-			ResultSet rs = ps_select_service_by_bmu_service_id.executeQuery ();
-			if (rs.next ())
-			{
-				service = new Service (rs.getLong ("id"), rs.getLong ("bmu_service_id"));
+			ResultSet rs = ps_select_service_by_bmu_service_id.executeQuery();
+			if (rs.next()) {
+				service = new Service(rs.getLong("id"),
+						rs.getLong("bmu_service_id"));
 			}
-			rs.close ();
-		}
-		catch (SQLException e)
-		{
-			FileLogger.logException (e);
-			throw new RestSQLException (e);
+			rs.close();
+		} catch (SQLException e) {
+			FileLogger.logException(e);
+			throw new RestSQLException(e);
 		}
 
-		if (service == null)
-		{
-			throw new RestServiceNotFoundException (bmu_service_id);
+		if (service == null) {
+			throw new RestServiceNotFoundException(bmu_service_id);
 		}
 
 		return service;
 	}
 
 	@Deprecated
-	public void selectServiceByBmuServiceId (long bmu_service_id) throws SQLException
-	{
-		ps_select_service_by_bmu_service_id.setLong (1, bmu_service_id);
+	public void selectServiceByBmuServiceId(long bmu_service_id)
+			throws SQLException {
+		ps_select_service_by_bmu_service_id.setLong(1, bmu_service_id);
 
-		ResultSet rs = ps_select_service_by_bmu_service_id.executeQuery ();
-		rs.close ();
+		ResultSet rs = ps_select_service_by_bmu_service_id.executeQuery();
+		rs.close();
 	}
 
 	@Deprecated
-	public void getServiceById (long id) throws SQLException
-	{
-		ps_select_service_by_id.setLong (1, id);
+	public void getServiceById(long id) throws SQLException {
+		ps_select_service_by_id.setLong(1, id);
 
-		ResultSet rs = ps_select_service_by_id.executeQuery ();
-		rs.close ();
+		ResultSet rs = ps_select_service_by_id.executeQuery();
+		rs.close();
 	}
 
 	@Deprecated
-	public void deleteService (Service service) throws RestSQLException
-	{
-		this.getService (service.getBmuId ());
+	public void deleteService(Service service) throws RestSQLException {
+		this.getService(service.getBmuId());
 
-		try
-		{
-			ps_delete_service_by_bmu_service_id.setLong (1, service.getBmuId ());
+		try {
+			ps_delete_service_by_bmu_service_id.setLong(1, service.getBmuId());
 
-			ps_delete_service_by_bmu_service_id.executeUpdate ();
-		}
-		catch (SQLException e)
-		{
-			FileLogger.logException (e);
-			throw new RestSQLException (e);
+			ps_delete_service_by_bmu_service_id.executeUpdate();
+		} catch (SQLException e) {
+			FileLogger.logException(e);
+			throw new RestSQLException(e);
 		}
 	}
 
 	@Deprecated
-	public long insertToken (Token token) throws RestSQLException
-	{
+	public long insertToken(Token token) throws RestSQLException {
 		long token_id = -1;
 
-		try
-		{
-			CipherGenerator cipher = new CipherGenerator ();
+		try {
+			CipherGenerator cipher = new CipherGenerator();
 
 			// Create first entry to get an valid and unique id
-			ps_insert_token.setLong (1, -1);
-			ps_insert_token.setLong (2, token.getUser ().getId ());
-			ps_insert_token.setLong (3, token.getAuthInfo (0).getService ().getId ());
-			ps_insert_token.setLong (4, token.getAuthInfo (0).getBmuAuthinfoId ());
-			ps_insert_token.setBoolean (5, token.isReusable ());
-			ps_insert_token.setBytes (6, "asd".getBytes ());
-			ps_insert_token.setString (7, pgpkeys.getPublickey ());
-			ps_insert_token.setBytes (8, "asd".getBytes ());
-			ps_insert_token.setString (9, pgpkeys.getPublickey ());
-			ps_insert_token.setBytes (10, cipher.encData (token.getBackupdate ().getTime () + "", token.getTokenpwd ()));
-			ps_insert_token.setString (11, pgpkeys.getPublickey ());
+			ps_insert_token.setLong(1, -1);
+			ps_insert_token.setLong(2, token.getUser().getId());
+			ps_insert_token.setLong(3, token.getAuthInfo(0).getService()
+					.getId());
+			ps_insert_token.setLong(4, token.getAuthInfo(0).getBmuAuthinfoId());
+			ps_insert_token.setBoolean(5, token.isReusable());
+			ps_insert_token.setBytes(6, "asd".getBytes());
+			ps_insert_token.setString(7, pgpkeys.getPublickey());
+			ps_insert_token.setBytes(8, "asd".getBytes());
+			ps_insert_token.setString(9, pgpkeys.getPublickey());
+			ps_insert_token.setBytes(
+					10,
+					cipher.encData(token.getBackupdate().getTime() + "",
+							token.getTokenpwd()));
+			ps_insert_token.setString(11, pgpkeys.getPublickey());
 
-			ps_insert_token.executeUpdate ();
-			ResultSet rs = ps_insert_token.getGeneratedKeys ();
+			ps_insert_token.executeUpdate();
+			ResultSet rs = ps_insert_token.getGeneratedKeys();
 
-			if (rs.next ())
-			{
-				token_id = rs.getLong (1);
-				rs.close ();
+			if (rs.next()) {
+				token_id = rs.getLong(1);
+				rs.close();
 			}
 
-			ps_insert_token.setLong (1, token_id);
+			ps_insert_token.setLong(1, token_id);
 
-			User tokenuser = new User (-1);
-			tokenuser.setPwd (token.getTokenpwd ());
+			User tokenuser = new User(-1);
+			tokenuser.setPwd(token.getTokenpwd());
 
-			for (int i = 0; i < token.getAuthInfoCount (); i++)
-			{
-				HashMap<String, String> ai_data = token.getAuthInfo (i).getDecAi_data ();
-				HashMap<byte[], byte[]> ai_enc_data = cipher.encData (ai_data, tokenuser);
+			for (int i = 0; i < token.getAuthInfoCount(); i++) {
+				HashMap<String, String> ai_data = token.getAuthInfo(i)
+						.getDecAi_data();
+				HashMap<byte[], byte[]> ai_enc_data = cipher.encData(ai_data,
+						tokenuser);
 
-				for (byte[] key : ai_enc_data.keySet ())
-				{
-					ps_insert_token.setLong (3, token.getAuthInfo (i).getService ().getId ());
-					ps_insert_token.setLong (4, token.getAuthInfo (i).getBmuAuthinfoId ());
-					ps_insert_token.setBytes (6, key);
-					ps_insert_token.setBytes (8, ai_enc_data.get (key));
-					ps_insert_token.executeUpdate ();
+				for (byte[] key : ai_enc_data.keySet()) {
+					ps_insert_token.setLong(3, token.getAuthInfo(i)
+							.getService().getId());
+					ps_insert_token.setLong(4, token.getAuthInfo(i)
+							.getBmuAuthinfoId());
+					ps_insert_token.setBytes(6, key);
+					ps_insert_token.setBytes(8, ai_enc_data.get(key));
+					ps_insert_token.executeUpdate();
 				}
 			}
 
 			// remove the extra line from database
-			ps_delete_token_by_id.setLong (1, token_id);
-			ps_delete_token_by_id.executeUpdate ();
-		}
-		catch (SQLException e)
-		{
-			FileLogger.logException (e);
-			throw new RestSQLException (e);
+			ps_delete_token_by_id.setLong(1, token_id);
+			ps_delete_token_by_id.executeUpdate();
+		} catch (SQLException e) {
+			FileLogger.logException(e);
+			throw new RestSQLException(e);
 		}
 
 		return token_id;
 	}
 
 	@Deprecated
-	public Token getTokenData (long token_id, String token_pwd) throws RestSQLException
-	{
+	public Token getTokenData(long token_id, String token_pwd)
+			throws RestSQLException {
 		Token token = null;
 
-		try
-		{
-			ps_select_token_by_token_id.setString (1, pgpkeys.getPrivatekey ());
-			ps_select_token_by_token_id.setString (2, pgpkeys.getPrivatekey ());
-			ps_select_token_by_token_id.setString (3, pgpkeys.getPrivatekey ());
-			ps_select_token_by_token_id.setLong (4, token_id);
+		try {
+			ps_select_token_by_token_id.setString(1, pgpkeys.getPrivatekey());
+			ps_select_token_by_token_id.setString(2, pgpkeys.getPrivatekey());
+			ps_select_token_by_token_id.setString(3, pgpkeys.getPrivatekey());
+			ps_select_token_by_token_id.setLong(4, token_id);
 
-			ResultSet rs = ps_select_token_by_token_id.executeQuery ();
+			ResultSet rs = ps_select_token_by_token_id.executeQuery();
 
-			CipherGenerator cipher = new CipherGenerator ();
+			CipherGenerator cipher = new CipherGenerator();
 
 			User user = null;
 			AuthInfo ai = null;
 			HashMap<byte[], byte[]> ai_data = null;
-			while (rs.next ())
-			{
-				if (token == null)
-				{
-					user = new User (rs.getLong ("user_id"), rs.getLong ("bmu_user_id"));
-					user.setPwd (token_pwd);
+			while (rs.next()) {
+				if (token == null) {
+					user = new User(rs.getLong("user_id"),
+							rs.getLong("bmu_user_id"));
+					user.setPwd(token_pwd);
 
 					String str_backupdate = "";
-					str_backupdate = cipher.decData (rs.getBytes ("backupdate"), user);
-					Date backupdate = new Date (new Long (str_backupdate));
+					str_backupdate = cipher.decData(rs.getBytes("backupdate"),
+							user);
+					Date backupdate = new Date(new Long(str_backupdate));
 
-					token = new Token (user, backupdate, rs.getBoolean ("reusable"));
-					token.setTokenpwd (token_pwd);
+					token = new Token(user, backupdate,
+							rs.getBoolean("reusable"));
+					token.setTokenpwd(token_pwd);
 				}
 
-				Service service = new Service (rs.getLong ("service_id"), rs.getLong ("bmu_service_id"));
+				Service service = new Service(rs.getLong("service_id"),
+						rs.getLong("bmu_service_id"));
 
-				if (ai == null)
-				{
-					ai = new AuthInfo (rs.getLong ("bmu_authinfo_id"), user, service);
-					ai_data = new HashMap<byte[], byte[]> ();
+				if (ai == null) {
+					ai = new AuthInfo(rs.getLong("bmu_authinfo_id"), user,
+							service);
+					ai_data = new HashMap<byte[], byte[]>();
 				}
-				if (ai.getBmuAuthinfoId () != rs.getLong ("bmu_authinfo_id"))
-				{
-					ai.setAi_data (ai_data);
-					token.addAuthInfo (ai);
+				if (ai.getBmuAuthinfoId() != rs.getLong("bmu_authinfo_id")) {
+					ai.setAi_data(ai_data);
+					token.addAuthInfo(ai);
 
-					ai = new AuthInfo (rs.getLong ("bmu_authinfo_id"), user, service);
-					ai_data = new HashMap<byte[], byte[]> ();
+					ai = new AuthInfo(rs.getLong("bmu_authinfo_id"), user,
+							service);
+					ai_data = new HashMap<byte[], byte[]>();
 
-					ai_data.put (rs.getBytes ("token_key"), rs.getBytes ("token_value"));
-				}
-				else
-				{
-					ai_data.put (rs.getBytes ("token_key"), rs.getBytes ("token_value"));
+					ai_data.put(rs.getBytes("token_key"),
+							rs.getBytes("token_value"));
+				} else {
+					ai_data.put(rs.getBytes("token_key"),
+							rs.getBytes("token_value"));
 				}
 			}
 
-			if (ai_data == null)
-			{
-				throw new RestTokenNotFoundException (token_id);
+			if (ai_data == null) {
+				throw new RestTokenNotFoundException(token_id);
 			}
 
-			ai.setAi_data (ai_data);
-			token.addAuthInfo (ai);
+			ai.setAi_data(ai_data);
+			token.addAuthInfo(ai);
 
-			rs.close ();
+			rs.close();
 
-			ps_delete_token_by_token_id.setLong (1, token_id);
-			ps_delete_token_by_token_id.executeUpdate ();
+			ps_delete_token_by_token_id.setLong(1, token_id);
+			ps_delete_token_by_token_id.executeUpdate();
 
-		}
-		catch (SQLException e)
-		{
-			FileLogger.logException (e);
-			throw new RestSQLException (e);
+		} catch (SQLException e) {
+			FileLogger.logException(e);
+			throw new RestSQLException(e);
 		}
 
-		token.setId (token_id);
+		token.setId(token_id);
 		return token;
 	}
 
 	@Deprecated
-	public void insertLog (User user, String message, String type) throws RestSQLException
-	{
-		insertLog (user, null, null, message, type);
+	public void insertLog(User user, String message, String type)
+			throws RestSQLException {
+		insertLog(user, null, null, message, type);
 	}
 
-	public void insertLog (User user, AuthInfo authinfo, String message, String type) throws RestSQLException
-	{
-		insertLog (user, authinfo, null, message, type);
+	public void insertLog(User user, AuthInfo authinfo, String message,
+			String type) throws RestSQLException {
+		insertLog(user, authinfo, null, message, type);
 	}
 
-	public void insertLog (User user, Token token, String message, String type) throws RestSQLException
-	{
-		insertLog (user, null, token, message, type);
+	public void insertLog(User user, Token token, String message, String type)
+			throws RestSQLException {
+		insertLog(user, null, token, message, type);
 	}
 
-	public void insertLog (User user, AuthInfo authinfo, Token token, String message, String type) throws RestSQLException
-	{
-		try
-		{
-			ps_insert_log.setLong (1, user.getBmuId ());
+	public void insertLog(User user, AuthInfo authinfo, Token token,
+			String message, String type) throws RestSQLException {
+		try {
+			ps_insert_log.setLong(1, user.getBmuId());
 
-			if (authinfo != null)
-			{
-				ps_insert_log.setLong (2, authinfo.getService ().getBmuId ());
-				ps_insert_log.setLong (3, authinfo.getBmuAuthinfoId ());
+			if (authinfo != null) {
+				ps_insert_log.setLong(2, authinfo.getService().getBmuId());
+				ps_insert_log.setLong(3, authinfo.getBmuAuthinfoId());
+			} else {
+				ps_insert_log.setNull(2, java.sql.Types.INTEGER);
+				ps_insert_log.setNull(3, java.sql.Types.INTEGER);
 			}
-			else
-			{
-				ps_insert_log.setNull (2, java.sql.Types.INTEGER);
-				ps_insert_log.setNull (3, java.sql.Types.INTEGER);
+			if (token != null) {
+				ps_insert_log.setLong(4, token.getId());
+			} else {
+				ps_insert_log.setNull(4, java.sql.Types.INTEGER);
 			}
-			if (token != null)
-			{
-				ps_insert_log.setLong (4, token.getId ());
-			}
-			else
-			{
-				ps_insert_log.setNull (4, java.sql.Types.INTEGER);
-			}
-			ps_insert_log.setLong (5, new Date ().getTime ());
-			ps_insert_log.setString (6, type);
-			ps_insert_log.setString (7, pgpkeys.getPublickey ());
-			ps_insert_log.setString (8, message);
-			ps_insert_log.setString (9, pgpkeys.getPublickey ());
+			ps_insert_log.setLong(5, new Date().getTime());
+			ps_insert_log.setString(6, type);
+			ps_insert_log.setString(7, pgpkeys.getPublickey());
+			ps_insert_log.setString(8, message);
+			ps_insert_log.setString(9, pgpkeys.getPublickey());
 
-			ps_insert_log.executeUpdate ();
-		}
-		catch (SQLException e)
-		{
-			FileLogger.logException (e);
-			throw new RestSQLException (e);
+			ps_insert_log.executeUpdate();
+		} catch (SQLException e) {
+			FileLogger.logException(e);
+			throw new RestSQLException(e);
 		}
 	}
 
 	@Deprecated
-	public List<LogContainer> getLogs (User user)
-	{
-		try
-		{
-			ps_select_log_by_bmu_user_id.setString (1, pgpkeys.getPrivatekey ());
-			ps_select_log_by_bmu_user_id.setString (2, pgpkeys.getPrivatekey ());
-			ps_select_log_by_bmu_user_id.setLong (3, user.getBmuId ());
+	public List<LogContainer> getLogs(User user) {
+		try {
+			ps_select_log_by_bmu_user_id.setString(1, pgpkeys.getPrivatekey());
+			ps_select_log_by_bmu_user_id.setString(2, pgpkeys.getPrivatekey());
+			ps_select_log_by_bmu_user_id.setLong(3, user.getBmuId());
 
-			List<LogContainer> containers = new LinkedList<LogContainer> ();
-			ResultSet rs = ps_select_log_by_bmu_user_id.executeQuery ();
-			while (rs.next ())
-			{
-				LogContainer container = new LogContainer ();
-				container.setBmu_user_id (user.getBmuId ());
-				container.setBmu_service_id (rs.getLong ("bmu_service_id"));
-				container.setBmu_authinfo_id (rs.getLong ("bmu_authinfo_id"));
-				container.setBmu_token_id (rs.getLong ("bmu_token_id"));
-				container.setDate (rs.getLong ("date"));
-				container.setType (rs.getString ("type"));
-				container.setMessage (rs.getString ("description"));
+			List<LogContainer> containers = new LinkedList<LogContainer>();
+			ResultSet rs = ps_select_log_by_bmu_user_id.executeQuery();
+			while (rs.next()) {
+				LogContainer container = new LogContainer();
+				container.setBmu_user_id(user.getBmuId());
+				container.setBmu_service_id(rs.getLong("bmu_service_id"));
+				container.setBmu_authinfo_id(rs.getLong("bmu_authinfo_id"));
+				container.setBmu_token_id(rs.getLong("bmu_token_id"));
+				container.setDate(rs.getLong("date"));
+				container.setType(rs.getString("type"));
+				container.setMessage(rs.getString("description"));
 
-				containers.add (container);
+				containers.add(container);
 			}
-			rs.close ();
+			rs.close();
 
 			return containers;
-		}
-		catch (SQLException e)
-		{
-			FileLogger.logException (e);
-			throw new RestSQLException (e);
+		} catch (SQLException e) {
+			FileLogger.logException(e);
+			throw new RestSQLException(e);
 		}
 	}
 
 	@Deprecated
-	public void deleteAllUserLogs (User user)
-	{
-		try
-		{
-			ps_delete_log_by_bmu_user_id.setLong (1, user.getBmuId ());
-			
-			ps_delete_log_by_bmu_user_id.executeUpdate ();
-		}
-		catch (SQLException e)
-		{
-			FileLogger.logException (e);
-			throw new RestSQLException (e);
+	public void deleteAllUserLogs(User user) {
+		try {
+			ps_delete_log_by_bmu_user_id.setLong(1, user.getBmuId());
+
+			ps_delete_log_by_bmu_user_id.executeUpdate();
+		} catch (SQLException e) {
+			FileLogger.logException(e);
+			throw new RestSQLException(e);
 		}
 	}
 }
