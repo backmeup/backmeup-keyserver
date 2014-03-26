@@ -1,57 +1,91 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+	
 	<groupId>org.backmeup</groupId>
 	<artifactId>keysrv</artifactId>
-	<packaging>war</packaging>
 	<version>0.0.1-SNAPSHOT</version>
+	
+	<packaging>war</packaging>
+	
 	<name>keysrv Maven Webapp</name>
 	<url>http://maven.apache.org</url>
+		
+ 	<properties>
+		<!-- Project settings -->
+        <project.build.java.target>1.7</project.build.java.target>
+
+		<config.IntegrationTestCategory>org.backmeup.tests.IntegrationTest</config.IntegrationTestCategory>
+
+		<config.Tomcat.Manager.Url>http://127.0.0.1:8080/manager/text</config.Tomcat.Manager.Url>
+		<config.Tomcat.Authentication.Id>tomcat7</config.Tomcat.Authentication.Id>
+
+        <encoding>UTF-8</encoding>
+        <project.build.sourceEncoding>${encoding}</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>${encoding}</project.reporting.outputEncoding>
+
+		<!-- Dependency versions
+			 Please keep alphabetical
+			 Properties should be in form "version.<groupId>", or in case where
+			 multiple artefacts of the same groupId are used  "version.<groupId>.<artifactId>"
+		-->
+		<version.javax.mail>1.4.1</version.javax.mail>
+		<version.junit>4.11</version.junit>
+		<version.org.jboss.resteasy>2.3.4.Final</version.org.jboss.resteasy>
+		<version.org.postgresql>9.3-1100-jdbc41</version.org.postgresql>
+		<version.org.slf4j>1.7.5</version.org.slf4j>
+
+		<!-- Maven Plugin versions -->
+		<version.org.apache.maven.plugins.maven-compiler-plugin>3.1</version.org.apache.maven.plugins.maven-compiler-plugin>
+		<version.org.apache.tomcat.maven>2.2</version.org.apache.tomcat.maven>
+	</properties>
+	
 	<dependencies>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>3.8.1</version>
+			<version>${version.junit}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>postgresql</groupId>
 			<artifactId>postgresql</artifactId>
-			<version>9.1-901.jdbc4</version>
+			<version>${version.org.postgresql}</version>
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.jboss.resteasy</groupId>
 			<artifactId>resteasy-jaxrs</artifactId>
-			<version>2.3.4.Final</version>
+			<version>{version.org.jboss.resteasy}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jboss.resteasy</groupId>
 			<artifactId>resteasy-jackson-provider</artifactId>
-			<version>2.3.3.Final</version>
+			<version>{version.org.jboss.resteasy}</version>
 		</dependency>
 		<dependency>
 			<groupId>javax.mail</groupId>
 			<artifactId>mail</artifactId>
-			<version>1.4.1</version>
+			<version>${version.javax.mail}</version>
 		</dependency>
 	</dependencies>
+	
 	<build>
 		<finalName>keysrv</finalName>
 		<plugins>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>2.5.1</version>
+				<version>${version.org.apache.maven.plugins.maven-compiler-plugin}</version>
 				<configuration>
-					<source>1.6</source>
-					<target>1.6</target>
+					<source>${project.build.java.target}</source>
+					<target>${project.build.java.target}</target>
 				</configuration>
 			</plugin>
 
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>tomcat-maven-plugin</artifactId>
-				<version>1.1</version>
+				<version>${version.org.apache.tomcat.maven}</version>
 				<configuration>
 					<url>http://bmu-keysrv01/manager</url>
 					<server>keysrv</server>
