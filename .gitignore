@@ -4,3 +4,21 @@
 *.jar
 *.war
 *.ear
+
+# Maven
+target/
+
+# IDEA
+.idea/
+*.iml
+
+# Eclipse
+.metadata
+.classpath
+.project
+.pydevproject
+.settings/
+RemoteSystemsTempFiles
+
+# Mac OS X
+.DS_Store
