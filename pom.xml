@@ -15,20 +15,20 @@
 
  	<properties>
 		<!-- Project settings -->
+		<encoding>UTF-8</encoding>
 		<project.build.java.target>1.7</project.build.java.target>
-		<project.database.url>jdbc:postgresql://localhost:5432/db_keysrv</project.database.url>
-		<project.database.username>dbu_keysrv</project.database.username>
-		<project.database.password>dbu_keysrv</project.database.password>
+		<project.build.sourceEncoding>${encoding}</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>${encoding}</project.reporting.outputEncoding>
 		
-
+		<!-- Configuration -->
+		<config.database.url>jdbc:postgresql://localhost:5432/db_keysrv</config.database.url>
+		<config.database.username>dbu_keysrv</config.database.username>
+		<config.database.password>dbu_keysrv</config.database.password>
+		
 		<config.IntegrationTestCategory>org.backmeup.tests.IntegrationTest</config.IntegrationTestCategory>
 
 		<config.Tomcat.Manager.Url>http://127.0.0.1:8080/manager/text</config.Tomcat.Manager.Url>
 		<config.Tomcat.Authentication.Id>tomcat7</config.Tomcat.Authentication.Id>
-
-		<encoding>UTF-8</encoding>
-		<project.build.sourceEncoding>${encoding}</project.build.sourceEncoding>
-		<project.reporting.outputEncoding>${encoding}</project.reporting.outputEncoding>
 
 		<!-- Dependency versions
 			 Please keep alphabetical
@@ -155,6 +155,7 @@
 						<version>${version.org.apache.tomcat.maven}</version>
 						<configuration>
 							<url>${config.Tomcat.Manager.Url}</url>
+							<!-- Don't forget to specify the server in the settings.xml -->
 							<server>${config.Tomcat.Authentication.Id}</server>
 						</configuration>
 						<executions>
