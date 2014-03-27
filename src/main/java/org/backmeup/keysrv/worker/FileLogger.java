@@ -8,8 +8,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
+import org.backmeup.keyserver.config.Configuration;
+
 public class FileLogger {
-	private static final String LOG_FILE = "/var/log/keysrv/keysrv.log";
+	private static final String LOG_FILE = Configuration.getProperty("keyserver.logfile");
 
 	private static FileHandler fh;
 	private static Logger logger;

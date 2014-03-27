@@ -5,9 +5,11 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import org.backmeup.keyserver.config.Configuration;
+
 public class PGPKeys {
-	private final String PUBLIC_KEY_FILE = "/etc/keysrv/public.key";
-	private final String PRIVATE_KEY_FILE = "/etc/keysrv/private.key";
+	private final String PUBLIC_KEY_FILE = Configuration.getProperty("keyserver.publickey");
+	private final String PRIVATE_KEY_FILE = Configuration.getProperty("keyserver.privatekey");
 	private final int MAX_FILE_SIZE = 1048576; // 1 MiB
 
 	private String publickey = "";
