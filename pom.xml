@@ -16,6 +16,10 @@
  	<properties>
 		<!-- Project settings -->
 		<project.build.java.target>1.7</project.build.java.target>
+		<project.database.url>jdbc:postgresql://localhost:5432/db_keysrv</project.database.url>
+		<project.database.username>dbu_keysrv</project.database.username>
+		<project.database.password>dbu_keysrv</project.database.password>
+		
 
 		<config.IntegrationTestCategory>org.backmeup.tests.IntegrationTest</config.IntegrationTestCategory>
 
@@ -44,6 +48,7 @@
 		<version.org.apache.maven.plugins.maven-failsafe-plugin>2.16</version.org.apache.maven.plugins.maven-failsafe-plugin>
 		<version.org.apache.maven.plugins.maven-surefire-plugin>2.6</version.org.apache.maven.plugins.maven-surefire-plugin>
 		<version.org.apache.tomcat.maven>2.2</version.org.apache.tomcat.maven>
+		<version.org.codehaus.mojo.sql-maven-plugin>1.5</version.org.codehaus.mojo.sql-maven-plugin>
 	</properties>
 	
 	<dependencies>
@@ -161,6 +166,42 @@
 								</goals>
 								<configuration>
 									<update>true</update>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>sql-maven-plugin</artifactId>
+						<version>${version.org.codehaus.mojo.sql-maven-plugin}</version>
+						<dependencies>
+							<dependency>
+								<groupId>org.postgresql</groupId>
+								<artifactId>postgresql</artifactId>
+								<version>${version.org.postgresql}</version>
+							</dependency>
+						</dependencies>
+						<configuration>
+							<driver>org.postgresql.Driver</driver>
+							<url>${project.database.url}</url>
+							<username>${project.database.password}</username>
+							<password>dbu_keysrv</password>
+							<!-- comment out username/password and specify them in settings.xml
+							     and use <settingsKey>MySensibleKey</settingsKey> -->
+						</configuration>
+						<executions>
+							<execution>
+								<id>db-truncate</id>
+								<phase>pre-integration-test</phase>
+								<goals>
+									<goal>execute</goal>
+								</goals>
+								<configuration>
+									<autocommit>true</autocommit>
+									<srcFiles>
+										<srcFile>src/main/sql/db-keyserver-truncate.sql</srcFile>
+									</srcFiles>
 								</configuration>
 							</execution>
 						</executions>
