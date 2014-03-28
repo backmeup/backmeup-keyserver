@@ -17,9 +17,9 @@ public abstract class IntegrationTestBase {
 		config.load(in);
 		in.close();
 		
-		RestAssured.baseURI = config.getProperty("backmeup.service.baseuri");
-		RestAssured.port = Integer.parseInt(config.getProperty("backmeup.service.port"));
-		RestAssured.basePath = config.getProperty("backmeup.service.basepath");
+		RestAssured.baseURI = config.getProperty("backmeup.keyserver.baseuri");
+		RestAssured.port = Integer.parseInt(config.getProperty("backmeup.keyserver.port"));
+		RestAssured.basePath = config.getProperty("backmeup.keyserver.basepath");
 		RestAssured.defaultParser = Parser.JSON;
 		RestAssured.requestContentType("application/json");
 	}

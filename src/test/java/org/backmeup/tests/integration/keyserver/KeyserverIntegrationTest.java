@@ -4,7 +4,6 @@ import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.RestAssured.when;
 import static org.hamcrest.Matchers.containsString;
 
-import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
@@ -12,47 +11,18 @@ import java.util.Properties;
 import org.backmeup.tests.IntegrationTest;
 import org.backmeup.tests.integration.IntegrationTestBase;
 import org.backmeup.tests.integration.utils.KeyserverUtils;
-import org.backmeup.tests.utils.Configuration;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.parsing.Parser;
 import com.jayway.restassured.response.ValidatableResponse;
 
-/*
- * for examples rest-assured see:
- * https://github.com/jayway/rest-assured/tree/master/examples/rest-assured-itest-java/src/test/java/com/jayway/restassured/itest/java
- */
-
 @Category(IntegrationTest.class)
-public class KeyserverIntegrationTest {
-	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
-		Configuration config = new Configuration();
-		InputStream in = IntegrationTestBase.class.getClassLoader().getResourceAsStream("integrationtests.properties");
-		config.load(in);
-		in.close();
-		
-		RestAssured.baseURI = config.getProperty("backmeup.keyserver.baseuri");
-		RestAssured.port = Integer.parseInt(config.getProperty("backmeup.keyserver.port"));
-		RestAssured.basePath = config.getProperty("backmeup.keyserver.basepath");
-		RestAssured.defaultParser = Parser.JSON;
-		RestAssured.requestContentType("application/json");
-	}
-
-	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
-		RestAssured.reset();
-	}
-
+public class KeyserverIntegrationTest extends IntegrationTestBase {
 	@Before
 	public void setUp() throws Exception {
 	}

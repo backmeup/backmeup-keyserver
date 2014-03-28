@@ -121,6 +121,15 @@
 				<version>${version.org.apache.maven.plugins.maven-failsafe-plugin}</version>
 				<configuration>
 					<groups>${config.IntegrationTestCategory}</groups>
+					<systemPropertyVariables>
+						<!-- For automated integration test, the following properties are specified as 
+							 maven commands (e.g. mvn -Dbackmeup.keyserver.baseuri=xxx). If not specified, 
+							 the settings in the file 'integrationtests.properties' are used. 
+						-->
+						<backmeup.keyserver.baseuri>${backmeup.keyserver.baseuri}</backmeup.keyserver.baseuri>
+						<backmeup.keyserver.port>${backmeup.keyserver.port}</backmeup.keyserver.port>
+						<backmeup.keyserver.basepath>${backmeup.keyserver.basepath}</backmeup.keyserver.basepath>
+					</systemPropertyVariables>
 				</configuration>
 				<executions>
 					<execution>
@@ -185,9 +194,9 @@
 						</dependencies>
 						<configuration>
 							<driver>org.postgresql.Driver</driver>
-							<url>${project.database.url}</url>
-							<username>${project.database.password}</username>
-							<password>dbu_keysrv</password>
+							<url>${config.database.url}</url>
+							<username>${config.database.username}</username>
+							<password>${config.database.password}</password>
 							<!-- comment out username/password and specify them in settings.xml
 							     and use <settingsKey>MySensibleKey</settingsKey> -->
 						</configuration>
