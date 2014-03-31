@@ -36,12 +36,12 @@
 			 multiple artefacts of the same groupId are used  "version.<groupId>.<artifactId>"
 		-->
 		<version.com.jayway.restassured>2.0.1</version.com.jayway.restassured>
+		<version.commons-dbcp>1.4</version.commons-dbcp>
 		<version.javax.mail>1.4.1</version.javax.mail>
 		<version.junit>4.11</version.junit>
 		<version.org.jboss.resteasy.resteasy-jaxrs>2.3.4.Final</version.org.jboss.resteasy.resteasy-jaxrs>
 		<version.org.jboss.resteasy-jackson-provider>2.3.3.Final</version.org.jboss.resteasy-jackson-provider>
 		<version.org.postgresql>9.3-1100-jdbc41</version.org.postgresql>
-		<version.org.slf4j>1.7.5</version.org.slf4j>
 
 		<!-- Maven Plugin versions -->
 		<version.org.apache.maven.plugins.maven-compiler-plugin>3.1</version.org.apache.maven.plugins.maven-compiler-plugin>
@@ -88,7 +88,7 @@
 		<dependency>
 			<groupId>commons-dbcp</groupId>
 			<artifactId>commons-dbcp</artifactId>
-			<version>1.4</version>
+			<version>${version.commons-dbcp}</version>
 		</dependency>
 	</dependencies>
 	
