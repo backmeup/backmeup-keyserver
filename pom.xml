@@ -22,13 +22,12 @@
 		
 		<!-- Configuration -->
 		<config.database.url>jdbc:postgresql://localhost:5432/db_keysrv</config.database.url>
-		<config.database.username>dbu_keysrv</config.database.username>
-		<config.database.password>dbu_keysrv</config.database.password>
+		<config.database.authentication.id>backmeup.keyserver.postgres</config.database.authentication.id>
 		
-		<config.IntegrationTestCategory>org.backmeup.tests.IntegrationTest</config.IntegrationTestCategory>
+		<config.integrationTestCategory>org.backmeup.tests.IntegrationTest</config.integrationTestCategory>
 
-		<config.Tomcat.Manager.Url>http://127.0.0.1:8080/manager/text</config.Tomcat.Manager.Url>
-		<config.Tomcat.Authentication.Id>tomcat7</config.Tomcat.Authentication.Id>
+		<config.tomcat.manager.url>http://127.0.0.1:8080/manager/text</config.tomcat.manager.url>
+		<config.tomcat.authentication.id>backmeup.keyserver.tomcat</config.tomcat.authentication.id>
 
 		<!-- Dependency versions
 			 Please keep alphabetical
@@ -120,7 +119,7 @@
 				<artifactId>maven-failsafe-plugin</artifactId>
 				<version>${version.org.apache.maven.plugins.maven-failsafe-plugin}</version>
 				<configuration>
-					<groups>${config.IntegrationTestCategory}</groups>
+					<groups>${config.integrationTestCategory}</groups>
 					<systemPropertyVariables>
 						<!-- For automated integration test, the following properties are specified as 
 							 maven commands (e.g. mvn -Dbackmeup.keyserver.baseuri=xxx). If not specified, 
@@ -163,9 +162,9 @@
 						<artifactId>tomcat7-maven-plugin</artifactId>
 						<version>${version.org.apache.tomcat.maven}</version>
 						<configuration>
-							<url>${config.Tomcat.Manager.Url}</url>
+							<url>${config.tomcat.manager.url}</url>
 							<!-- Don't forget to specify the server in the settings.xml -->
-							<server>${config.Tomcat.Authentication.Id}</server>
+							<server>${config.tomcat.authentication.id}</server>
 						</configuration>
 						<executions>
 							<execution>
@@ -195,10 +194,8 @@
 						<configuration>
 							<driver>org.postgresql.Driver</driver>
 							<url>${config.database.url}</url>
-							<username>${config.database.username}</username>
-							<password>${config.database.password}</password>
-							<!-- comment out username/password and specify them in settings.xml
-							     and use <settingsKey>MySensibleKey</settingsKey> -->
+							<!-- Don't forget to specify the server in the settings.xml -->
+							<settingsKey>${config.database.authentication.id}</settingsKey>
 						</configuration>
 						<executions>
 							<execution>
