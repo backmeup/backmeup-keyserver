@@ -5,6 +5,7 @@ Backemup Keyserver provides a secure storage for personal keys.
 To build and run the Keyserver on your system you need [Apache Maven 3.x](https://maven.apache.org/), a servlet container and a database system. We recommend the following:
 * [Apache Tomcat 7.x](https://tomcat.apache.org/)
 * [PostgresSQL 9.3.x](http://www.postgresql.org/)
+
 Additional dependencies will be resolved and loaded from Maven. Have a look at `pom.xml`.
 
 ## Configuration
@@ -59,10 +60,26 @@ Authentication information (username/password) from the pom-file is hidden in th
     </server>
 </servers>
 ```
+
 ## Build & Deploy
+We use [Apache Maven](https://maven.apache.org/) to build the project. Important Maven goals:
+
+###### `mvn package` 
+Generate war file that can be deployed to the servlet container.
+
+###### `mvn verify`
+Generate war file, deploy it and run the integration tests.
+
+Tests (unit and integration tests) can be skipped with the flag `–DskipTests`. 
+
+If you want to deploy and verify the Keyserver to a remote system, you can override the properties of the pom-file and the settings in the properties-files:
+```
+mvn -Dconfig.database.url=jdbc:postgresql://remote-host:1234/db_keyserver -Dconfig.tomcat.manager.url=http://remote-host:8080/manager/text -Dbackmeup.keyserver.baseuri=http://remote-host -Dbackmeup.keyserver.port=8080 -Dbackmeup.keyserver.basepath=/backmeup-keyserver clean verify
+```
 
 ## Contribute
 
 ## Support
 
 ## License 
+[Backmeup Keyserver License](LICENCE.txt)
