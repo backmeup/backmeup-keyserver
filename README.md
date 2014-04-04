@@ -4,7 +4,7 @@ Backemup Keyserver provides a secure storage for personal keys.
 ## Requirements 
 To build and run the Keyserver on your system you need [Apache Maven 3.x](https://maven.apache.org/), a servlet container and a database system. We recommend the following:
 * [Apache Tomcat 7.x](https://tomcat.apache.org/)
-* [PostgresSQL 9.3.x](http://www.postgresql.org/)
+* [PostgreSQL 9.3.x](http://www.postgresql.org/)
 
 Additional dependencies will be resolved and loaded from Maven. Have a look at `pom.xml`.
 
