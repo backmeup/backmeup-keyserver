@@ -18,7 +18,9 @@ public interface LogDao {
 	public void insertLog(User user, AuthInfo authinfo, Token token,
 			String message, String type);
 
+	@Deprecated
 	public List<LogContainer> getLogs(User user);
 
+	@Deprecated
 	public void deleteAllUserLogs(User user);
 }

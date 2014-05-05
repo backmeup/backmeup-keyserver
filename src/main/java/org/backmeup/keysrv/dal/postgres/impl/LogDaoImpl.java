@@ -17,6 +17,7 @@ import org.backmeup.keysrv.worker.PGPKeys;
 import org.backmeup.keysrv.worker.Token;
 import org.backmeup.keysrv.worker.User;
 
+@Deprecated
 public class LogDaoImpl implements LogDao {
 	private static final String PS_INSERT_LOG = "INSERT INTO logs (bmu_user_id, bmu_service_id, bmu_authinfo_id, bmu_token_id, date, type, description) VALUES (?, ?, ?, ?, ?, (pgp_pub_encrypt (?, dearmor(?))), (pgp_pub_encrypt (?, dearmor(?))))";
 	private static final String PS_DELETE_LOG_BY_BMU_USER_ID = "DELETE FROM logs WHERE bmu_user_id=?";

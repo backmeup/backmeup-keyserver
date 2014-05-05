@@ -11,7 +11,8 @@ import java.util.logging.SimpleFormatter;
 import org.backmeup.keyserver.config.Configuration;
 
 public class FileLogger {
-	private static final String LOG_FILE = Configuration.getProperty("keyserver.logfile");
+	private static final String LOG_FILE = Configuration
+			.getProperty("keyserver.logfile");
 
 	private static FileHandler fh;
 	private static Logger logger;
@@ -46,6 +47,7 @@ public class FileLogger {
 		return sw.toString();
 	}
 
+	@Deprecated
 	public static void logException(Exception e) {
 		openLogFile();
 
@@ -54,10 +56,26 @@ public class FileLogger {
 		closeLogFile();
 	}
 
+	public static void logException(String message, Exception e) {
+		openLogFile();
+
+		logger.log(Level.SEVERE, message + "\n" + stackTraceToString(e));
+
+		closeLogFile();
+	}
+
 	public static void logMessage(String msg) {
 		openLogFile();
 
 		logger.log(Level.INFO, msg);
+
+		closeLogFile();
+	}
+	
+	public static void logDebug(String msg) {
+		openLogFile();
+
+		logger.log(Level.FINEST, msg);
 
 		closeLogFile();
 	}

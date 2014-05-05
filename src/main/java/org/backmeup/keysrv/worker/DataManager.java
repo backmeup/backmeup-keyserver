@@ -6,7 +6,7 @@ import org.backmeup.keyserver.dal.ServiceDao;
 import org.backmeup.keyserver.dal.TokenDao;
 import org.backmeup.keyserver.dal.UserDao;
 import org.backmeup.keysrv.dal.postgres.impl.AuthInfoDaoImpl;
-import org.backmeup.keysrv.dal.postgres.impl.LogDaoImpl;
+import org.backmeup.keyserver.dal.rabbitmq.impl.LogDaoImpl;
 import org.backmeup.keysrv.dal.postgres.impl.ServiceDaoImpl;
 import org.backmeup.keysrv.dal.postgres.impl.TokenDaoImpl;
 import org.backmeup.keysrv.dal.postgres.impl.UserDaoImpl;

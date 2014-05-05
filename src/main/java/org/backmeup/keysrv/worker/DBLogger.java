@@ -2,6 +2,7 @@ package org.backmeup.keysrv.worker;
 
 import org.backmeup.keyserver.dal.LogDao;
 
+@Deprecated
 public class DBLogger {
 	private static final String CREATE_USER_MSG = "User created";
 	private static final String CHANGE_USER_PWD_MSG = "User password changed";
