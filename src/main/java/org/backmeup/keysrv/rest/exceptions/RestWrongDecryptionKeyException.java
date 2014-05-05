@@ -11,12 +11,12 @@ public class RestWrongDecryptionKeyException extends WebApplicationException {
 	 */
 	private static final long serialVersionUID = 1L;
 
-	public RestWrongDecryptionKeyException(long bmu_user_id) {
+	public RestWrongDecryptionKeyException(long bmuUserId) {
 		super(Response
 				.status(400)
 				.entity(new ExceptionContainer(
 						"RestWrongDecryptionKeyException",
-						"The password provided for this user (" + bmu_user_id
+						"The password provided for this user (" + bmuUserId
 								+ ") is not correct")).build());
 	}
 }

@@ -8,7 +8,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 
 import org.backmeup.keyserver.dal.ServiceDao;
-import org.backmeup.keysrv.dal.postgres.impl.ServiceDaoImpl;
 import org.backmeup.keysrv.rest.data.ServiceContainer;
 import org.backmeup.keysrv.worker.DataManager;
 import org.backmeup.keysrv.worker.Service;

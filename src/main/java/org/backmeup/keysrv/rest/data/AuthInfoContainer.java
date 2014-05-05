@@ -1,6 +1,7 @@
 package org.backmeup.keysrv.rest.data;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import org.backmeup.keysrv.rest.exceptions.RestWrongDecryptionKeyException;
 import org.backmeup.keysrv.worker.AuthInfo;
@@ -14,7 +15,7 @@ public class AuthInfoContainer {
 
 	private String user_pwd = "";
 
-	HashMap<String, String> ai_data = null;
+	Map<String, String> ai_data = null;
 
 	public AuthInfoContainer() {
 	}
@@ -24,7 +25,7 @@ public class AuthInfoContainer {
 		this.bmu_authinfo_id = ai.getBmuAuthinfoId();
 		this.bmu_user_id = ai.getUser().getBmuId();
 		this.bmu_service_id = ai.getService().getBmuId();
-		this.ai_data = ai.getDecAi_data();
+		this.ai_data = ai.getDecAiData();
 
 		if (this.ai_data.size() == 0) {
 			throw new RestWrongDecryptionKeyException(this.bmu_user_id);
@@ -73,7 +74,7 @@ public class AuthInfoContainer {
 		this.user_pwd = user_pwd;
 	}
 
-	public HashMap<String, String> getAi_data() {
+	public Map<String, String> getAi_data() {
 		return ai_data;
 	}
 

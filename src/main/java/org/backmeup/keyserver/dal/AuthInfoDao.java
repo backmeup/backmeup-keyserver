@@ -1,13 +1,13 @@
 package org.backmeup.keyserver.dal;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import org.backmeup.keysrv.worker.AuthInfo;
 import org.backmeup.keysrv.worker.Service;
 import org.backmeup.keysrv.worker.User;
 
 public interface AuthInfoDao {
-	public void insertAuthInfo(AuthInfo authinfo);
+	void insertAuthInfo(AuthInfo authinfo);
 
 	/**
 	 * Returns an complete authinfo object with data.
@@ -17,7 +17,7 @@ public interface AuthInfoDao {
 	 * @param service
 	 * @return
 	 */
-	public AuthInfo getAuthInfo(long bmu_authinfo_id, User user, Service service);
+	AuthInfo getAuthInfo(long bmuAuthinfoId, User user, Service service);
 
 	/**
 	 * Returns an authinfo object without data. Only bmu_authinfo_id,
@@ -26,11 +26,11 @@ public interface AuthInfoDao {
 	 * @param bmu_authinfo_id
 	 * @return
 	 */
-	public AuthInfo getAuthInfo(long bmu_authinfo_id);
+	AuthInfo getAuthInfo(long bmuAuthinfoId);
 
-	public ArrayList<AuthInfo> getUserAuthInfos(User user);
+	List<AuthInfo> getUserAuthInfos(User user);
 
-	public boolean existAuthInfo(long bmu_authinfo_id);
+	boolean existAuthInfo(long bmuAuthinfoId);
 
-	public void deleteAuthInfo(long bmu_authinfo_id);
+	void deleteAuthInfo(long bmuAuthinfoId);
 }

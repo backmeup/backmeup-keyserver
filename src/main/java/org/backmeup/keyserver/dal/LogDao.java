@@ -8,19 +8,25 @@ import org.backmeup.keysrv.worker.Token;
 import org.backmeup.keysrv.worker.User;
 
 public interface LogDao {
-	public void insertLog(User user, String message, String type);
+	void insertLog(User user, String message, String type);
 
-	public void insertLog(User user, AuthInfo authinfo, String message,
+	void insertLog(User user, AuthInfo authinfo, String message,
 			String type);
 
-	public void insertLog(User user, Token token, String message, String type);
+	void insertLog(User user, Token token, String message, String type);
 
-	public void insertLog(User user, AuthInfo authinfo, Token token,
+	void insertLog(User user, AuthInfo authinfo, Token token,
 			String message, String type);
 
+	/**
+	 * @deprecated
+	 */
 	@Deprecated
-	public List<LogContainer> getLogs(User user);
+	List<LogContainer> getLogs(User user);
 
+	/**
+	 * @deprecated
+	 */
 	@Deprecated
-	public void deleteAllUserLogs(User user);
+	void deleteAllUserLogs(User user);
 }

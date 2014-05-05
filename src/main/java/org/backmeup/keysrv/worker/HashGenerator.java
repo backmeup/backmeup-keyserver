@@ -6,9 +6,9 @@ import java.security.SecureRandom;
 import javax.xml.bind.DatatypeConverter;
 
 public class HashGenerator {
-	private final String ENCODING = "UTF-8";
-	private final String HASH_ALGO = "SHA-512";
-	private final int SALT_LENGTH = 16;
+	private static final String ENCODING = "UTF-8";
+	private static final String HASH_ALGO = "SHA-512";
+	private static final int SALT_LENGTH = 16;
 
 	public HashGenerator() {
 	}
@@ -22,37 +22,39 @@ public class HashGenerator {
 	private String calcSHA512(String value, boolean salted, byte[] salt) {
 		MessageDigest md = null;
 		byte[] hash = null;
+		byte[] localSalt = salt;
 
-		if (salt == null) {
+		if (localSalt == null) {
 			SecureRandom sr = new SecureRandom();
-			salt = new byte[SALT_LENGTH];
-			sr.nextBytes(salt);
+			localSalt = new byte[SALT_LENGTH];
+			sr.nextBytes(localSalt);
 		}
 
 		try {
 			md = MessageDigest.getInstance(HASH_ALGO);
-			if (salted == true) {
-				byte[] value_bytes = value.getBytes(ENCODING);
-				byte[] finaldata = new byte[salt.length + value_bytes.length];
+			if (salted) {
+				byte[] valueBytes = value.getBytes(ENCODING);
+				byte[] finaldata = new byte[localSalt.length + valueBytes.length];
 
-				System.arraycopy(salt, 0, finaldata, 0, salt.length);
-				System.arraycopy(value_bytes, 0, finaldata, salt.length,
-						value_bytes.length);
+				System.arraycopy(localSalt, 0, finaldata, 0, localSalt.length);
+				System.arraycopy(valueBytes, 0, finaldata, localSalt.length,
+						valueBytes.length);
 
-				byte[] salted_hash = md.digest(finaldata);
-				hash = new byte[salt.length + salted_hash.length];
+				byte[] saltedHash = md.digest(finaldata);
+				hash = new byte[localSalt.length + saltedHash.length];
 
-				System.arraycopy(salt, 0, hash, 0, salt.length);
-				System.arraycopy(salted_hash, 0, hash, salt.length,
-						salted_hash.length);
+				System.arraycopy(localSalt, 0, hash, 0, localSalt.length);
+				System.arraycopy(saltedHash, 0, hash, localSalt.length,
+						saltedHash.length);
 			} else {
 				hash = md.digest(value.getBytes(ENCODING));
 			}
 		} catch (Exception e) {
-			FileLogger.logException(e);
+			FileLogger.logException("Error in sha512 calculation", e);
+			return null;
 		}
 
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < hash.length; i++) {
 			sb.append(Integer.toString((hash[i] & 0xff) + 0x100, 16).substring(
 					1));
@@ -84,9 +86,9 @@ public class HashGenerator {
 		salt = DatatypeConverter.parseHexBinary(hash.substring(0,
 				SALT_LENGTH * 2));
 
-		String check_hash = this.calcSHA512(value, true, salt);
+		String checkHash = this.calcSHA512(value, true, salt);
 
-		if (hash.compareTo(check_hash) == 0) {
+		if (hash.compareTo(checkHash) == 0) {
 			return true;
 		}
 

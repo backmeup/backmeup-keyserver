@@ -26,6 +26,7 @@ public class ServiceDaoImpl implements ServiceDao {
 			this.getService(service.getBmuId());
 			throw new RestServiceAlreadyExistException(service.getBmuId());
 		} catch (RestServiceNotFoundException e) {
+			// if this happens the service does not exist and can be inserted to the database
 		}
 
 		PreparedStatement ps = null;
@@ -45,7 +46,7 @@ public class ServiceDaoImpl implements ServiceDao {
 	}
 
 	@Override
-	public Service getService(long bmu_service_id) {
+	public Service getService(long bmuServiceId) {
 		Service service = null;
 		PreparedStatement ps = null;
 		ResultSet rs = null;
@@ -54,7 +55,7 @@ public class ServiceDaoImpl implements ServiceDao {
 			ps = Connection
 					.getPreparedStatement(PS_SELECT_SERVICE_BY_BMU_SERVICE_ID);
 
-			ps.setLong(1, bmu_service_id);
+			ps.setLong(1, bmuServiceId);
 
 			rs = ps.executeQuery();
 			if (rs.next()) {
@@ -62,7 +63,7 @@ public class ServiceDaoImpl implements ServiceDao {
 						rs.getLong("bmu_service_id"));
 			}
 		} catch (SQLException e) {
-			FileLogger.logException(e);
+			FileLogger.logException("failed to get service from db", e);
 			throw new RestSQLException(e);
 		} finally {
 			Connection.closeQuiet(rs);
@@ -70,7 +71,7 @@ public class ServiceDaoImpl implements ServiceDao {
 		}
 
 		if (service == null) {
-			throw new RestServiceNotFoundException(bmu_service_id);
+			throw new RestServiceNotFoundException(bmuServiceId);
 		}
 
 		return service;
@@ -90,7 +91,7 @@ public class ServiceDaoImpl implements ServiceDao {
 
 			ps.executeUpdate();
 		} catch (SQLException e) {
-			FileLogger.logException(e);
+			FileLogger.logException("failed to delete service from db", e);
 			throw new RestSQLException(e);
 		} finally {
 			Connection.closeQuiet(ps);

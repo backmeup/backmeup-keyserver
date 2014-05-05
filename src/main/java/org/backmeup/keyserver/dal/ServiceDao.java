@@ -3,9 +3,9 @@ package org.backmeup.keyserver.dal;
 import org.backmeup.keysrv.worker.Service;
 
 public interface ServiceDao {
-	public void insertService(Service service);
+	void insertService(Service service);
 
-	public Service getService(long bmu_service_id);
+	Service getService(long bmuServiceId);
 
-	public void deleteService(Service service);
+	void deleteService(Service service);
 }

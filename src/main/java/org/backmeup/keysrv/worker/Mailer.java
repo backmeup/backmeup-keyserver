@@ -16,8 +16,13 @@ import javax.mail.internet.MimeMessage;
 
 public class Mailer {
 	private static ExecutorService service;
+	private static Properties mailSettings;
+	
 	static {
 		service = Executors.newFixedThreadPool(4);
+	}
+	
+	private Mailer () {
 	}
 
 	public static void sendAdminMail(final String subject, final String text) {
@@ -77,8 +82,6 @@ public class Mailer {
 		});
 	}
 
-	private static Properties mailSettings;
-
 	private static Properties getMailSettings() {
 		if (mailSettings == null) {
 			Properties props = new Properties();
@@ -90,12 +93,13 @@ public class Mailer {
 				mailSettings = props;
 			} catch (Exception e) {
 			} finally {
-				if (is != null)
+				if (is != null) {
 					try {
 						is.close();
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
+				}
 			}
 		}
 		return mailSettings;

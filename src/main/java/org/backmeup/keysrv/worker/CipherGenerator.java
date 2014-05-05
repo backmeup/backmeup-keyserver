@@ -1,9 +1,9 @@
 package org.backmeup.keysrv.worker;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.security.SecureRandom;
 import java.util.HashMap;
+import java.util.Map;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -21,17 +21,17 @@ public class CipherGenerator {
 	public static final int TYPE_PWD = 1;
 	public static final int TYPE_OAUTH = 2;
 
-	private final String ENCODING = "UTF-8";
-	private final String AES_ALGORITHM = "AES/CBC/PKCS5Padding";
-	private final String PWD_ALGORITHM = "PBKDF2WithHmacSHA1";
-	private final String KEY_SPEC = "AES";
-	private final int NUM_PWD_ITERATIONS = 1038;
-	private final int AES_KEY_LENGTH = 256;
-	private final int SALT_LENGTH = 16;
-	private final int IV_LENGTH = 16;
+	private static final String ENCODING = "UTF-8";
+	private static final String AES_ALGORITHM = "AES/CBC/PKCS5Padding";
+	private static final String PWD_ALGORITHM = "PBKDF2WithHmacSHA1";
+	private static final String KEY_SPEC = "AES";
+	private static final String DECRYPTION_FAILED = "data decryption failed";
+	private static final int NUM_PWD_ITERATIONS = 1038;
+	private static final int AES_KEY_LENGTH = 256;
+	private static final int SALT_LENGTH = 16;
+	private static final int IV_LENGTH = 16;
 
 	public CipherGenerator() {
-		// TODO Auto-generated constructor stub
 	}
 
 	public byte[] encData(String data, User user) {
@@ -42,40 +42,40 @@ public class CipherGenerator {
 		try {
 			return this.decData(encdata, user.getPwd());
 		} catch (BadPaddingException e) {
+			FileLogger.logException(DECRYPTION_FAILED, e);
 			throw new RestWrongDecryptionKeyException(user.getBmuId());
 		}
 	}
 
-	public HashMap<byte[], byte[]> encData(HashMap<String, String> data,
-			User user) {
-		HashMap<byte[], byte[]> enc_data = new HashMap<byte[], byte[]>();
+	public Map<byte[], byte[]> encData(Map<String, String> data, User user) {
+		Map<byte[], byte[]> encData = new HashMap<byte[], byte[]>();
 
-		for (String key : data.keySet()) {
-			byte[] enc_key = this.encData(key, user.getPwd());
-			byte[] enc_value = this.encData(data.get(key), user.getPwd());
+		for (Map.Entry<String, String> element : data.entrySet()) {
+			byte[] encKey = this.encData(element.getKey(), user.getPwd());
+			byte[] encValue = this.encData(element.getValue(), user.getPwd());
 
-			enc_data.put(enc_key, enc_value);
+			encData.put(encKey, encValue);
 		}
 
-		return enc_data;
+		return encData;
 	}
 
-	public HashMap<String, String> decData(HashMap<byte[], byte[]> enc_data,
-			User user) {
-		HashMap<String, String> data = new HashMap<String, String>();
+	public Map<String, String> decData(Map<byte[], byte[]> encData, User user) {
+		Map<String, String> data = new HashMap<String, String>();
 
-		for (byte[] key : enc_data.keySet()) {
-			String dec_key = "";
-			String dec_value = "";
+		for (Map.Entry<byte[], byte[]> element : encData.entrySet()) {
+			String decKey = "";
+			String decValue = "";
 
 			try {
-				dec_key = this.decData(key, user.getPwd());
-				dec_value = this.decData(enc_data.get(key), user.getPwd());
+				decKey = this.decData(element.getKey(), user.getPwd());
+				decValue = this.decData(element.getValue(), user.getPwd());
 			} catch (BadPaddingException e) {
+				FileLogger.logException(DECRYPTION_FAILED, e);
 				throw new RestWrongDecryptionKeyException(user.getBmuId());
 			}
 
-			data.put(dec_key, dec_value);
+			data.put(decKey, decValue);
 		}
 
 		return data;
@@ -117,8 +117,9 @@ public class CipherGenerator {
 			encdata = cipher.doFinal(data.getBytes(ENCODING));
 		} catch (Exception e) {
 			// would never come up
-			FileLogger.logException(e);
-			e.printStackTrace();
+			FileLogger.logException(
+					"something went wrong in encrypt data function", e);
+			return new byte[0];
 		}
 
 		// create bytearray for salt + iv + encrypted data
@@ -169,8 +170,6 @@ public class CipherGenerator {
 
 			cipher.init(Cipher.DECRYPT_MODE, encKey, ips);
 
-			iv = cipher.getIV();
-
 			// encrypt data
 			decdata = cipher.doFinal(data);
 			finaldata = new String(decdata, ENCODING);
@@ -179,8 +178,8 @@ public class CipherGenerator {
 			throw badpadding;
 		} catch (Exception e) {
 			// would never come up
-			FileLogger.logException(e);
-			e.printStackTrace();
+			FileLogger.logException(
+					"something went wrong in decryption data function", e);
 		}
 
 		return finaldata;
@@ -190,29 +189,7 @@ public class CipherGenerator {
 		SecureRandom sr = new SecureRandom();
 		byte[] key = new byte[64];
 
-		// String pwd = "";
-
 		sr.nextBytes(key);
-
-		// // make sure that the string is at least 65 chars long
-		// while (pwd.length () < 65)
-		// {
-		// // transform the key to UTF8 format length is variable
-		// try
-		// {
-		// // generate an random 128 bit key
-		// sr.nextBytes (key);
-		// pwd = new String (key, ENCODING);
-		// }
-		// catch (UnsupportedEncodingException e)
-		// {
-		// FileLogger.logException (e);
-		// e.printStackTrace();
-		// }
-		// }
-
-		// create a fixed 64 chars long UTF8 String
-		// pwd = pwd.substring (0, 64);
 
 		return Base64.encodeBytes(key);
 	}
@@ -223,7 +200,7 @@ public class CipherGenerator {
 	}
 
 	private char[] toCharArray(String pwd) {
-		if (isBase64(pwd) == false) {
+		if (!isBase64(pwd)) {
 			return pwd.toCharArray();
 		}
 
@@ -232,8 +209,8 @@ public class CipherGenerator {
 			bytes = Base64.decode(pwd);
 		} catch (IOException e) {
 			// Should not come up
-			FileLogger.logException(e);
-			return null;
+			FileLogger.logException("base 64 decoding failed", e);
+			return new char[0];
 		}
 
 		char[] chars = new char[bytes.length];

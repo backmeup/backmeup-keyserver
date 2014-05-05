@@ -13,13 +13,16 @@ public abstract class IntegrationTestBase {
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		Configuration config = new Configuration();
-		InputStream in = IntegrationTestBase.class.getClassLoader().getResourceAsStream("integrationtests.properties");
+		InputStream in = IntegrationTestBase.class.getClassLoader()
+				.getResourceAsStream("integrationtests.properties");
 		config.load(in);
 		in.close();
-		
+
 		RestAssured.baseURI = config.getProperty("backmeup.keyserver.baseuri");
-		RestAssured.port = Integer.parseInt(config.getProperty("backmeup.keyserver.port"));
-		RestAssured.basePath = config.getProperty("backmeup.keyserver.basepath");
+		RestAssured.port = Integer.parseInt(config
+				.getProperty("backmeup.keyserver.port"));
+		RestAssured.basePath = config
+				.getProperty("backmeup.keyserver.basepath");
 		RestAssured.defaultParser = Parser.JSON;
 		RestAssured.requestContentType("application/json");
 	}

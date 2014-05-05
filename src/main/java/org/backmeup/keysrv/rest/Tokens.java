@@ -3,6 +3,7 @@ package org.backmeup.keysrv.rest;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Map;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -10,14 +11,11 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 
+import org.backmeup.keyserver.config.Configuration;
 import org.backmeup.keyserver.dal.AuthInfoDao;
 import org.backmeup.keyserver.dal.ServiceDao;
 import org.backmeup.keyserver.dal.TokenDao;
 import org.backmeup.keyserver.dal.UserDao;
-import org.backmeup.keysrv.dal.postgres.impl.AuthInfoDaoImpl;
-import org.backmeup.keysrv.dal.postgres.impl.ServiceDaoImpl;
-import org.backmeup.keysrv.dal.postgres.impl.TokenDaoImpl;
-import org.backmeup.keysrv.dal.postgres.impl.UserDaoImpl;
 import org.backmeup.keysrv.rest.data.AuthInfoContainer;
 import org.backmeup.keysrv.rest.data.TokenContainer;
 import org.backmeup.keysrv.rest.data.TokenDataContainer;
@@ -41,14 +39,13 @@ public class Tokens {
 	@Path("/token")
 	@Consumes("application/json")
 	@Produces("application/json")
-	public TokenContainer getToken(TokenRequestContainer trc)
-			throws SQLException {
+	public TokenContainer getToken(TokenRequestContainer trc) {
 		UserDao userdao = DataManager.getUserDao();
 		ServiceDao servicedao = DataManager.getServiceDao();
 		AuthInfoDao authinfodoa = DataManager.getAuthInfoDao();
 		TokenDao tokendao = DataManager.getTokenDao();
 
-		if (trc.validRequest() == false) {
+		if (!trc.validRequest()) {
 			FileLogger.logMessage("Request not Valid");
 			throw new RestTokenRequestNotValidException();
 		}
@@ -68,18 +65,18 @@ public class Tokens {
 
 		// Store encryption password in an AuthInfo and in token
 		if (trc.getEncryption_pwd() != null) {
-			Service encryption_pwd_service = null;
+			Service encryptionPwdService = null;
 			try {
-				encryption_pwd_service = servicedao.getService(-2);
+				encryptionPwdService = servicedao.getService(-2);
 			} catch (RestServiceNotFoundException e) {
-				encryption_pwd_service = new Service(-2);
-				servicedao.insertService(encryption_pwd_service);
+				encryptionPwdService = new Service(-2);
+				servicedao.insertService(encryptionPwdService);
 			}
 
-			AuthInfo encpwd = new AuthInfo(-2, user, encryption_pwd_service);
-			HashMap<String, String> encpwd_data = new HashMap<String, String>();
+			AuthInfo encpwd = new AuthInfo(-2, user, encryptionPwdService);
+			Map<String, String> encpwd_data = new HashMap<String, String>();
 			encpwd_data.put("encryption_pwd", trc.getEncryption_pwd());
-			encpwd.setDecAi_data(encpwd_data);
+			encpwd.setDecAiData(encpwd_data);
 			token.addAuthInfo(encpwd);
 		}
 
@@ -98,22 +95,21 @@ public class Tokens {
 	@Path("/data")
 	@Consumes("application/json")
 	@Produces("application/json")
-	public TokenDataContainer getTokenData(TokenContainer tc)
-			throws WebApplicationException, SQLException, TokenInvalidException {
+	public TokenDataContainer getTokenData(TokenContainer tc) {
 		TokenDao tokendao = DataManager.getTokenDao();
 
-		String token_pwd = "";
+		String tokenPwd = "";
 
 		try {
-			token_pwd = new String(Base64.decode(tc.getToken()), "UTF-8");
+			tokenPwd = new String(Base64.decode(tc.getToken()), Configuration.getProperty("keyserver.charset"));
 		} catch (Exception e) {
 			// ignore -> should never come up
-			FileLogger.logException(e);
+			FileLogger.logException("failed to decode password", e);
 		}
 
-		Token token = tokendao.getTokenData(tc.getBmu_token_id(), token_pwd);
+		Token token = tokendao.getTokenData(tc.getBmu_token_id(), tokenPwd);
 
-		if (token.checkToken() == false) {
+		if (!token.checkToken()) {
 			Mailer.sendAdminMail("Token exploited",
 					"Token with id " + token.getId()
 							+ " was used under a not valid condition!");
@@ -123,18 +119,18 @@ public class Tokens {
 		DBLogger.logUseToken(token.getUser(), token);
 
 		TokenDataContainer tdc = new TokenDataContainer(token);
-		if ((tc.getBackupdate() != -1) && (token.isReusable() == true)) {
-			Token new_token = Token.genNewToken(token);
+		if ((tc.getBackupdate() != -1) && (token.isReusable())) {
+			Token newToken = Token.genNewToken(token);
 
 			token.setId(-1);
-			TokenContainer tokencontainer = new TokenContainer(new_token);
+			TokenContainer tokencontainer = new TokenContainer(newToken);
 
-			tokencontainer.setBmu_token_id(tokendao.insertToken(new_token));
+			tokencontainer.setBmu_token_id(tokendao.insertToken(newToken));
 
 			tdc.setNewToken(tokencontainer);
 
-			new_token.setId(tokencontainer.getBmu_token_id());
-			DBLogger.logCreateToken(token.getUser(), new_token);
+			newToken.setId(tokencontainer.getBmu_token_id());
+			DBLogger.logCreateToken(token.getUser(), newToken);
 		}
 
 		// get out encryption password

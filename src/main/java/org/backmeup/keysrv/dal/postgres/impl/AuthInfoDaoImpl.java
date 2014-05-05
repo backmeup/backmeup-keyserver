@@ -6,6 +6,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.backmeup.keyserver.dal.AuthInfoDao;
 import org.backmeup.keysrv.rest.exceptions.RestAuthInfoAlreadyExistException;
@@ -25,6 +27,10 @@ public class AuthInfoDaoImpl implements AuthInfoDao {
 	private static final String PS_DELETE_AUTH_INFO_BY_BMU_AUTHINFO_ID = "DELETE FROM auth_infos WHERE bmu_authinfo_id=?";
 	private static final String PS_SELECT_USER_SERVICE_BY_BMU_AUTHINFO_ID = "SELECT users.bmu_user_id AS bmu_user_id, services.bmu_service_id AS bmu_service_id FROM auth_infos INNER JOIN users ON auth_infos.user_id=users.id INNER JOIN services ON auth_infos.service_id=services.id WHERE auth_infos.bmu_authinfo_id=? LIMIT 1";
 
+	private static final String COLUMN_SERVICE_ID = "bmu_service_id";
+	private static final String COLUMN_USER_ID = "bmu_user_id";
+	private static final String COLUMN_AUTHINFO_ID = "bmu_authinfo_id";
+	
 	private PGPKeys pgpkeys;
 
 	public AuthInfoDaoImpl() {
@@ -32,8 +38,7 @@ public class AuthInfoDaoImpl implements AuthInfoDao {
 			pgpkeys = new PGPKeys();
 		} catch (IOException e) {
 			// should not come up
-			FileLogger.logException(e);
-			e.printStackTrace();
+			FileLogger.logException("Loading pgp keys failed", e);
 		}
 	}
 
@@ -45,6 +50,7 @@ public class AuthInfoDaoImpl implements AuthInfoDao {
 			throw new RestAuthInfoAlreadyExistException(
 					authinfo.getBmuAuthinfoId());
 		} catch (RestAuthInfoNotFoundException e) {
+			// if this happens the user does not exist and can be inserted
 		}
 
 		PreparedStatement ps = null;
@@ -56,11 +62,11 @@ public class AuthInfoDaoImpl implements AuthInfoDao {
 			ps.setLong(2, authinfo.getUser().getId());
 			ps.setLong(3, authinfo.getService().getId());
 
-			for (byte[] key : authinfo.getAi_data().keySet()) {
+			for (byte[] key : authinfo.getAiData().keySet()) {
 				ps.setBytes(4, key);
 				ps.setString(5, pgpkeys.getPublickey());
 
-				ps.setBytes(6, authinfo.getAi_data().get(key));
+				ps.setBytes(6, authinfo.getAiData().get(key));
 				ps.setString(7, pgpkeys.getPublickey());
 
 				ps.executeUpdate();
@@ -73,9 +79,9 @@ public class AuthInfoDaoImpl implements AuthInfoDao {
 	}
 
 	@Override
-	public AuthInfo getAuthInfo(long bmu_authinfo_id, User user, Service service) {
+	public AuthInfo getAuthInfo(long bmuAuthinfoId, User user, Service service) {
 		AuthInfo ai = null;
-		HashMap<byte[], byte[]> ai_data = new HashMap<byte[], byte[]>();
+		Map<byte[], byte[]> aiData = new HashMap<byte[], byte[]>();
 		long id = -1;
 
 		PreparedStatement ps = null;
@@ -87,19 +93,19 @@ public class AuthInfoDaoImpl implements AuthInfoDao {
 
 			ps.setString(1, pgpkeys.getPrivatekey());
 			ps.setString(2, pgpkeys.getPrivatekey());
-			ps.setLong(3, bmu_authinfo_id);
+			ps.setLong(3, bmuAuthinfoId);
 
 			rs = ps.executeQuery();
 
-			while (rs.next() == true) {
-				ai_data.put(rs.getBytes("ai_key"), rs.getBytes("ai_value"));
+			while (rs.next()) {
+				aiData.put(rs.getBytes("ai_key"), rs.getBytes("ai_value"));
 
 				if (id < 0) {
 					id = rs.getLong("id");
 				}
 			}
 
-			ai = new AuthInfo(id, bmu_authinfo_id, user, service, ai_data);
+			ai = new AuthInfo(id, bmuAuthinfoId, user, service, aiData);
 		} catch (SQLException e) {
 			throw new RestSQLException(e);
 		} finally {
@@ -107,15 +113,15 @@ public class AuthInfoDaoImpl implements AuthInfoDao {
 			Connection.closeQuiet(ps);
 		}
 
-		if (ai.getAi_data().size() == 0) {
-			throw new RestAuthInfoNotFoundException(bmu_authinfo_id);
+		if (ai.getAiData().isEmpty()) {
+			throw new RestAuthInfoNotFoundException(bmuAuthinfoId);
 		}
 
 		return ai;
 	}
 
 	@Override
-	public AuthInfo getAuthInfo(long bmu_authinfo_id) {
+	public AuthInfo getAuthInfo(long bmuAuthinfoId) {
 		AuthInfo ai = null;
 
 		PreparedStatement ps = null;
@@ -125,20 +131,20 @@ public class AuthInfoDaoImpl implements AuthInfoDao {
 			ps = Connection
 					.getPreparedStatement(PS_SELECT_USER_SERVICE_BY_BMU_AUTHINFO_ID);
 
-			ps.setLong(1, bmu_authinfo_id);
+			ps.setLong(1, bmuAuthinfoId);
 
 			rs = ps.executeQuery();
 
 			User user = null;
 			Service service = null;
-			if (rs.next() == true) {
-				long bmu_user_id = rs.getLong("bmu_user_id");
-				long bmu_service_id = rs.getLong("bmu_service_id");
+			if (rs.next()) {
+				long bmuUserId = rs.getLong(COLUMN_USER_ID);
+				long bmuServiceId = rs.getLong(COLUMN_SERVICE_ID);
 
-				user = new User(bmu_user_id);
-				service = new Service(bmu_service_id);
+				user = new User(bmuUserId);
+				service = new Service(bmuServiceId);
 
-				ai = new AuthInfo(bmu_authinfo_id, user, service);
+				ai = new AuthInfo(bmuAuthinfoId, user, service);
 			}
 		} catch (SQLException e) {
 			throw new RestSQLException(e);
@@ -148,15 +154,15 @@ public class AuthInfoDaoImpl implements AuthInfoDao {
 		}
 
 		if (ai == null) {
-			throw new RestAuthInfoNotFoundException(bmu_authinfo_id);
+			throw new RestAuthInfoNotFoundException(bmuAuthinfoId);
 		}
 
 		return ai;
 	}
 
 	@Override
-	public ArrayList<AuthInfo> getUserAuthInfos(User user) {
-		ArrayList<AuthInfo> authinfos = new ArrayList<AuthInfo>();
+	public List<AuthInfo> getUserAuthInfos(User user) {
+		List<AuthInfo> authinfos = new ArrayList<AuthInfo>();
 
 		PreparedStatement ps = null;
 		ResultSet rs = null;
@@ -168,14 +174,14 @@ public class AuthInfoDaoImpl implements AuthInfoDao {
 
 			rs = ps.executeQuery();
 
-			while (rs.next() == true) {
+			while (rs.next()) {
 				Service service = new Service(rs.getLong("service_id"),
-						rs.getLong("bmu_service_id"));
-				authinfos.add(this.getAuthInfo(rs.getLong("bmu_authinfo_id"),
+						rs.getLong(COLUMN_SERVICE_ID));
+				authinfos.add(this.getAuthInfo(rs.getLong(COLUMN_AUTHINFO_ID),
 						user, service));
 			}
 		} catch (SQLException e) {
-			FileLogger.logException(e);
+			FileLogger.logException("get user auth infos failed", e);
 			throw new RestSQLException(e);
 		} finally {
 			Connection.closeQuiet(rs);
@@ -186,7 +192,7 @@ public class AuthInfoDaoImpl implements AuthInfoDao {
 	}
 
 	@Override
-	public boolean existAuthInfo(long bmu_authinfo_id) {
+	public boolean existAuthInfo(long bmuAuthinfoId) {
 		PreparedStatement ps = null;
 		ResultSet rs = null;
 
@@ -196,15 +202,12 @@ public class AuthInfoDaoImpl implements AuthInfoDao {
 
 			ps.setString(1, pgpkeys.getPrivatekey());
 			ps.setString(2, pgpkeys.getPrivatekey());
-			ps.setLong(3, bmu_authinfo_id);
+			ps.setLong(3, bmuAuthinfoId);
 
 			rs = ps.executeQuery();
 
-			if (rs.next()) {
-				return true;
-			} else {
-				return false;
-			}
+			return rs.next();
+			
 		} catch (SQLException e) {
 			throw new RestSQLException(e);
 		} finally {
@@ -214,9 +217,9 @@ public class AuthInfoDaoImpl implements AuthInfoDao {
 	}
 
 	@Override
-	public void deleteAuthInfo(long bmu_authinfo_id) {
-		if (this.existAuthInfo(bmu_authinfo_id) == false) {
-			throw new RestAuthInfoNotFoundException(bmu_authinfo_id);
+	public void deleteAuthInfo(long bmuAuthinfoId) {
+		if (!this.existAuthInfo(bmuAuthinfoId)) {
+			throw new RestAuthInfoNotFoundException(bmuAuthinfoId);
 		}
 
 		PreparedStatement ps = null;
@@ -225,7 +228,7 @@ public class AuthInfoDaoImpl implements AuthInfoDao {
 			ps = Connection
 					.getPreparedStatement(PS_DELETE_AUTH_INFO_BY_BMU_AUTHINFO_ID);
 
-			ps.setLong(1, bmu_authinfo_id);
+			ps.setLong(1, bmuAuthinfoId);
 
 			ps.executeUpdate();
 		} catch (SQLException e) {

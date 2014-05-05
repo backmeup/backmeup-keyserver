@@ -8,9 +8,12 @@ import java.io.IOException;
 import org.backmeup.keyserver.config.Configuration;
 
 public class PGPKeys {
-	private final String PUBLIC_KEY_FILE = Configuration.getProperty("keyserver.publickey");
-	private final String PRIVATE_KEY_FILE = Configuration.getProperty("keyserver.privatekey");
-	private final int MAX_FILE_SIZE = 1048576; // 1 MiB
+	private static final String PUBLIC_KEY_FILE = Configuration
+			.getProperty("keyserver.publickey");
+	private static final String PRIVATE_KEY_FILE = Configuration
+			.getProperty("keyserver.privatekey");
+	// 1 MiB
+	private static final int MAX_FILE_SIZE = 1048576;
 
 	private String publickey = "";
 	private String privatekey = "";
@@ -38,13 +41,12 @@ public class PGPKeys {
 	private String readPGPFile(String pgpfilename) throws IOException {
 		File pgpfile = new File(pgpfilename);
 
-		if (pgpfile.exists() == false) {
-			throw new FileNotFoundException("File \"" + pgpfilename
-					+ "\" not found");
+		if (!pgpfile.exists()) {
+			throw new FileNotFoundException("File not found: " + pgpfilename);
 		}
 
-		if (pgpfile.canRead() == false) {
-			throw new IOException("File \"" + pgpfilename + "\" not readable");
+		if (!pgpfile.canRead()) {
+			throw new IOException("File not readable: " + pgpfilename);
 		}
 
 		if ((pgpfile.length() > MAX_FILE_SIZE)
@@ -59,8 +61,14 @@ public class PGPKeys {
 		byte[] data = new byte[(int) pgpfile.length()];
 
 		FileInputStream fis = new FileInputStream(pgpfile);
-		fis.read(data);
+		try {
+			fis.read(data);
+		} catch (IOException e) {
+			throw e;
+		} finally {
+			fis.close();
+		}
 
-		return new String(data);
+		return new String(data, "UTF-8");
 	}
 }

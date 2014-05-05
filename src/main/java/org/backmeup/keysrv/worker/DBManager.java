@@ -10,6 +10,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import javax.naming.InitialContext;
 import javax.sql.DataSource;
@@ -195,11 +196,11 @@ public class DBManager {
 			ps_insert_auth_info.setLong(2, authinfo.getUser().getId());
 			ps_insert_auth_info.setLong(3, authinfo.getService().getId());
 
-			for (byte[] key : authinfo.getAi_data().keySet()) {
+			for (byte[] key : authinfo.getAiData().keySet()) {
 				ps_insert_auth_info.setBytes(4, key);
 				ps_insert_auth_info.setString(5, pgpkeys.getPublickey());
 
-				ps_insert_auth_info.setBytes(6, authinfo.getAi_data().get(key));
+				ps_insert_auth_info.setBytes(6, authinfo.getAiData().get(key));
 				ps_insert_auth_info.setString(7, pgpkeys.getPublickey());
 
 				ps_insert_auth_info.executeUpdate();
@@ -240,7 +241,7 @@ public class DBManager {
 			throw new RestSQLException(e);
 		}
 
-		if (ai.getAi_data().size() == 0) {
+		if (ai.getAiData().size() == 0) {
 			throw new RestAuthInfoNotFoundException(bmu_authinfo_id);
 		}
 
@@ -327,7 +328,7 @@ public class DBManager {
 
 		try {
 			ps_insert_user.setLong(1, user.getBmuId());
-			ps_insert_user.setString(2, user.getPwd_hash());
+			ps_insert_user.setString(2, user.getPwdHash());
 			ps_insert_user.setString(3, pgpkeys.getPublickey());
 
 			ps_insert_user.executeUpdate();
@@ -349,7 +350,7 @@ public class DBManager {
 			ResultSet rs = ps_select_user_by_bmu_user_id.executeQuery();
 			if (rs.next()) {
 				user = new User(rs.getLong("id"), rs.getLong("bmu_user_id"));
-				user.setPwd_hash(rs.getString("bmu_user_pwd_hash"));
+				user.setPwdHash(rs.getString("bmu_user_pwd_hash"));
 			}
 			rs.close();
 		} catch (SQLException e) {
@@ -367,7 +368,7 @@ public class DBManager {
 	@Deprecated
 	public void changeUser(User user) throws RestSQLException {
 		try {
-			ps_update_user.setString(1, user.getPwd_hash());
+			ps_update_user.setString(1, user.getPwdHash());
 			ps_update_user.setString(2, pgpkeys.getPublickey());
 			ps_update_user.setLong(3, user.getBmuId());
 
@@ -540,9 +541,9 @@ public class DBManager {
 			tokenuser.setPwd(token.getTokenpwd());
 
 			for (int i = 0; i < token.getAuthInfoCount(); i++) {
-				HashMap<String, String> ai_data = token.getAuthInfo(i)
-						.getDecAi_data();
-				HashMap<byte[], byte[]> ai_enc_data = cipher.encData(ai_data,
+				Map<String, String> ai_data = token.getAuthInfo(i)
+						.getDecAiData();
+				Map<byte[], byte[]> ai_enc_data = cipher.encData(ai_data,
 						tokenuser);
 
 				for (byte[] key : ai_enc_data.keySet()) {
@@ -610,7 +611,7 @@ public class DBManager {
 					ai_data = new HashMap<byte[], byte[]>();
 				}
 				if (ai.getBmuAuthinfoId() != rs.getLong("bmu_authinfo_id")) {
-					ai.setAi_data(ai_data);
+					ai.setAiData(ai_data);
 					token.addAuthInfo(ai);
 
 					ai = new AuthInfo(rs.getLong("bmu_authinfo_id"), user,
@@ -629,7 +630,7 @@ public class DBManager {
 				throw new RestTokenNotFoundException(token_id);
 			}
 
-			ai.setAi_data(ai_data);
+			ai.setAiData(ai_data);
 			token.addAuthInfo(ai);
 
 			rs.close();

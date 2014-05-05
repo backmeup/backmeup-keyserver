@@ -11,11 +11,7 @@ import javax.ws.rs.Produces;
 import org.backmeup.keyserver.dal.AuthInfoDao;
 import org.backmeup.keyserver.dal.ServiceDao;
 import org.backmeup.keyserver.dal.UserDao;
-import org.backmeup.keysrv.dal.postgres.impl.AuthInfoDaoImpl;
-import org.backmeup.keysrv.dal.postgres.impl.ServiceDaoImpl;
-import org.backmeup.keysrv.dal.postgres.impl.UserDaoImpl;
 import org.backmeup.keysrv.rest.data.AuthInfoContainer;
-import org.backmeup.keysrv.rest.exceptions.*;
 import org.backmeup.keysrv.worker.AuthInfo;
 import org.backmeup.keysrv.worker.DBLogger;
 import org.backmeup.keysrv.worker.DataManager;
@@ -31,7 +27,7 @@ public class AuthInfos {
 			@PathParam("bmu_authinfo_id") long bmu_authinfo_id,
 			@PathParam("bmu_user_id") long bmu_user_id,
 			@PathParam("bmu_service_id") long bmu_service_id,
-			@PathParam("user_pwd") String user_pwd) throws RestSQLException {
+			@PathParam("user_pwd") String user_pwd) {
 		UserDao userdao = DataManager.getUserDao();
 		ServiceDao servicedao = DataManager.getServiceDao();
 		AuthInfoDao authinfodoa = DataManager.getAuthInfoDao();
@@ -55,8 +51,7 @@ public class AuthInfos {
 	@Path("add")
 	@Consumes("application/json")
 	@Produces("application/json")
-	public void addAuthInfo(AuthInfoContainer aic)
-			throws RestUserNotFoundException, RestSQLException {
+	public void addAuthInfo(AuthInfoContainer aic) {
 		UserDao userdao = DataManager.getUserDao();
 		ServiceDao servicedao = DataManager.getServiceDao();
 		AuthInfoDao authinfodoa = DataManager.getAuthInfoDao();
@@ -67,7 +62,7 @@ public class AuthInfos {
 		Service service = servicedao.getService(aic.getBmu_service_id());
 
 		AuthInfo ai = new AuthInfo(aic.getBmu_authinfo_id(), user, service);
-		ai.setDecAi_data(aic.getAi_data());
+		ai.setDecAiData(aic.getAi_data());
 
 		authinfodoa.insertAuthInfo(ai);
 
@@ -78,8 +73,7 @@ public class AuthInfos {
 	@Path("{bmu_authinfo_id}")
 	@Produces("application/json")
 	public void deleteAuthInfo(
-			@PathParam("bmu_authinfo_id") long bmu_authinfo_id)
-			throws RestSQLException {
+			@PathParam("bmu_authinfo_id") long bmu_authinfo_id) {
 		AuthInfoDao authinfodoa = DataManager.getAuthInfoDao();
 
 		AuthInfo ai = authinfodoa.getAuthInfo(bmu_authinfo_id);

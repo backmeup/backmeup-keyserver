@@ -1,6 +1,7 @@
 package org.backmeup.keysrv.rest;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -106,7 +107,7 @@ public class Users {
 		AuthInfoDao authinfodao = DataManager.getAuthInfoDao();
 		User user = userdao.getUser(bmu_user_id);
 
-		ArrayList<AuthInfo> authinfos = authinfodao.getUserAuthInfos(user);
+		List<AuthInfo> authinfos = authinfodao.getUserAuthInfos(user);
 
 		for (AuthInfo authinfo : authinfos) {
 			authinfo.changePassword(old_bmu_user_keyring_pwd,

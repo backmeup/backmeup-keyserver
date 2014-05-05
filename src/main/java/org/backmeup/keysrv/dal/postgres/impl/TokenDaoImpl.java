@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.backmeup.keyserver.dal.TokenDao;
 import org.backmeup.keysrv.rest.exceptions.RestSQLException;
@@ -24,6 +25,12 @@ public class TokenDaoImpl implements TokenDao {
 	private static final String PS_DELETE_TOKEN_BY_TOKEN_ID = "DELETE FROM tokens WHERE token_id=?";
 	private static final String PS_DELETE_TOKEN_BY_ID = "DELETE FROM tokens WHERE id=?";
 
+	private static final String COLUMN_SERVICE_ID = "bmu_service_id";
+	private static final String COLUMN_USER_ID = "bmu_user_id";
+	private static final String COLUMN_AUTHINFO_ID = "bmu_authinfo_id";
+	private static final String COLUMN_TOKEN_KEY = "token_key";
+	private static final String COLUMN_TOKEN_VALUE = "token_value";
+	
 	private PGPKeys pgpkeys;
 
 	public TokenDaoImpl() {
@@ -31,171 +38,172 @@ public class TokenDaoImpl implements TokenDao {
 			pgpkeys = new PGPKeys();
 		} catch (IOException e) {
 			// should not come up
-			FileLogger.logException(e);
-			e.printStackTrace();
+			FileLogger.logException("failed to load pgp keys", e);
 		}
 	}
 
 	@Override
 	public long insertToken(Token token) {
-		long token_id = -1;
+		long tokeId = -1;
 
-		PreparedStatement ps_insert = null;
-		PreparedStatement ps_delete = null;
+		PreparedStatement psInsert = null;
+		PreparedStatement psDelete = null;
 		ResultSet rs = null;
 
 		try {
 			CipherGenerator cipher = new CipherGenerator();
-			ps_insert = Connection.getPreparedStatement(PS_INSERT_TOKEN,
+			psInsert = Connection.getPreparedStatement(PS_INSERT_TOKEN,
 					PreparedStatement.RETURN_GENERATED_KEYS);
 
+			byte[] filler = {56, 57};
+			
 			// Create first entry to get an valid and unique id
-			ps_insert.setLong(1, -1);
-			ps_insert.setLong(2, token.getUser().getId());
-			ps_insert.setLong(3, token.getAuthInfo(0).getService().getId());
-			ps_insert.setLong(4, token.getAuthInfo(0).getBmuAuthinfoId());
-			ps_insert.setBoolean(5, token.isReusable());
-			ps_insert.setBytes(6, "asd".getBytes());
-			ps_insert.setString(7, pgpkeys.getPublickey());
-			ps_insert.setBytes(8, "asd".getBytes());
-			ps_insert.setString(9, pgpkeys.getPublickey());
-			ps_insert.setBytes(
+			psInsert.setLong(1, -1);
+			psInsert.setLong(2, token.getUser().getId());
+			psInsert.setLong(3, token.getAuthInfo(0).getService().getId());
+			psInsert.setLong(4, token.getAuthInfo(0).getBmuAuthinfoId());
+			psInsert.setBoolean(5, token.isReusable());
+			psInsert.setBytes(6, filler);
+			psInsert.setString(7, pgpkeys.getPublickey());
+			psInsert.setBytes(8, filler);
+			psInsert.setString(9, pgpkeys.getPublickey());
+			psInsert.setBytes(
 					10,
 					cipher.encData(token.getBackupdate().getTime() + "",
 							token.getTokenpwd()));
-			ps_insert.setString(11, pgpkeys.getPublickey());
+			psInsert.setString(11, pgpkeys.getPublickey());
 
-			ps_insert.executeUpdate();
-			rs = ps_insert.getGeneratedKeys();
+			psInsert.executeUpdate();
+			rs = psInsert.getGeneratedKeys();
 
 			if (rs.next()) {
-				token_id = rs.getLong(1);
+				tokeId = rs.getLong(1);
 			}
 
-			ps_insert.setLong(1, token_id);
+			psInsert.setLong(1, tokeId);
 
 			User tokenuser = new User(-1);
 			tokenuser.setPwd(token.getTokenpwd());
 
 			for (int i = 0; i < token.getAuthInfoCount(); i++) {
-				HashMap<String, String> ai_data = token.getAuthInfo(i)
-						.getDecAi_data();
-				HashMap<byte[], byte[]> ai_enc_data = cipher.encData(ai_data,
+				Map<String, String> aiData = token.getAuthInfo(i)
+						.getDecAiData();
+				Map<byte[], byte[]> aiEncData = cipher.encData(aiData,
 						tokenuser);
 
-				for (byte[] key : ai_enc_data.keySet()) {
-					ps_insert.setLong(3, token.getAuthInfo(i).getService()
+				for (Map.Entry<byte[], byte[]> entry : aiEncData.entrySet()) {
+					psInsert.setLong(3, token.getAuthInfo(i).getService()
 							.getId());
-					ps_insert.setLong(4, token.getAuthInfo(i)
+					psInsert.setLong(4, token.getAuthInfo(i)
 							.getBmuAuthinfoId());
-					ps_insert.setBytes(6, key);
-					ps_insert.setBytes(8, ai_enc_data.get(key));
-					ps_insert.executeUpdate();
+					psInsert.setBytes(6, entry.getKey());
+					psInsert.setBytes(8, entry.getValue());
+					psInsert.executeUpdate();
 				}
 			}
 
 			// remove the extra line from database
-			ps_delete = Connection.getPreparedStatement(PS_DELETE_TOKEN_BY_ID);
-			ps_delete.setLong(1, token_id);
-			ps_delete.executeUpdate();
+			psDelete = Connection.getPreparedStatement(PS_DELETE_TOKEN_BY_ID);
+			psDelete.setLong(1, tokeId);
+			psDelete.executeUpdate();
 		} catch (SQLException e) {
-			FileLogger.logException(e);
+			FileLogger.logException("failed to insert token to db", e);
 			throw new RestSQLException(e);
 		} finally {
 			Connection.closeQuiet(rs);
-			Connection.closeQuiet(ps_insert);
-			Connection.closeQuiet(ps_delete);
+			Connection.closeQuiet(psInsert);
+			Connection.closeQuiet(psDelete);
 		}
 
-		return token_id;
+		return tokeId;
 	}
 
 	@Override
-	public Token getTokenData(long token_id, String token_pwd) {
+	public Token getTokenData(long tokenId, String tokenPwd) {
 		Token token = null;
 
-		PreparedStatement ps_select = null;
-		PreparedStatement ps_delete = null;
+		PreparedStatement psSelect = null;
+		PreparedStatement psDelete = null;
 
 		try {
-			ps_select = Connection
+			psSelect = Connection
 					.getPreparedStatement(PS_SELECT_TOKEN_BY_TOKEN_ID);
 
-			ps_select.setString(1, pgpkeys.getPrivatekey());
-			ps_select.setString(2, pgpkeys.getPrivatekey());
-			ps_select.setString(3, pgpkeys.getPrivatekey());
-			ps_select.setLong(4, token_id);
+			psSelect.setString(1, pgpkeys.getPrivatekey());
+			psSelect.setString(2, pgpkeys.getPrivatekey());
+			psSelect.setString(3, pgpkeys.getPrivatekey());
+			psSelect.setLong(4, tokenId);
 
-			ResultSet rs = ps_select.executeQuery();
+			ResultSet rs = psSelect.executeQuery();
 
 			CipherGenerator cipher = new CipherGenerator();
 
 			User user = null;
 			AuthInfo ai = null;
-			HashMap<byte[], byte[]> ai_data = null;
+			Map<byte[], byte[]> aiData = null;
 			while (rs.next()) {
 				if (token == null) {
 					user = new User(rs.getLong("user_id"),
-							rs.getLong("bmu_user_id"));
-					user.setPwd(token_pwd);
+							rs.getLong(COLUMN_USER_ID));
+					user.setPwd(tokenPwd);
 
-					String str_backupdate = "";
-					str_backupdate = cipher.decData(rs.getBytes("backupdate"),
+					String strBackupdate = "";
+					strBackupdate = cipher.decData(rs.getBytes("backupdate"),
 							user);
-					Date backupdate = new Date(new Long(str_backupdate));
+					Date backupdate = new Date(Long.valueOf(strBackupdate));
 
 					token = new Token(user, backupdate,
 							rs.getBoolean("reusable"));
-					token.setTokenpwd(token_pwd);
+					token.setTokenpwd(tokenPwd);
 				}
 
 				Service service = new Service(rs.getLong("service_id"),
-						rs.getLong("bmu_service_id"));
+						rs.getLong(COLUMN_SERVICE_ID));
 
 				if (ai == null) {
-					ai = new AuthInfo(rs.getLong("bmu_authinfo_id"), user,
+					ai = new AuthInfo(rs.getLong(COLUMN_AUTHINFO_ID), user,
 							service);
-					ai_data = new HashMap<byte[], byte[]>();
+					aiData = new HashMap<byte[], byte[]>();
 				}
-				if (ai.getBmuAuthinfoId() != rs.getLong("bmu_authinfo_id")) {
-					ai.setAi_data(ai_data);
+				if (ai.getBmuAuthinfoId() != rs.getLong(COLUMN_AUTHINFO_ID)) {
+					ai.setAiData(aiData);
 					token.addAuthInfo(ai);
 
-					ai = new AuthInfo(rs.getLong("bmu_authinfo_id"), user,
+					ai = new AuthInfo(rs.getLong(COLUMN_AUTHINFO_ID), user,
 							service);
-					ai_data = new HashMap<byte[], byte[]>();
+					aiData = new HashMap<byte[], byte[]>();
 
-					ai_data.put(rs.getBytes("token_key"),
-							rs.getBytes("token_value"));
+					aiData.put(rs.getBytes(COLUMN_TOKEN_KEY),
+							rs.getBytes(COLUMN_TOKEN_VALUE));
 				} else {
-					ai_data.put(rs.getBytes("token_key"),
-							rs.getBytes("token_value"));
+					aiData.put(rs.getBytes(COLUMN_TOKEN_KEY),
+							rs.getBytes(COLUMN_TOKEN_VALUE));
 				}
 			}
 
-			if (ai_data == null) {
-				throw new RestTokenNotFoundException(token_id);
+			if (aiData == null) {
+				throw new RestTokenNotFoundException(tokenId);
 			}
 
-			ai.setAi_data(ai_data);
+			ai.setAiData(aiData);
 			token.addAuthInfo(ai);
 
 			rs.close();
 
-			ps_delete = Connection
+			psDelete = Connection
 					.getPreparedStatement(PS_DELETE_TOKEN_BY_TOKEN_ID);
-			ps_delete.setLong(1, token_id);
-			ps_delete.executeUpdate();
+			psDelete.setLong(1, tokenId);
+			psDelete.executeUpdate();
 
 		} catch (SQLException e) {
-			FileLogger.logException(e);
+			FileLogger.logException("failed to get token from db", e);
 			throw new RestSQLException(e);
 		} finally {
-			Connection.closeQuiet(ps_select);
-			Connection.closeQuiet(ps_delete);
+			Connection.closeQuiet(psSelect);
+			Connection.closeQuiet(psDelete);
 		}
 
-		token.setId(token_id);
+		token.setId(tokenId);
 		return token;
 	}
 

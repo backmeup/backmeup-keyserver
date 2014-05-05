@@ -11,12 +11,12 @@ public class RestAuthInfoAlreadyExistException extends WebApplicationException {
 	 */
 	private static final long serialVersionUID = 1L;
 
-	public RestAuthInfoAlreadyExistException(long bmu_authinfo_id) {
+	public RestAuthInfoAlreadyExistException(long bmuAuthinfoId) {
 		super(Response
 				.status(400)
 				.entity(new ExceptionContainer(
 						"RestAuthInfoAlreadyExistException",
-						"Authinfo with bmu_authinfo_id (" + bmu_authinfo_id
+						"Authinfo with bmu_authinfo_id (" + bmuAuthinfoId
 								+ ") already exists")).build());
 	}
 }

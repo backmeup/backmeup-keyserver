@@ -11,12 +11,12 @@ public class RestUserNotFoundException extends WebApplicationException {
 	 */
 	private static final long serialVersionUID = 1L;
 
-	public RestUserNotFoundException(long bmu_user_id) {
+	public RestUserNotFoundException(long bmuUserId) {
 		super(
 				Response.status(400)
 						.entity(new ExceptionContainer(
 								"RestUserNotFoundException",
-								"User with bmu_user_id (" + bmu_user_id
+								"User with bmu_user_id (" + bmuUserId
 										+ ") not found")).build());
 	}
 }

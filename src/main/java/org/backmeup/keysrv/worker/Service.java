@@ -2,15 +2,15 @@ package org.backmeup.keysrv.worker;
 
 public class Service {
 	private long id = -1;
-	private long bmu_id = -1;
+	private long bmuId = -1;
 
-	public Service(long bmu_id) {
-		this.bmu_id = bmu_id;
+	public Service(long bmuId) {
+		this.bmuId = bmuId;
 	}
 
-	public Service(long id, long bmu_id) {
+	public Service(long id, long bmuId) {
 		this.id = id;
-		this.bmu_id = bmu_id;
+		this.bmuId = bmuId;
 	}
 
 	public long getId() {
@@ -18,6 +18,6 @@ public class Service {
 	}
 
 	public long getBmuId() {
-		return this.bmu_id;
+		return this.bmuId;
 	}
 }

@@ -14,10 +14,10 @@ import org.backmeup.keysrv.worker.PGPKeys;
 import org.backmeup.keysrv.worker.User;
 
 public class UserDaoImpl implements UserDao {
-	private final String PS_INSERT_USER = "INSERT INTO users (bmu_user_id, bmu_user_pwd_hash) VALUES (?, (pgp_pub_encrypt (?, dearmor(?))))";
-	private final String PS_UPDATE_USER = "UPDATE users SET bmu_user_pwd_hash=(pgp_pub_encrypt (?, dearmor(?))) WHERE bmu_user_id=?";
-	private final String PS_SELECT_USER_BY_BMU_USER_ID = "SELECT id, bmu_user_id, pgp_pub_decrypt (bmu_user_pwd_hash, dearmor (?)) AS bmu_user_pwd_hash FROM users WHERE bmu_user_id=?";
-	private final String PS_DELETE_USER_BY_BMU_USER_ID = "DELETE FROM users WHERE bmu_user_id=?";
+	private static final String PS_INSERT_USER = "INSERT INTO users (bmu_user_id, bmu_user_pwd_hash) VALUES (?, (pgp_pub_encrypt (?, dearmor(?))))";
+	private static final String PS_UPDATE_USER = "UPDATE users SET bmu_user_pwd_hash=(pgp_pub_encrypt (?, dearmor(?))) WHERE bmu_user_id=?";
+	private static final String PS_SELECT_USER_BY_BMU_USER_ID = "SELECT id, bmu_user_id, pgp_pub_decrypt (bmu_user_pwd_hash, dearmor (?)) AS bmu_user_pwd_hash FROM users WHERE bmu_user_id=?";
+	private static final String PS_DELETE_USER_BY_BMU_USER_ID = "DELETE FROM users WHERE bmu_user_id=?";
 
 	private PGPKeys pgpkeys;
 
@@ -26,8 +26,7 @@ public class UserDaoImpl implements UserDao {
 			pgpkeys = new PGPKeys();
 		} catch (IOException e) {
 			// should not come up
-			FileLogger.logException(e);
-			e.printStackTrace();
+			FileLogger.logException("failed to load pgp keys", e);
 		}
 	}
 
@@ -45,12 +44,12 @@ public class UserDaoImpl implements UserDao {
 			ps = Connection.getPreparedStatement(PS_INSERT_USER);
 
 			ps.setLong(1, user.getBmuId());
-			ps.setString(2, user.getPwd_hash());
+			ps.setString(2, user.getPwdHash());
 			ps.setString(3, pgpkeys.getPublickey());
 
 			ps.executeUpdate();
 		} catch (SQLException e) {
-			FileLogger.logException(e);
+			FileLogger.logException("failed to insert user to db", e);
 			throw new RestSQLException(e);
 		} finally {
 			Connection.closeQuiet(ps);
@@ -58,7 +57,7 @@ public class UserDaoImpl implements UserDao {
 	}
 
 	@Override
-	public User getUser(long bmu_user_id) {
+	public User getUser(long bmuUserId) {
 		User user = null;
 		PreparedStatement ps = null;
 		ResultSet rs = null;
@@ -67,15 +66,15 @@ public class UserDaoImpl implements UserDao {
 			ps = Connection.getPreparedStatement(PS_SELECT_USER_BY_BMU_USER_ID);
 
 			ps.setString(1, pgpkeys.getPrivatekey());
-			ps.setLong(2, bmu_user_id);
+			ps.setLong(2, bmuUserId);
 
 			rs = ps.executeQuery();
 			if (rs.next()) {
 				user = new User(rs.getLong("id"), rs.getLong("bmu_user_id"));
-				user.setPwd_hash(rs.getString("bmu_user_pwd_hash"));
+				user.setPwdHash(rs.getString("bmu_user_pwd_hash"));
 			}
 		} catch (SQLException e) {
-			FileLogger.logException(e);
+			FileLogger.logException("failed to get user from db", e);
 			throw new RestSQLException(e);
 		} finally {
 			Connection.closeQuiet(rs);
@@ -83,7 +82,7 @@ public class UserDaoImpl implements UserDao {
 		}
 
 		if (user == null) {
-			throw new RestUserNotFoundException(bmu_user_id);
+			throw new RestUserNotFoundException(bmuUserId);
 		}
 
 		return user;
@@ -96,13 +95,13 @@ public class UserDaoImpl implements UserDao {
 		try {
 			ps = Connection.getPreparedStatement(PS_UPDATE_USER);
 
-			ps.setString(1, user.getPwd_hash());
+			ps.setString(1, user.getPwdHash());
 			ps.setString(2, pgpkeys.getPublickey());
 			ps.setLong(3, user.getBmuId());
 
 			ps.executeUpdate();
 		} catch (SQLException e) {
-			FileLogger.logException(e);
+			FileLogger.logException("failed to modify user in db", e);
 		} finally {
 			org.backmeup.keysrv.dal.postgres.impl.Connection.closeQuiet(ps);
 		}
@@ -120,7 +119,7 @@ public class UserDaoImpl implements UserDao {
 			ps.setLong(1, user.getBmuId());
 			ps.executeUpdate();
 		} catch (SQLException e) {
-			FileLogger.logException(e);
+			FileLogger.logException("failed to delete user from db", e);
 			throw new RestSQLException(e);
 		} finally {
 			Connection.closeQuiet(ps);

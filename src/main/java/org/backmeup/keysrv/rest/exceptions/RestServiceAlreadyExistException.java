@@ -11,12 +11,12 @@ public class RestServiceAlreadyExistException extends WebApplicationException {
 	 */
 	private static final long serialVersionUID = 1L;
 
-	public RestServiceAlreadyExistException(long bmu_service_id) {
+	public RestServiceAlreadyExistException(long bmuServiceId) {
 		super(Response
 				.status(400)
 				.entity(new ExceptionContainer(
 						"RestServiceAlreadyExistException",
-						"Service with bmu_service_id (" + bmu_service_id
+						"Service with bmu_service_id (" + bmuServiceId
 								+ ") already exists")).build());
 	}
 }

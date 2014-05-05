@@ -2,17 +2,17 @@ package org.backmeup.keysrv.worker;
 
 public class User {
 	private long id = -1;
-	private long bmu_id = -1;
+	private long bmuId = -1;
 	private String pwd = null;
-	private String pwd_hash = null;
+	private String pwdHash = null;
 
-	public User(long bmu_id) {
-		this.bmu_id = bmu_id;
+	public User(long bmuId) {
+		this.bmuId = bmuId;
 	}
 
-	public User(long id, long bmu_id) {
+	public User(long id, long bmuId) {
 		this.id = id;
-		this.bmu_id = bmu_id;
+		this.bmuId = bmuId;
 	}
 
 	public long getId() {
@@ -20,7 +20,7 @@ public class User {
 	}
 
 	public long getBmuId() {
-		return bmu_id;
+		return bmuId;
 	}
 
 	public void setPwd(String pwd) {
@@ -32,21 +32,21 @@ public class User {
 		return pwd;
 	}
 
-	public String getPwd_hash() {
-		return pwd_hash;
+	public String getPwdHash() {
+		return pwdHash;
 	}
 
-	public void setPwd_hash(String pwd_hash) {
-		this.pwd_hash = pwd_hash;
+	public void setPwdHash(String pwdHash) {
+		this.pwdHash = pwdHash;
 	}
 
 	private void generateHash() {
 		HashGenerator hasher = new HashGenerator();
-		this.pwd_hash = hasher.calcSaltedSHA512(this.pwd);
+		this.pwdHash = hasher.calcSaltedSHA512(this.pwd);
 	}
 
 	public boolean validatePwd(String pwd) {
 		HashGenerator hasher = new HashGenerator();
-		return hasher.isCorrectValue(pwd, this.pwd_hash);
+		return hasher.isCorrectValue(pwd, this.pwdHash);
 	}
 }

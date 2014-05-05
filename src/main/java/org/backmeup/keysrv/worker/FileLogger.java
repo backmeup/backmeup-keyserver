@@ -16,6 +16,9 @@ public class FileLogger {
 
 	private static FileHandler fh;
 	private static Logger logger;
+	
+	private FileLogger () {
+	}
 
 	private static void openLogFile() {
 		logger = Logger.getLogger("keysrv");
@@ -47,6 +50,9 @@ public class FileLogger {
 		return sw.toString();
 	}
 
+	/**
+	 * @deprecated
+	 */
 	@Deprecated
 	public static void logException(Exception e) {
 		openLogFile();

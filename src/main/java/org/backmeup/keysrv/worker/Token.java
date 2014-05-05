@@ -3,68 +3,70 @@ package org.backmeup.keysrv.worker;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
+import org.backmeup.keyserver.config.Configuration;
 import org.jboss.resteasy.util.Base64;
 
 public class Token {
-	private static final String ENCODING = "UTF-8";
+	private static final String ENCODING = Configuration.getProperty("keyserver.charset");
 
 	// the time the token would be valid +/- in milliseconds. 600000 = 10
 	// Minutes
-	public final long TIME_WINDOW_PREV = 600000;
-	public final long TIME_WINDOW_AFTER = 86400000; // 1 Day
+	public static final long TIME_WINDOW_PREV = 600000;
+	
+	// 1 Day
+	public static final long TIME_WINDOW_AFTER = 86400000;
 
 	private long id = -1;
 	private boolean extendable = false;
 	private Date backupdate = null;
 	private User user = null;
 	private String tokenpwd = null;
-	private ArrayList<AuthInfo> auth_infos = null;
+	private List<AuthInfo> authInfos = null;
 	private boolean reusable = false;
-	private String encryption_pwd = null;
 
 	public Token(User user, Date backupdate, boolean reusable) {
-		auth_infos = new ArrayList<AuthInfo>();
+		authInfos = new ArrayList<AuthInfo>();
 
 		CipherGenerator cipher = new CipherGenerator();
 		tokenpwd = cipher.generatePassword();
 
-		this.backupdate = backupdate;
+		this.backupdate = new Date (backupdate.getTime());
 
 		this.user = user;
 		this.reusable = reusable;
-		this.encryption_pwd = null;
 	}
 
 	public void renewTokenPwd() {
 		CipherGenerator cipher = new CipherGenerator();
-		String new_tokenpwd = cipher.generatePassword();
+		String newTokenpwd = cipher.generatePassword();
 
-		for (AuthInfo ai : auth_infos) {
-			ai.changePassword(tokenpwd, new_tokenpwd);
+		for (AuthInfo ai : authInfos) {
+			ai.changePassword(tokenpwd, newTokenpwd);
 		}
 
-		this.tokenpwd = new_tokenpwd;
+		this.tokenpwd = newTokenpwd;
 	}
 
 	public static Token genNewToken(Token token) {
 		User user = new User(token.getUser().getId(), token.getUser()
 				.getBmuId());
 		Date backupdate = new Date(token.getBackupdate().getTime());
-		Token new_token = new Token(user, backupdate, token.isReusable());
-		user.setPwd(new_token.getTokenpwd());
+		Token newToken = new Token(user, backupdate, token.isReusable());
+		user.setPwd(newToken.getTokenpwd());
 
 		for (int i = 0; i < token.getAuthInfoCount(); i++) {
 			AuthInfo ai = token.getAuthInfo(i);
 			Service service = new Service(ai.getService().getId(), ai
 					.getService().getBmuId());
 
-			AuthInfo new_ai = new AuthInfo(ai.getBmuAuthinfoId(), user, service);
-			new_ai.setDecAi_data(ai.getDecAi_data());
-			new_token.addAuthInfo(new_ai);
+			AuthInfo newAi = new AuthInfo(ai.getBmuAuthinfoId(), user, service);
+			newAi.setDecAiData(ai.getDecAiData());
+			newToken.addAuthInfo(newAi);
 		}
 
-		return new_token;
+		return newToken;
 	}
 
 	public boolean isReusable() {
@@ -72,15 +74,15 @@ public class Token {
 	}
 
 	public void addAuthInfo(AuthInfo ai) {
-		this.auth_infos.add(ai);
+		this.authInfos.add(ai);
 	}
 
 	public AuthInfo getAuthInfo(int index) {
-		return auth_infos.get(index);
+		return authInfos.get(index);
 	}
 
 	public int getAuthInfoCount() {
-		return auth_infos.size();
+		return authInfos.size();
 	}
 
 	public void setId(long id) {
@@ -92,40 +94,44 @@ public class Token {
 			return Base64.encodeBytes(this.tokenpwd.getBytes(ENCODING));
 		} catch (UnsupportedEncodingException e) {
 			// ignore would never come up
-			FileLogger.logException(e);
+			FileLogger.logException("base64 encoding failed", e);
 		}
 
 		return null;
 	}
 
-	public void setEncTokenPwd(String enc_tokenpwd) {
+	public void setEncTokenPwd(String encTokenpwd) {
 		try {
-			this.tokenpwd = new String(Base64.decode(enc_tokenpwd), ENCODING);
+			this.tokenpwd = new String(Base64.decode(encTokenpwd), ENCODING);
 		} catch (Exception e) {
 			// ignore -> should never come up
-			FileLogger.logException(e);
+			FileLogger.logException("base64 decoding failed", e);
 		}
 	}
 
+	/**
+	 * @deprecated 
+	 */
 	@Deprecated
 	public String toString() {
-		String tokenstring = "";
+		
+		StringBuilder tokenstring = new StringBuilder();
 
-		tokenstring += "<token>\n";
-		tokenstring += "<tokeninfo>\n";
-		tokenstring += user.getId() + "\n";
-		tokenstring += user.getBmuId() + "\n";
-		tokenstring += backupdate.getTime() + "\n";
-		tokenstring += extendable + "\n";
+		tokenstring.append ("<token>\n");
+		tokenstring.append ("<tokeninfo>\n");
+		tokenstring.append (user.getId() + "\n");
+		tokenstring.append (user.getBmuId() + "\n");
+		tokenstring.append (backupdate.getTime() + "\n");
+		tokenstring.append (extendable + "\n");
 
-		tokenstring += "</tokeninfo>\n";
-		for (int i = 0; i < auth_infos.size(); i++) {
-			tokenstring += auth_infos.get(i).toString();
+		tokenstring.append ("</tokeninfo>\n");
+		for (int i = 0; i < authInfos.size(); i++) {
+			tokenstring.append (authInfos.get(i).toString());
 		}
 
-		tokenstring += "</token>\n";
+		tokenstring.append ("</token>\n");
 
-		return tokenstring;
+		return tokenstring.toString();
 	}
 
 	public String getTokenpwd() {
@@ -139,19 +145,19 @@ public class Token {
 	public boolean checkToken() {
 		boolean valid = true;
 		Date now = new Date();
-		Date not_valid_before = new Date();
-		Date not_valid_after = new Date();
+		Date notValidBefore = new Date();
+		Date notValidAfter = new Date();
 
-		not_valid_before.setTime(this.backupdate.getTime()
-				- this.TIME_WINDOW_PREV);
-		not_valid_after.setTime(this.backupdate.getTime()
-				+ this.TIME_WINDOW_AFTER);
+		notValidBefore.setTime(this.backupdate.getTime()
+				- TIME_WINDOW_PREV);
+		notValidAfter.setTime(this.backupdate.getTime()
+				+ TIME_WINDOW_AFTER);
 
-		if (now.before(not_valid_before) == true) {
+		if (now.before(notValidBefore)) {
 			valid = false;
 		}
 
-		if (now.after(not_valid_after) == true) {
+		if (now.after(notValidAfter)) {
 			valid = false;
 		}
 
@@ -159,11 +165,11 @@ public class Token {
 	}
 
 	public Date getBackupdate() {
-		return this.backupdate;
+		return new Date (this.backupdate.getTime());
 	}
 
 	public void setBackupdate(Date backupdate) {
-		this.backupdate = backupdate;
+		this.backupdate = new Date (backupdate.getTime());
 	}
 
 	public User getUser() {

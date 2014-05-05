@@ -11,11 +11,11 @@ public class RestUserNotValidException extends WebApplicationException {
 	 */
 	private static final long serialVersionUID = 1L;
 
-	public RestUserNotValidException(long bmu_user_id) {
+	public RestUserNotValidException(long bmuUserId) {
 		super(Response
 				.status(400)
 				.entity(new ExceptionContainer("RestUserNotValidException",
-						"The password provided for this user (" + bmu_user_id
+						"The password provided for this user (" + bmuUserId
 								+ ") is not correct")).build());
 	}
 }

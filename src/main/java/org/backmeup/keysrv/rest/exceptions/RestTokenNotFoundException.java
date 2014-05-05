@@ -11,11 +11,11 @@ public class RestTokenNotFoundException extends WebApplicationException {
 	 */
 	private static final long serialVersionUID = 1L;
 
-	public RestTokenNotFoundException(long bmu_token_id) {
+	public RestTokenNotFoundException(long bmuTokenId) {
 		super(Response
 				.status(400)
 				.entity(new ExceptionContainer("RestTokenNotFoundException",
-						"Token with bmu_token_id (" + bmu_token_id
+						"Token with bmu_token_id (" + bmuTokenId
 								+ ") not found")).build());
 	}
 }

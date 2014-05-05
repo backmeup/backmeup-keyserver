@@ -19,8 +19,8 @@ public class TokenRequestContainer {
 			boolean reusable, String encryption_pwd) {
 		this.bmu_user_id = bmu_user_id;
 		this.user_pwd = user_pwd;
-		this.bmu_service_ids = bmu_service_ids;
-		this.bmu_authinfo_ids = bmu_authinfo_ids;
+		this.bmu_service_ids = bmu_service_ids.clone();
+		this.bmu_authinfo_ids = bmu_authinfo_ids.clone();
 		this.backupdate = backupdate;
 		this.reusable = reusable;
 		this.encryption_pwd = encryption_pwd;
@@ -47,19 +47,19 @@ public class TokenRequestContainer {
 	}
 
 	public long[] getBmu_service_ids() {
-		return bmu_service_ids;
+		return bmu_service_ids.clone();
 	}
 
 	public void setBmu_service_ids(long[] bmu_service_ids) {
-		this.bmu_service_ids = bmu_service_ids;
+		this.bmu_service_ids = bmu_service_ids.clone();
 	}
 
 	public long[] getBmu_authinfo_ids() {
-		return bmu_authinfo_ids;
+		return bmu_authinfo_ids.clone();
 	}
 
 	public void setBmu_authinfo_ids(long[] bmu_authinfo_ids) {
-		this.bmu_authinfo_ids = bmu_authinfo_ids;
+		this.bmu_authinfo_ids = bmu_authinfo_ids.clone();
 	}
 
 	public long getBackupdate() {
@@ -91,8 +91,7 @@ public class TokenRequestContainer {
 			return false;
 		}
 
-		if ((user_pwd == null) || (bmu_authinfo_ids == null)
-				|| (bmu_authinfo_ids == null)) {
+		if ((user_pwd == null) || (bmu_authinfo_ids == null)) {
 			return false;
 		}
 

@@ -12,6 +12,9 @@ import org.backmeup.keysrv.dal.postgres.impl.TokenDaoImpl;
 import org.backmeup.keysrv.dal.postgres.impl.UserDaoImpl;
 
 public class DataManager {
+	private DataManager () {
+	}
+	
 	public static UserDao getUserDao() {
 		return new UserDaoImpl();
 	}

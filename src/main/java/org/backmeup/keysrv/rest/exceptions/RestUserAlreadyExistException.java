@@ -11,11 +11,11 @@ public class RestUserAlreadyExistException extends WebApplicationException {
 	 */
 	private static final long serialVersionUID = 1L;
 
-	public RestUserAlreadyExistException(long bmu_user_id) {
+	public RestUserAlreadyExistException(long bmuUserId) {
 		super(Response
 				.status(400)
 				.entity(new ExceptionContainer("RestUserAlreadyExistException",
-						"User with bmu_user_id (" + bmu_user_id
+						"User with bmu_user_id (" + bmuUserId
 								+ ") already exists")).build());
 	}
 }

@@ -2,6 +2,9 @@ package org.backmeup.keysrv.worker;
 
 import org.backmeup.keyserver.dal.LogDao;
 
+/**
+ * @deprecated
+ */
 @Deprecated
 public class DBLogger {
 	private static final String CREATE_USER_MSG = "User created";
@@ -19,9 +22,11 @@ public class DBLogger {
 
 	private static final String TYPE_INFO = "info";
 	private static final String TYPE_WARNING = "warning";
-	// private static final String TYPE_ERROR = "error";
 
 	private static LogDao logdao = null;
+	
+	private DBLogger () {
+	}
 
 	private static void init() {
 		if (logdao == null) {
