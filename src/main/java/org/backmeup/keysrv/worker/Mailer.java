@@ -80,25 +80,23 @@ public class Mailer {
 		});
 	}
 
-	private static Properties getMailSettings() {
-		synchronized (Properties.class) {
-			if (mailSettings == null) {
-				Properties props = new Properties();
-				InputStream is = null;
-				try {
-					is = Mailer.class.getClassLoader().getResourceAsStream(
-							"mail.properties");
-					props.load(is);
-					mailSettings = props;
-				} catch (Exception e) {
-					FileLogger.logException("reading mailettings failed", e);
-				} finally {
-					if (is != null) {
-						try {
-							is.close();
-						} catch (IOException e) {
-							FileLogger.logException("closing stream failed", e);
-						}
+	private static synchronized Properties getMailSettings() {
+		if (mailSettings == null) {
+			Properties props = new Properties();
+			InputStream is = null;
+			try {
+				is = Mailer.class.getClassLoader().getResourceAsStream(
+						"mail.properties");
+				props.load(is);
+				mailSettings = props;
+			} catch (Exception e) {
+				FileLogger.logException("reading mailettings failed", e);
+			} finally {
+				if (is != null) {
+					try {
+						is.close();
+					} catch (IOException e) {
+						FileLogger.logException("closing stream failed", e);
 					}
 				}
 			}
