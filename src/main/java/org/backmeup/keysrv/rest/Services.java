@@ -18,9 +18,9 @@ public class Services {
 	@Path("{bmu_service_id}")
 	@Produces("application/json")
 	public ServiceContainer getService(
-			@PathParam("bmu_service_id") long bmu_service_id) {
+			@PathParam("bmu_service_id") long bmuServiceId) {
 		ServiceDao servicedao = DataManager.getServiceDao();
-		Service service = servicedao.getService(bmu_service_id);
+		Service service = servicedao.getService(bmuServiceId);
 
 		return new ServiceContainer(service);
 	}
@@ -28,9 +28,9 @@ public class Services {
 	@DELETE
 	@Path("{bmu_service_id}")
 	@Produces("application/json")
-	public void deleteService(@PathParam("bmu_service_id") long bmu_service_id) {
+	public void deleteService(@PathParam("bmu_service_id") long bmuServiceId) {
 		ServiceDao servicedao = DataManager.getServiceDao();
-		Service service = new Service(bmu_service_id);
+		Service service = new Service(bmuServiceId);
 
 		servicedao.deleteService(service);
 	}
@@ -38,9 +38,9 @@ public class Services {
 	@POST
 	@Path("{bmu_service_id}/register")
 	@Produces("application/json")
-	public void registerUser(@PathParam("bmu_service_id") long bmu_service_id) {
+	public void registerUser(@PathParam("bmu_service_id") long bmuServiceId) {
 		ServiceDao servicedao = DataManager.getServiceDao();
-		Service service = new Service(bmu_service_id);
+		Service service = new Service(bmuServiceId);
 
 		servicedao.insertService(service);
 	}

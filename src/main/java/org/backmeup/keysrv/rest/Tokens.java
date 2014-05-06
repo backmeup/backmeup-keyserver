@@ -1,6 +1,5 @@
 package org.backmeup.keysrv.rest;
 
-import java.sql.SQLException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -9,7 +8,6 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
 
 import org.backmeup.keyserver.config.Configuration;
 import org.backmeup.keyserver.dal.AuthInfoDao;
@@ -29,7 +27,6 @@ import org.backmeup.keysrv.worker.FileLogger;
 import org.backmeup.keysrv.worker.Mailer;
 import org.backmeup.keysrv.worker.Service;
 import org.backmeup.keysrv.worker.Token;
-import org.backmeup.keysrv.worker.TokenInvalidException;
 import org.backmeup.keysrv.worker.User;
 import org.jboss.resteasy.util.Base64;
 
@@ -69,14 +66,15 @@ public class Tokens {
 			try {
 				encryptionPwdService = servicedao.getService(-2);
 			} catch (RestServiceNotFoundException e) {
+				FileLogger.logException("Encryption service not found. Can be ignored. Service will be registered automatical", e);
 				encryptionPwdService = new Service(-2);
 				servicedao.insertService(encryptionPwdService);
 			}
 
 			AuthInfo encpwd = new AuthInfo(-2, user, encryptionPwdService);
-			Map<String, String> encpwd_data = new HashMap<String, String>();
-			encpwd_data.put("encryption_pwd", trc.getEncryption_pwd());
-			encpwd.setDecAiData(encpwd_data);
+			Map<String, String> encpwdData = new HashMap<String, String>();
+			encpwdData.put("encryption_pwd", trc.getEncryption_pwd());
+			encpwd.setDecAiData(encpwdData);
 			token.addAuthInfo(encpwd);
 		}
 

@@ -24,10 +24,10 @@ public class AuthInfos {
 	@Path("{bmu_authinfo_id}/{bmu_user_id}/{bmu_service_id}/{user_pwd}")
 	@Produces("application/json")
 	public AuthInfoContainer getAuthInfo(
-			@PathParam("bmu_authinfo_id") long bmu_authinfo_id,
-			@PathParam("bmu_user_id") long bmu_user_id,
-			@PathParam("bmu_service_id") long bmu_service_id,
-			@PathParam("user_pwd") String user_pwd) {
+			@PathParam("bmu_authinfo_id") long bmuAuthinfoId,
+			@PathParam("bmu_user_id") long bmuUserId,
+			@PathParam("bmu_service_id") long bmuServiceId,
+			@PathParam("user_pwd") String userPwd) {
 		UserDao userdao = DataManager.getUserDao();
 		ServiceDao servicedao = DataManager.getServiceDao();
 		AuthInfoDao authinfodoa = DataManager.getAuthInfoDao();
@@ -35,12 +35,12 @@ public class AuthInfos {
 		User user = null;
 		Service service = null;
 
-		user = userdao.getUser(bmu_user_id);
-		service = servicedao.getService(bmu_service_id);
+		user = userdao.getUser(bmuUserId);
+		service = servicedao.getService(bmuServiceId);
 
-		user.setPwd(user_pwd);
+		user.setPwd(userPwd);
 
-		AuthInfo ai = authinfodoa.getAuthInfo(bmu_authinfo_id, user, service);
+		AuthInfo ai = authinfodoa.getAuthInfo(bmuAuthinfoId, user, service);
 
 		DBLogger.logProvideAuthInfo(user, ai);
 
@@ -73,12 +73,12 @@ public class AuthInfos {
 	@Path("{bmu_authinfo_id}")
 	@Produces("application/json")
 	public void deleteAuthInfo(
-			@PathParam("bmu_authinfo_id") long bmu_authinfo_id) {
+			@PathParam("bmu_authinfo_id") long bmuAuthinfoId) {
 		AuthInfoDao authinfodoa = DataManager.getAuthInfoDao();
 
-		AuthInfo ai = authinfodoa.getAuthInfo(bmu_authinfo_id);
+		AuthInfo ai = authinfodoa.getAuthInfo(bmuAuthinfoId);
 
-		authinfodoa.deleteAuthInfo(bmu_authinfo_id);
+		authinfodoa.deleteAuthInfo(bmuAuthinfoId);
 
 		DBLogger.logDeleteAuthInfo(ai.getUser(), ai);
 	}

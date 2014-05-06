@@ -19,11 +19,11 @@ public class Logs {
 	@GET
 	@Path("{bmu_user_id}")
 	@Produces("application/json")
-	public List<LogContainer> getLogs(@PathParam("bmu_user_id") long bmu_user_id) {
+	public List<LogContainer> getLogs(@PathParam("bmu_user_id") long bmuUserId) {
 		LogDao logdao = DataManager.getLogDao();
 		UserDao userdao = DataManager.getUserDao();
 
-		User user = userdao.getUser(bmu_user_id);
+		User user = userdao.getUser(bmuUserId);
 		return logdao.getLogs(user);
 	}
 }
