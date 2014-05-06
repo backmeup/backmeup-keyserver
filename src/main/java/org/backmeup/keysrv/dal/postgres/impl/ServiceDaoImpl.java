@@ -9,7 +9,6 @@ import org.backmeup.keysrv.rest.exceptions.RestSQLException;
 import org.backmeup.keysrv.rest.exceptions.RestServiceAlreadyExistException;
 import org.backmeup.keysrv.rest.exceptions.RestServiceNotFoundException;
 import org.backmeup.keysrv.worker.FileLogger;
-import org.backmeup.keysrv.worker.PGPKeys;
 import org.backmeup.keysrv.worker.Service;
 
 public class ServiceDaoImpl implements ServiceDao {

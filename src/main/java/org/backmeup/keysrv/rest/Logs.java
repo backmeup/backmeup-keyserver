@@ -9,7 +9,6 @@ import javax.ws.rs.Produces;
 
 import org.backmeup.keyserver.dal.LogDao;
 import org.backmeup.keyserver.dal.UserDao;
-import org.backmeup.keysrv.dal.postgres.impl.LogDaoImpl;
 import org.backmeup.keysrv.rest.data.LogContainer;
 import org.backmeup.keysrv.worker.DataManager;
 import org.backmeup.keysrv.worker.User;
