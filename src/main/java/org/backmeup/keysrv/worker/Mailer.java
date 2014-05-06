@@ -66,9 +66,7 @@ public class Mailer {
 			// Send message
 			Transport.send(message);
 		} catch (Exception e) {
-			// TODO: Log exception
-			throw new RuntimeException(e);
-			// e.printStackTrace();
+			FileLogger.logException("send mail failed", e);
 		}
 	}
 
@@ -83,25 +81,29 @@ public class Mailer {
 	}
 
 	private static Properties getMailSettings() {
-		if (mailSettings == null) {
-			Properties props = new Properties();
-			InputStream is = null;
-			try {
-				is = Mailer.class.getClassLoader().getResourceAsStream(
-						"mail.properties");
-				props.load(is);
-				mailSettings = props;
-			} catch (Exception e) {
-			} finally {
-				if (is != null) {
-					try {
-						is.close();
-					} catch (IOException e) {
-						e.printStackTrace();
+		synchronized (Properties.class) {
+			if (mailSettings == null) {
+				Properties props = new Properties();
+				InputStream is = null;
+				try {
+					is = Mailer.class.getClassLoader().getResourceAsStream(
+							"mail.properties");
+					props.load(is);
+					mailSettings = props;
+				} catch (Exception e) {
+					FileLogger.logException("reading mailettings failed", e);
+				} finally {
+					if (is != null) {
+						try {
+							is.close();
+						} catch (IOException e) {
+							FileLogger.logException("closing stream failed", e);
+						}
 					}
 				}
 			}
 		}
+		
 		return mailSettings;
 	}
 }
