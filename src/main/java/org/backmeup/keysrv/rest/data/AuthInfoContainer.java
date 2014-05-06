@@ -27,7 +27,7 @@ public class AuthInfoContainer {
 		this.bmu_service_id = ai.getService().getBmuId();
 		this.ai_data = ai.getDecAiData();
 
-		if (this.ai_data.size() == 0) {
+		if (this.ai_data.isEmpty()) {
 			throw new RestWrongDecryptionKeyException(this.bmu_user_id);
 		}
 	}
