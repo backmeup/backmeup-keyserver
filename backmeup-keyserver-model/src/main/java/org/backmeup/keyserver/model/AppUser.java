@@ -19,7 +19,7 @@ public class AppUser {
     private String password;
     private Approle approle;
     
-    public AppUser (String addId, String password, Approle approle) {
+    public AppUser (String appId, String password, Approle approle) {
     	this.appId = appId;
     	this.password = password;
     	this.approle = approle;
