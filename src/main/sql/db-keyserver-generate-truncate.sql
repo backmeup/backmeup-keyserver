@@ -1,1 +1,0 @@
-SELECT 'TRUNCATE TABLE ' ||  tablename || ' CASCADE;' FROM pg_tables WHERE tableowner='dbu_keysrv';

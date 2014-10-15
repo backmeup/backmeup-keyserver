@@ -22,3 +22,7 @@ RemoteSystemsTempFiles
 
 # Mac OS X
 .DS_Store
+
+# Derby
+backmeup-keyserver-core/derby.log
+backmeup-keyserver-core/keyserver/

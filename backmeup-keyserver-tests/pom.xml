@@ -1,0 +1,71 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.backmeup</groupId>
+		<artifactId>backmeup-keyserver</artifactId>
+		<version>1.0-SNAPSHOT</version>
+	</parent>
+	<artifactId>backmeup-keyserver-tests</artifactId>
+
+	<profiles>
+		<profile>
+			<id>integration-tests</id>
+			<activation>
+				<property>
+					<name>integrationTests</name>
+				</property>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-failsafe-plugin</artifactId>
+						<version>${version.org.apache.maven.plugins.maven-failsafe-plugin}</version>
+						<configuration>
+							<groups>${config.integrationTestCategory}</groups>
+							<systemPropertyVariables>
+								<!-- For automated integration test, the following properties are 
+									specified as maven commands (e.g. mvn -Dbackmeup.keyserver.baseuri=xxx). 
+									If not specified, the settings in the file 'integrationtests.properties' 
+									are used. -->
+								<backmeup.keyserver.baseuri>${backmeup.keyserver.baseuri}</backmeup.keyserver.baseuri>
+								<backmeup.keyserver.port>${backmeup.keyserver.port}</backmeup.keyserver.port>
+								<backmeup.keyserver.basepath>${backmeup.keyserver.basepath}</backmeup.keyserver.basepath>
+							</systemPropertyVariables>
+						</configuration>
+						<executions>
+							<execution>
+								<goals>
+									<goal>integration-test</goal>
+									<goal>verify</goal>
+								</goals>
+								<configuration>
+									<includes>
+										<include>**/*.class</include>
+									</includes>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>${version.org.apache.maven.plugins.maven-surefire-plugin}</version>
+				<configuration>
+					<skipTests>true</skipTests>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+
+
+</project>

@@ -1,230 +1,123 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
 
-	<groupId>org.backmeup</groupId>
-	<artifactId>backmeup-keyserver</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<packaging>war</packaging>
+  <groupId>org.backmeup</groupId>
+  <artifactId>backmeup-keyserver</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
 
-	<name>Backmeup Keyserver</name>
-	<url>http://backmeup.at/</url>
-	<description>
-		Backemup Keyserver provides a secure storage for personal keys.
-	</description>
+  <name>backmeup-keyserver</name>
+  <url>http://www.backmeup.at</url>
 
- 	<properties>
-		<!-- Project settings -->
-		<encoding>UTF-8</encoding>
-		<project.build.java.target>1.7</project.build.java.target>
-		<project.build.sourceEncoding>${encoding}</project.build.sourceEncoding>
-		<project.reporting.outputEncoding>${encoding}</project.reporting.outputEncoding>
-		
-		<!-- Configuration -->
-		<config.database.url>jdbc:postgresql://localhost:5432/db_keysrv</config.database.url>
-		<config.database.authentication.id>backmeup.keyserver.postgres</config.database.authentication.id>
-		
-		<config.integrationTestCategory>org.backmeup.tests.IntegrationTest</config.integrationTestCategory>
+  <properties>
+  	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  
+	<java.compiler.source>1.7</java.compiler.source>
+	<java.compiler.target>1.7</java.compiler.target>
+	<project.build.java.target>1.7</project.build.java.target>  
+  
+  	<config.tomcat.manager.url>http://127.0.0.1:8080/manager/text</config.tomcat.manager.url>
+	<config.tomcat.authentication.id>backmeup.keyserver.tomcat</config.tomcat.authentication.id>
+	<config.integrationTestCategory>org.backmeup.keyserver.tests.IntegrationTest</config.integrationTestCategory>
+  
+  	<version.backmeup.keyserver.model>1.0-SNAPSHOT</version.backmeup.keyserver.model>
+  	<version.backmeup.keyserver.core>1.0-SNAPSHOT</version.backmeup.keyserver.core>
+  
+    <version.junit>4.11</version.junit>
+    <version.javax.servlet>3.0.1</version.javax.servlet>
+    <version.javax.enterprise.cdi-api>1.1</version.javax.enterprise.cdi-api>
+    <version.org.apache.tomcat.maven>2.2</version.org.apache.tomcat.maven>
+    <version.org.jboss.resteasy>3.0.7.Final</version.org.jboss.resteasy>
+    <version.org.jboss.weld.servlet>2.1.0.Final</version.org.jboss.weld.servlet>
+    <version.org.slf4j>1.7.6</version.org.slf4j>
+    <version.net.sf.dozer>5.4.0</version.net.sf.dozer>
+    <version.commons-codec>1.9</version.commons-codec>
+    <version.com.lambdaworks.scrypt>1.4.0</version.com.lambdaworks.scrypt>
+    
+    
+    
+    <version.org.apache.maven.plugins.maven-failsafe-plugin>2.16</version.org.apache.maven.plugins.maven-failsafe-plugin>
+    <version.org.apache.felix.maven-bundle-plugin>2.4.0</version.org.apache.felix.maven-bundle-plugin>
+    <version.org.apache.maven.plugins.maven-source-plugin>2.2</version.org.apache.maven.plugins.maven-source-plugin>
+    <version.org.apache.maven.plugins.maven-compiler-plugin>3.1</version.org.apache.maven.plugins.maven-compiler-plugin>
+    <version.org.apache.maven.plugins.maven-resources-plugin>2.6</version.org.apache.maven.plugins.maven-resources-plugin>
+    <version.org.apache.maven.plugins.maven-dependency-plugin>2.8</version.org.apache.maven.plugins.maven-dependency-plugin>
+    <version.org.apache.maven.plugins.maven-surefire-plugin>2.6</version.org.apache.maven.plugins.maven-surefire-plugin>
+      
+  </properties>
 
-		<config.tomcat.manager.url>http://127.0.0.1:8080/manager/text</config.tomcat.manager.url>
-		<config.tomcat.authentication.id>backmeup.keyserver.tomcat</config.tomcat.authentication.id>
-
-		<!-- Dependency versions
-			 Please keep alphabetical
-			 Properties should be in form "version.<groupId>", or in case where
-			 multiple artefacts of the same groupId are used  "version.<groupId>.<artifactId>"
-		-->
-		<version.com.jayway.restassured>2.0.1</version.com.jayway.restassured>
-		<version.commons-dbcp>1.4</version.commons-dbcp>
-		<version.javax.mail>1.4.1</version.javax.mail>
-		<version.junit>4.11</version.junit>
-		<version.org.jboss.resteasy.resteasy-jaxrs>2.3.4.Final</version.org.jboss.resteasy.resteasy-jaxrs>
-		<version.org.jboss.resteasy-jackson-provider>2.3.3.Final</version.org.jboss.resteasy-jackson-provider>
-		<version.org.postgresql>9.3-1100-jdbc41</version.org.postgresql>
-
-		<!-- Maven Plugin versions -->
-		<version.org.apache.maven.plugins.maven-compiler-plugin>3.1</version.org.apache.maven.plugins.maven-compiler-plugin>
-		<version.org.apache.maven.plugins.maven-failsafe-plugin>2.16</version.org.apache.maven.plugins.maven-failsafe-plugin>
-		<version.org.apache.maven.plugins.maven-surefire-plugin>2.6</version.org.apache.maven.plugins.maven-surefire-plugin>
-		<version.org.apache.tomcat.maven>2.2</version.org.apache.tomcat.maven>
-		<version.org.codehaus.mojo.sql-maven-plugin>1.5</version.org.codehaus.mojo.sql-maven-plugin>
-	</properties>
-	
-	<dependencies>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>${version.junit}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.jayway.restassured</groupId>
-			<artifactId>rest-assured</artifactId>
-			<version>${version.com.jayway.restassured}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.postgresql</groupId>
-			<artifactId>postgresql</artifactId>
-			<version>${version.org.postgresql}</version>
-			<scope>runtime</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.jboss.resteasy</groupId>
-			<artifactId>resteasy-jaxrs</artifactId>
-			<version>${version.org.jboss.resteasy.resteasy-jaxrs}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.jboss.resteasy</groupId>
-			<artifactId>resteasy-jackson-provider</artifactId>
-			<version>${version.org.jboss.resteasy-jackson-provider}</version>
-		</dependency>
-		<dependency>
-			<groupId>javax.mail</groupId>
-			<artifactId>mail</artifactId>
-			<version>${version.javax.mail}</version>
-		</dependency>
-		<dependency>
-			<groupId>commons-dbcp</groupId>
-			<artifactId>commons-dbcp</artifactId>
-			<version>${version.commons-dbcp}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.rabbitmq</groupId>
-			<artifactId>amqp-client</artifactId>
-			<version>2.8.6</version>
-		</dependency>
-		<dependency>
-			<groupId>com.google.code.gson</groupId>
-			<artifactId>gson</artifactId>
-			<version>2.2.2</version>
-		</dependency>
-	</dependencies>
-	
-	<build>
-		<finalName>${project.artifactId}</finalName>
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>${version.junit}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+    	<groupId>org.slf4j</groupId>
+    	<artifactId>slf4j-api</artifactId>
+    	<version>${version.org.slf4j}</version>
+    </dependency>
+  </dependencies>
+  <modules>
+  	<module>backmeup-keyserver-model</module>
+  	<module>backmeup-keyserver-core</module>
+  	<module>backmeup-keyserver-rest</module>
+  	<module>backmeup-keyserver-tests</module>
+  </modules>
+  
+  
+  
+  	<build>
 		<plugins>
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>${version.org.apache.maven.plugins.maven-source-plugin}</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>${version.org.apache.maven.plugins.maven-compiler-plugin}</version>
 				<configuration>
-					<source>${project.build.java.target}</source>
-					<target>${project.build.java.target}</target>
+					<source>${java.compiler.source}</source>
+					<target>${java.compiler.source}</target>
+					<encoding>${project.build.sourceEncoding}</encoding>
 				</configuration>
 			</plugin>
-			
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-    			<artifactId>maven-surefire-plugin</artifactId>
-    			<version>${version.org.apache.maven.plugins.maven-surefire-plugin}</version>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>${version.org.apache.maven.plugins.maven-resources-plugin}</version>
 				<configuration>
-					<excludes>
-						<exclude>**/KeyserverIntegrationTest.java</exclude>
-					</excludes>
+					<encoding>${project.build.sourceEncoding}</encoding>
 				</configuration>
 			</plugin>
-			
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-failsafe-plugin</artifactId>
-				<version>${version.org.apache.maven.plugins.maven-failsafe-plugin}</version>
-				<configuration>
-					<groups>${config.integrationTestCategory}</groups>
-					<systemPropertyVariables>
-						<!-- For automated integration test, the following properties are specified as 
-							 maven commands (e.g. mvn -Dbackmeup.keyserver.baseuri=xxx). If not specified, 
-							 the settings in the file 'integrationtests.properties' are used. 
-						-->
-						<backmeup.keyserver.baseuri>${backmeup.keyserver.baseuri}</backmeup.keyserver.baseuri>
-						<backmeup.keyserver.port>${backmeup.keyserver.port}</backmeup.keyserver.port>
-						<backmeup.keyserver.basepath>${backmeup.keyserver.basepath}</backmeup.keyserver.basepath>
-					</systemPropertyVariables>
-				</configuration>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>2.2</version>
 				<executions>
 					<execution>
+						<id>check-dependencies</id>
+						<phase>verify</phase>
 						<goals>
-							<goal>integration-test</goal>
-							<goal>verify</goal>
+							<goal>analyze</goal>
 						</goals>
-						<configuration>
-							<includes>
-								<include>**/*.class</include>
-							</includes>
-						</configuration>
 					</execution>
 				</executions>
 			</plugin>
 		</plugins>
 	</build>
-	
-	<profiles>
-		<profile>
-			<id>integration-tests</id>
-			<activation>
-				<property>
-					<name>!skipTests</name>
-				</property>
-			</activation>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.apache.tomcat.maven</groupId>
-						<artifactId>tomcat7-maven-plugin</artifactId>
-						<version>${version.org.apache.tomcat.maven}</version>
-						<configuration>
-							<url>${config.tomcat.manager.url}</url>
-							<!-- Don't forget to specify the server in the settings.xml -->
-							<server>${config.tomcat.authentication.id}</server>
-						</configuration>
-						<executions>
-							<execution>
-								<id>tomcat-deploy</id>
-								<phase>pre-integration-test</phase>
-								<goals>
-									<goal>deploy</goal>
-								</goals>
-								<configuration>
-									<update>true</update>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-					
-					<plugin>
-						<groupId>org.codehaus.mojo</groupId>
-						<artifactId>sql-maven-plugin</artifactId>
-						<version>${version.org.codehaus.mojo.sql-maven-plugin}</version>
-						<dependencies>
-							<dependency>
-								<groupId>org.postgresql</groupId>
-								<artifactId>postgresql</artifactId>
-								<version>${version.org.postgresql}</version>
-							</dependency>
-						</dependencies>
-						<configuration>
-							<driver>org.postgresql.Driver</driver>
-							<url>${config.database.url}</url>
-							<!-- Don't forget to specify the server in the settings.xml -->
-							<settingsKey>${config.database.authentication.id}</settingsKey>
-						</configuration>
-						<executions>
-							<execution>
-								<id>db-truncate</id>
-								<phase>pre-integration-test</phase>
-								<goals>
-									<goal>execute</goal>
-								</goals>
-								<configuration>
-									<autocommit>true</autocommit>
-									<srcFiles>
-										<srcFile>src/main/sql/db-keyserver-truncate.sql</srcFile>
-									</srcFiles>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-	</profiles>
+
+  
 </project>
