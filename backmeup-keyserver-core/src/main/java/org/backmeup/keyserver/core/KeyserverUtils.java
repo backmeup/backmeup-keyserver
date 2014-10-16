@@ -1,9 +1,16 @@
 package org.backmeup.keyserver.core;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.StringUtils;
+import org.backmeup.keyserver.core.crypto.CryptoException;
+import org.backmeup.keyserver.core.crypto.EncryptionProvider;
+import org.backmeup.keyserver.core.crypto.HashProvider;
+import org.backmeup.keyserver.core.crypto.KeyStretchingProvider;
+import org.backmeup.keyserver.core.crypto.Keyring;
+import org.backmeup.keyserver.core.crypto.ProviderRegistry;
 
 public class KeyserverUtils {
 	public static String toBase64String(byte[] b) {
@@ -34,5 +41,34 @@ public class KeyserverUtils {
 		arrs[0] = Arrays.copyOf(a, offset);
 		arrs[1] = Arrays.copyOfRange(a, offset, a.length);
 		return arrs;
+	}
+	
+	public static String hashStringWithPepper(Keyring k, String hashInput, String pepperApplication) throws CryptoException, NoSuchAlgorithmException {
+		return toBase64String(hashByteArrayWithPepper(k, StringUtils.getBytesUtf8(hashInput), pepperApplication));
+	}
+	
+	public static byte[] hashByteArrayWithPepper(Keyring k, byte[] hashInput, String pepperApplication) throws CryptoException, NoSuchAlgorithmException {
+		HashProvider hp = ProviderRegistry.getHashProvider(k.getHashAlgorithm());
+		return hp.hash(concat(hashInput, k.getPepper(pepperApplication)));
+	}
+	
+	public static byte[] stretchStringWithPepper(Keyring k, String key, String pepperApplication) throws NoSuchAlgorithmException, CryptoException {
+		KeyStretchingProvider kp = ProviderRegistry.getKeyStretchingProvider(k.getKeyStretchingAlgorithm());
+		return kp.stretch(StringUtils.getBytesUtf8(key), k.getPepper(pepperApplication));
+	}
+	
+	public static byte[] generateKey(Keyring k) throws CryptoException, NoSuchAlgorithmException {
+		EncryptionProvider ep = ProviderRegistry.getEncryptionProvider(k.getEncryptionAlgorithm());
+		return ep.generateKey(k.getEncryptionKeyLength());
+	}
+	
+	public static byte[] encryptString(Keyring k, byte[] key, String message) throws CryptoException, NoSuchAlgorithmException {
+		EncryptionProvider ep = ProviderRegistry.getEncryptionProvider(k.getEncryptionAlgorithm());
+		return ep.encrypt(key, StringUtils.getBytesUtf8(message));
+	}
+	
+	public static String decryptString(Keyring k, byte[] key, byte[] message) throws CryptoException, NoSuchAlgorithmException {
+		EncryptionProvider ep = ProviderRegistry.getEncryptionProvider(k.getEncryptionAlgorithm());
+		return StringUtils.newStringUtf8(ep.decrypt(key, message));
 	}
 }

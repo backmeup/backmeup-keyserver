@@ -1,6 +1,5 @@
 package org.backmeup.keyserver.core;
 
-import static org.backmeup.keyserver.core.KeyserverUtils.concat;
 import static org.backmeup.keyserver.core.KeyserverUtils.fromBase64String;
 import static org.backmeup.keyserver.core.KeyserverUtils.toBase64String;
 
@@ -13,22 +12,20 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import org.apache.commons.codec.binary.StringUtils;
 import org.backmeup.keyserver.core.crypto.CryptoException;
-import org.backmeup.keyserver.core.crypto.EncryptionProvider;
-import org.backmeup.keyserver.core.crypto.HashProvider;
-import org.backmeup.keyserver.core.crypto.KeyStretchingProvider;
 import org.backmeup.keyserver.core.crypto.Keyring;
-import org.backmeup.keyserver.core.crypto.ProviderRegistry;
 import org.backmeup.keyserver.core.db.Database;
 import org.backmeup.keyserver.core.db.DatabaseException;
 import org.backmeup.keyserver.model.KeyserverEntry;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.node.ObjectNode;
 
 public class DefaultKeyserverImpl {	
 	protected SortedMap<Integer, Keyring> keyrings = new TreeMap<>(Collections.reverseOrder());
 	protected Keyring activeKeyring;
 	private SecureRandom random = new SecureRandom();
 	private Database db;
+	private ObjectMapper jsonMapper = new ObjectMapper();
 	
 	public DefaultKeyserverImpl() {
 		this.loadConfigFile();
@@ -49,60 +46,41 @@ public class DefaultKeyserverImpl {
 		peppers.put("UserId", fromBase64String("5MlQkEfznxZSadtncDwqKVGfTGrcZ020pWrZJ5+WR3E="));
 		peppers.put("ServiceUserId", fromBase64String("T0O0lfI0teC2cLdw+bxoubgPiu5HtUZkdxY5lbK1arc="));
 		peppers.put("UserName", fromBase64String("7Z+P9DEhLl2fP0zgaIgqF6SRiOdfqHLXAP9Z4+Ff1OE="));
+		peppers.put("Account", fromBase64String("Y3WIQAJGXFteocB3j4+wHfsvYoTcH19kvcBgCMl7vKI="));
 		
-		Keyring k = new Keyring(1, peppers, "SHA-256", "SCRYPT", "AES/CBC/PKCS5Padding");
+		Keyring k = new Keyring(1, peppers, "SHA-256", "SCRYPT", "AES/CBC/PKCS5Padding", 256);
 		
 		this.keyrings.put(1, k);
 		//TODO: set highest one as active keyring
 		this.activeKeyring = k;
 	}
 	
-	private byte[] getPepper(String application) {
+	/*private byte[] getPepper(String application) {
 		return this.activeKeyring.getPepper(application);
-	}
+	}*/
 
 	protected String hashStringWithPepper(String hashInput, String pepperApplication) throws CryptoException, NoSuchAlgorithmException {
-		return hashStringWithPepper(this.activeKeyring, hashInput, pepperApplication);
-	}
-	
-	protected String hashStringWithPepper(Keyring k, String hashInput, String pepperApplication) throws CryptoException, NoSuchAlgorithmException {
-		return toBase64String(this.hashByteArrayWithPepper(k, StringUtils.getBytesUtf8(hashInput), pepperApplication));
+		return KeyserverUtils.hashStringWithPepper(this.activeKeyring, hashInput, pepperApplication);
 	}
 	
 	protected byte[] hashByteArrayWithPepper(byte[] hashInput, String pepperApplication) throws CryptoException, NoSuchAlgorithmException {
-		return this.hashByteArrayWithPepper(this.activeKeyring, hashInput, pepperApplication);
-	}
-	
-	protected byte[] hashByteArrayWithPepper(Keyring k, byte[] hashInput, String pepperApplication) throws CryptoException, NoSuchAlgorithmException {
-		HashProvider hp = ProviderRegistry.getHashProvider(k.getHashAlgorithm());
-		return hp.hash(concat(hashInput, k.getPepper(pepperApplication)));
+		return KeyserverUtils.hashByteArrayWithPepper(this.activeKeyring, hashInput, pepperApplication);
 	}
 	
 	protected byte[] stretchStringWithPepper(String key, String pepperApplication) throws NoSuchAlgorithmException, CryptoException {
-		return this.stretchStringWithPepper(this.activeKeyring, key, pepperApplication);
+		return KeyserverUtils.stretchStringWithPepper(this.activeKeyring, key, pepperApplication);
 	}
 	
-	protected byte[] stretchStringWithPepper(Keyring k, String key, String pepperApplication) throws NoSuchAlgorithmException, CryptoException {
-		KeyStretchingProvider kp = ProviderRegistry.getKeyStretchingProvider(k.getKeyStretchingAlgorithm());
-		return kp.stretch(StringUtils.getBytesUtf8(key), k.getPepper(pepperApplication));
+	protected byte[] generateKey() throws NoSuchAlgorithmException, CryptoException {
+		return KeyserverUtils.generateKey(this.activeKeyring);
 	}
 	
 	protected byte[] encryptString(byte[] key, String message) throws NoSuchAlgorithmException, CryptoException {
-		return this.encryptString(this.activeKeyring, key, message);
-	}
-	
-	protected byte[] encryptString(Keyring k, byte[] key, String message) throws CryptoException, NoSuchAlgorithmException {
-		EncryptionProvider ep = ProviderRegistry.getEncryptionProvider(k.getEncryptionAlgorithm());
-		return ep.encrypt(key, StringUtils.getBytesUtf8(message));
+		return KeyserverUtils.encryptString(this.activeKeyring, key, message);
 	}
 	
 	protected String decryptString(byte[] key, byte[] message) throws NoSuchAlgorithmException, CryptoException {
-		return this.decryptString(this.activeKeyring, key, message);
-	}
-	
-	protected String decryptString(Keyring k, byte[] key, byte[] message) throws CryptoException, NoSuchAlgorithmException {
-		EncryptionProvider ep = ProviderRegistry.getEncryptionProvider(k.getEncryptionAlgorithm());
-		return StringUtils.newStringUtf8(ep.decrypt(key, message));
+		return KeyserverUtils.decryptString(this.activeKeyring, key, message);
 	}
 	
 	protected KeyserverEntry searchForEntry(String[] hashInputs, String[] pepperApplications, String keyPattern) throws NoSuchAlgorithmException, CryptoException, DatabaseException {
@@ -111,7 +89,7 @@ public class DefaultKeyserverImpl {
 		for (Keyring k : this.keyrings.values()) {
 			String[] hashes = new String[hashInputs.length];
 			for(int i=0; i<hashInputs.length; i++) {
-				hashes[i] = this.hashStringWithPepper(k, hashInputs[i], pepperApplications[i]);
+				hashes[i] = KeyserverUtils.hashStringWithPepper(k, hashInputs[i], pepperApplications[i]);
 			}
 			
 			//System.out.println(key.format(hashes));
@@ -126,8 +104,8 @@ public class DefaultKeyserverImpl {
 	protected KeyserverEntry searchForEntry(String hashInput, String pepperApplication, String keyPattern) throws NoSuchAlgorithmException, CryptoException, DatabaseException {
 		return this.searchForEntry(new String[]{hashInput}, new String[]{pepperApplication}, keyPattern);
 	}
-
-	public String registerUser(String username, String password) throws KeyserverException {
+	
+	protected Map<String, String> createBaseUser(String username, String password) throws KeyserverException {
 		String userId = null;
 		String serviceUserId = null;
 		
@@ -151,26 +129,72 @@ public class DefaultKeyserverImpl {
 			}
 			while(collission);
 			
-			String usernameHash = this.hashStringWithPepper(username, "UserName");
-			/*System.out.println(userId);
-			System.out.println(serviceUserId);
-			System.out.println(usernameHash);*/
-			
+			//[UserId].UserId
 			KeyserverEntry ke = new KeyserverEntry(userId+".UserId");
 			db.putEntry(ke);
 			
+			//[ServiceUserId].ServiceUserId
 			ke = new KeyserverEntry(serviceUserId+".ServiceUserId");
 			db.putEntry(ke);
+		} catch(CryptoException | DatabaseException | NoSuchAlgorithmException e) {
+			throw new KeyserverException(e);
+		}
+		
+		Map<String, String> ret = new HashMap<>();
+		ret.put("userId", userId);
+		ret.put("serviceUserId", serviceUserId);
+		return ret;
+	}
+
+	public String registerUser(String username, String password) throws KeyserverException {
+		String userId = null;
+		String serviceUserId = null;
+		
+		try {
+			Map<String, String> ids = this.createBaseUser(username, password);
+			userId = ids.get("userId");
+			serviceUserId = ids.get("serviceUserId");
+			
+			//[Hash(Benutzername)].UserName
+			String usernameHash = this.hashStringWithPepper(username, "UserName");
 			
 			byte[] key = this.stretchStringWithPepper(username, "UserName");
 			byte[] payload = this.encryptString(this.hashByteArrayWithPepper(key, "UserName"), userId);
 			
-			ke = new KeyserverEntry(usernameHash+".UserName");
+			KeyserverEntry ke = new KeyserverEntry(usernameHash+".UserName");
+			ke.setValue(payload);
+			db.putEntry(ke);
+			
+			//[UserId].Account
+			byte[] accountKey = this.generateKey();
+			key = this.stretchStringWithPepper(username+";"+password, "Account");
+			
+			ObjectNode valueNode = this.jsonMapper.createObjectNode();
+			valueNode.put("ServiceUserId", serviceUserId);
+			valueNode.put("AccountKey", accountKey);
+			payload = this.encryptString(this.hashByteArrayWithPepper(key, "Account"), valueNode.toString());
+			
+			ke = new KeyserverEntry(userId+".Account");
 			ke.setValue(payload);
 			db.putEntry(ke);
 		} catch(CryptoException | DatabaseException | NoSuchAlgorithmException e) {
 			throw new KeyserverException(e);
 		}
+		
+		return serviceUserId;
+	}
+	
+	public String registerAnonoumysUser(String username, String password) throws KeyserverException {
+		String userId = null;
+		String serviceUserId = null;
+		
+		//try {
+			Map<String, String> ids = this.createBaseUser(username, password);
+			userId = ids.get("userId");
+			serviceUserId = ids.get("serviceUserId");
+		/*} catch(CryptoException | DatabaseException | NoSuchAlgorithmException e) {
+			throw new KeyserverException(e);
+		}*/
 		
 		return serviceUserId;
 	}
