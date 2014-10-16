@@ -2,9 +2,6 @@ package org.backmeup.keyserver.core.db.derby;
 
 import static org.junit.Assert.*;
 
-import java.util.Calendar;
-import java.util.TimeZone;
-
 import org.backmeup.keyserver.core.db.Database;
 import org.backmeup.keyserver.core.db.DatabaseException;
 import org.backmeup.keyserver.core.db.derby.DatabaseImpl;
@@ -75,17 +72,11 @@ public class DatabaseImplTest {
 		assertNotNull(e.getLastModified());
 		assertNull(e.getTTL());
 		
-		Calendar ttl = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-		i.setTTL(ttl);
+		i.expire();
 		db.updateTTL(i);
 		
 		e = db.getEntry("test");
-		assertNotNull(e);
-		assertEquals("test", e.getKey());
-		assertArrayEquals(new byte[]{0,1,2}, e.getValue());
-		assertEquals(1, e.getVersion());
-		assertNotNull(e.getLastModified());
-		assertEquals(ttl, e.getTTL());
+		assertNull(e);
 		
 		i.setValue(new byte[]{3,4});
 		db.putEntry(i);
@@ -95,7 +86,7 @@ public class DatabaseImplTest {
 		assertEquals("test", e2.getKey());
 		assertArrayEquals(new byte[]{3, 4}, e2.getValue());
 		assertEquals(2, e2.getVersion());
-		assertTrue(e.getLastModified() != e2.getLastModified());
+		assertEquals(e2.getLastModified(), i.getLastModified());
 		assertNull(e2.getTTL());
 	}
 

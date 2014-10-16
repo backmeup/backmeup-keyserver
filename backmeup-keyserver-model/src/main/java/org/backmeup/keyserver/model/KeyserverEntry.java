@@ -69,6 +69,10 @@ public class KeyserverEntry {
 	public void setTTL(Calendar ttl) {
 		this.ttl = ttl;
 	}
+	
+	public void expire() {
+		this.setTTL(Calendar.getInstance(TimeZone.getTimeZone("UTC")));
+	}
 
 	public String getKey() {
 		return key;

@@ -58,8 +58,8 @@ public class DatabaseImpl implements Database {
 			
 			this.psPut = this.conn.prepareStatement("INSERT INTO " + DB_TABLE + "(ekey, value, keyringId, version, created_at, last_modified, ttl) VALUES (?, ?, ?, ?, ?, ?, ?)");
 			this.psUpdateTTL = this.conn.prepareStatement("UPDATE " + DB_TABLE + " SET ttl = ?  WHERE ekey = ? AND version = ?");
-			this.psGet = this.conn.prepareStatement("SELECT * FROM " + DB_TABLE + " WHERE ekey = ? ORDER BY version DESC FETCH FIRST ROW ONLY");
-			this.psGetWithVersion = this.conn.prepareStatement("SELECT * FROM " + DB_TABLE + " WHERE ekey = ? AND version = ?");
+			this.psGet = this.conn.prepareStatement("SELECT * FROM " + DB_TABLE + " WHERE ekey = ? AND (ttl IS NULL OR ttl > CURRENT_TIMESTAMP) ORDER BY version DESC FETCH FIRST ROW ONLY");
+			this.psGetWithVersion = this.conn.prepareStatement("SELECT * FROM " + DB_TABLE + " WHERE ekey = ? AND version = ? AND (ttl IS NULL OR ttl > CURRENT_TIMESTAMP)");
 		} catch (SQLException e) {
 			throw new DatabaseException(e);
 		}
