@@ -9,7 +9,9 @@ import java.security.spec.InvalidParameterSpecException;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
@@ -22,6 +24,8 @@ public class AESEncryptionProvider implements EncryptionProvider {
 	
 	private String algorithm;
 	private Cipher cipher;
+	private KeyGenerator keyGen;
+
 	
 	@Override
 	public String getAlgorithm() {
@@ -32,10 +36,17 @@ public class AESEncryptionProvider implements EncryptionProvider {
 		this.algorithm = algorithm;
 		try {
 			this.cipher = Cipher.getInstance(algorithm);
+			this.keyGen = KeyGenerator.getInstance("AES");
 		} catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	@Override
+	public byte[] generateKey(int length) {
+		this.keyGen.init(length);
+		return keyGen.generateKey().getEncoded();
 	}
 	
 	@Override

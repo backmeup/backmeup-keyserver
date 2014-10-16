@@ -9,15 +9,17 @@ public class Keyring {
 	private String hashAlgorithm;
 	private String keyStretchingAlgorithm;
 	private String encryptionAlgorithm;
+	private int encryptionKeyLength;
 	//TODO: Gültigkeitszeitraum notwendig?
 	
-	public Keyring(int keyringId, Map<String, byte[]> peppers, String hashAlgorithm, String keyStretchingAlgorithm, String encryptionAlgorithm) {
+	public Keyring(int keyringId, Map<String, byte[]> peppers, String hashAlgorithm, String keyStretchingAlgorithm, String encryptionAlgorithm, int encryptionKeyLength) {
 		this.keyringId = keyringId;
 		this.peppers = new HashMap<>();
 		this.peppers.putAll(peppers);
 		this.hashAlgorithm = hashAlgorithm;
 		this.keyStretchingAlgorithm = keyStretchingAlgorithm;
 		this.encryptionAlgorithm = encryptionAlgorithm;
+		this.encryptionKeyLength = encryptionKeyLength;
 	}
 
 	public int getKeyringId() {
@@ -38,5 +40,9 @@ public class Keyring {
 	
 	public byte[] getPepper(String application) {
 		return this.peppers.get(application);
+	}
+	
+	public int getEncryptionKeyLength() {
+		return this.encryptionKeyLength;
 	}
 }
