@@ -20,8 +20,7 @@ public class MessageDigestHashProvider implements HashProvider {
 		try {
 			this.digest = MessageDigest.getInstance(algorithm);
 		} catch (NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new IllegalArgumentException(e);
 		}
 	}
 	

@@ -37,8 +37,7 @@ public class AESEncryptionProvider implements EncryptionProvider {
 			this.cipher = Cipher.getInstance(algorithm);
 			this.keyGen = KeyGenerator.getInstance("AES");
 		} catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new IllegalArgumentException(e);
 		}
 	}
 	

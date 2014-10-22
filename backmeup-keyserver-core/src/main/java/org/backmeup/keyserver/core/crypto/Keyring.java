@@ -2,6 +2,7 @@ package org.backmeup.keyserver.core.crypto;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.MissingResourceException;
 
 public class Keyring {
 	private int keyringId;
@@ -39,7 +40,12 @@ public class Keyring {
 	}
 	
 	public byte[] getPepper(String application) {
-		return this.peppers.get(application);
+		byte[] pepper = this.peppers.get(application);
+		if (pepper == null) {
+			throw new MissingResourceException("pepper "+application+" not found in keyring " + this.keyringId, "keyring " + this.keyringId, application);
+		}
+		
+		return pepper;
 	}
 	
 	public int getEncryptionKeyLength() {
