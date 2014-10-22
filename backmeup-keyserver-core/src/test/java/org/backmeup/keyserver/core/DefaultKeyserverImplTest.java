@@ -6,6 +6,8 @@ import org.backmeup.keyserver.core.DefaultKeyserverImpl;
 import org.backmeup.keyserver.core.KeyserverException;
 import org.backmeup.keyserver.core.config.Configuration;
 import org.backmeup.keyserver.model.AppUser;
+import org.backmeup.keyserver.model.AuthResponse;
+import org.backmeup.keyserver.model.Token;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -18,13 +20,14 @@ public class DefaultKeyserverImplTest {
 		ks = new DefaultKeyserverImpl();
 	}
 
-	/*
 	@Test
 	public void testRegisterUser() throws KeyserverException {
-		String userId = ks.registerUser("wolfgang", "mypass");
-		//assertEquals(userId, userId2);
+		String serviceUserId = ks.registerUser("wolfgang", "mypass");
+		AuthResponse u = ks.authenticateUserWithPassword("wolfgang", "mypass");
+		assertEquals(serviceUserId, u.getServiceUserId());
+		assertNotNull(u.getLoginToken());
+		ks.tokenLogic.retrieveTokenValue(new Token(Token.TokenKind.INTERNAL, u.getLoginToken()));
 	}
-	*/
 	
 	@Test
 	public void testAuthenticateApp() throws KeyserverException {

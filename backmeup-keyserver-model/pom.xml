@@ -7,6 +7,13 @@
 		<version>1.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>backmeup-keyserver-model</artifactId>
+		<dependencies>
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>${version.commons-codec}</version>
+		</dependency>
+	</dependencies>
 	<packaging>bundle</packaging>
 	<name>BackMeUp Keyserver Model</name>
 

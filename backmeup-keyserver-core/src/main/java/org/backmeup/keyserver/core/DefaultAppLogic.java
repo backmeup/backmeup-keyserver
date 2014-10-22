@@ -22,7 +22,7 @@ public class DefaultAppLogic {
 		this.db = this.keyserver.db;
 	}
 
-	public AppUser registerApp(AppUser.Approle role) throws KeyserverException {
+	public AppUser register(AppUser.Approle role) throws KeyserverException {
 		if (role == AppUser.Approle.Core) {
 			throw new KeyserverException("Registration of app with role core is forbidden!");
 		}
@@ -41,7 +41,7 @@ public class DefaultAppLogic {
 			}
 			while(collission);
 			
-			//[AppId].App
+			//[Hash(AppKey)].App
 			KeyserverEntry ke = new KeyserverEntry(appId+".App");
 			byte[] payload = encryptString(this.keyring, hashByteArrayWithPepper(this.keyring, appKey, "App"), role.name());
 			ke.setValue(payload);
@@ -53,7 +53,7 @@ public class DefaultAppLogic {
 		return new AppUser(appId, toBase64String(appKey), role);
 	}
 	
-	public void removeApp(String appId) throws KeyserverException {
+	public void remove(String appId) throws KeyserverException {
 		try {
 			KeyserverEntry appEntry = this.db.getEntry(appId+".App");
 			if (appEntry == null) {
@@ -67,7 +67,7 @@ public class DefaultAppLogic {
 		}
 	}
 	
-	public AppUser authenticateApp(String appId, String appKey) throws KeyserverException {
+	public AppUser authenticate(String appId, String appKey) throws KeyserverException {
 		//workaround for core app
 		if(appId.equals(this.keyserver.serviceId) && appKey.equals(this.keyserver.servicePassword)) {
 			return new AppUser(appId, appKey, AppUser.Approle.Core);
