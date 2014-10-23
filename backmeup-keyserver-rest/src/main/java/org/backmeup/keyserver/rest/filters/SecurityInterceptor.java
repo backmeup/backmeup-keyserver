@@ -108,7 +108,7 @@ public class SecurityInterceptor implements ContainerRequestFilter {
     private AppUser resolveUser(final String userId, final String password) {
         // TODO replace test implementation
 
-        return new AppUser(userId, password, AppUser.Approle.Core);
+        return new AppUser(userId, password, AppUser.Approle.CORE);
 
         /*
          * try { return getLogic().getAppUserByUserId(userId); } catch

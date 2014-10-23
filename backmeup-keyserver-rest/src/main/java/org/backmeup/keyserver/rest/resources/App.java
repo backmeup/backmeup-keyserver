@@ -25,7 +25,7 @@ import org.backmeup.keyserver.model.dto.AppDTO;
 @Path("/app")
 public class App extends SecureBase {
 
-    @RolesAllowed("core")
+    @RolesAllowed("CORE")
     @GET
     @Path("/")
     @Produces(MediaType.APPLICATION_JSON)

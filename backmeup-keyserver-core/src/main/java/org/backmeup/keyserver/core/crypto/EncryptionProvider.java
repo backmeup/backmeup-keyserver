@@ -1,8 +1,11 @@
 package org.backmeup.keyserver.core.crypto;
 
 public interface EncryptionProvider {
-	public String getAlgorithm();
-	public byte[] generateKey(int length) throws CryptoException;
-	public byte[] encrypt(byte[] key, byte[] message)  throws CryptoException;
-	public byte[] decrypt(byte[] key, byte[] enrcypted)  throws CryptoException;
+    String getAlgorithm();
+
+    byte[] generateKey(int length) throws CryptoException;
+
+    byte[] encrypt(byte[] key, byte[] message) throws CryptoException;
+
+    byte[] decrypt(byte[] key, byte[] enrcypted) throws CryptoException;
 }

@@ -20,7 +20,7 @@ public class AppDTO {
         return appId;
     }
 
-    private void setUserId(String appId) {
+    public void setUserId(String appId) {
         this.appId = appId;
     }
 
@@ -28,7 +28,7 @@ public class AppDTO {
         return password;
     }
 
-    private void setPassword(String password) {
+    public void setPassword(String password) {
         this.password = password;
     }
 }

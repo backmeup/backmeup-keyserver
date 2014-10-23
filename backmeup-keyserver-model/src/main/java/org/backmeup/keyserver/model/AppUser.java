@@ -1,53 +1,50 @@
 package org.backmeup.keyserver.model;
 
 /**
- * Application User will be used for applications that are allowed to connect to the keyserver
+ * Application User will be used for applications that are allowed to connect to
+ * the keyserver
  * 
  * @author spawn
  *
  */
 public class AppUser {
-	
-	public static enum Approle {
-		Core,
-		Worker,
-		Storage,
-		Indexer
-	}
-	
-	private String appId;
-    private String password;
-    private Approle approle;
-    
-    public AppUser (String appId, String password, Approle approle) {
-    	this.appId = appId;
-    	this.password = password;
-    	this.approle = approle;
+
+    public static enum Approle {
+        CORE, WORKER, STORAGE, INDEXER
     }
 
-	public String getAppId() {
-		return appId;
-	}
+    private String appId;
+    private String password;
+    private Approle approle;
 
-	public void setAppId(String appId) {
-		this.appId = appId;
-	}
+    public AppUser(String appId, String password, Approle approle) {
+        this.appId = appId;
+        this.password = password;
+        this.approle = approle;
+    }
 
-	public String getPassword() {
-		return password;
-	}
+    public String getAppId() {
+        return appId;
+    }
 
-	public void setPassword(String password) {
-		this.password = password;
-	}
+    public void setAppId(String appId) {
+        this.appId = appId;
+    }
 
-	public Approle getApprole() {
-		return approle;
-	}
+    public String getPassword() {
+        return password;
+    }
 
-	public void setApprole(Approle approle) {
-		this.approle = approle;
-	}
-    
-    
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public Approle getApprole() {
+        return approle;
+    }
+
+    public void setApprole(Approle approle) {
+        this.approle = approle;
+    }
+
 }

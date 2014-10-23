@@ -31,18 +31,18 @@ public class DefaultKeyserverImplTest {
 	
 	@Test
 	public void testAuthenticateApp() throws KeyserverException {
-		AppUser u = ks.registerApp(AppUser.Approle.Worker);
+		AppUser u = ks.registerApp(AppUser.Approle.WORKER);
 		AppUser u2 = ks.authenticateApp(u.getAppId(), u.getPassword());
 		assertEquals(u.getAppId(), u2.getAppId());
 		assertEquals(u.getPassword(), u2.getPassword());
-		assertEquals(AppUser.Approle.Worker, u.getApprole());
-		assertEquals(AppUser.Approle.Worker, u2.getApprole());
+		assertEquals(AppUser.Approle.WORKER, u.getApprole());
+		assertEquals(AppUser.Approle.WORKER, u2.getApprole());
 	}
 	
 	@Test
 	public void testRegisterCoreApp() throws KeyserverException {
 		try {
-			ks.registerApp(AppUser.Approle.Core);
+			ks.registerApp(AppUser.Approle.CORE);
 		} catch(KeyserverException e) {
 			assertTrue(e.getMessage().contains("forbidden"));
 		}
@@ -55,7 +55,7 @@ public class DefaultKeyserverImplTest {
 		AppUser u = ks.authenticateApp(appId, appKey);
 		assertEquals(u.getAppId(), appId);
 		assertEquals(u.getPassword(), appKey);
-		assertEquals(AppUser.Approle.Core, u.getApprole());
+		assertEquals(AppUser.Approle.CORE, u.getApprole());
 	}
 	
 	@Test
@@ -69,7 +69,7 @@ public class DefaultKeyserverImplTest {
 	
 	@Test
 	public void testAuthenticateAppFail() throws KeyserverException {
-		AppUser u = ks.registerApp(AppUser.Approle.Worker);
+		AppUser u = ks.registerApp(AppUser.Approle.WORKER);
 		try {
 			ks.authenticateApp(u.getAppId(), "xxx");
 		} catch(KeyserverException e) {
@@ -79,7 +79,7 @@ public class DefaultKeyserverImplTest {
 	
 	@Test
 	public void testRemoveApp() throws KeyserverException {
-		AppUser u = ks.registerApp(AppUser.Approle.Worker);
+		AppUser u = ks.registerApp(AppUser.Approle.WORKER);
 		ks.removeApp(u.getAppId());
 		try {
 			ks.authenticateApp(u.getAppId(), u.getPassword());
