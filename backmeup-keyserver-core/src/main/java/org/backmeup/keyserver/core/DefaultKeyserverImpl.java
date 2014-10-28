@@ -20,6 +20,7 @@ import org.backmeup.keyserver.core.db.DatabaseException;
 import org.backmeup.keyserver.model.AppUser;
 import org.backmeup.keyserver.model.AuthResponse;
 import org.backmeup.keyserver.model.KeyserverEntry;
+import org.backmeup.keyserver.model.Token;
 import org.codehaus.jackson.map.ObjectMapper;
 
 public class DefaultKeyserverImpl implements Keyserver {
@@ -131,6 +132,16 @@ public class DefaultKeyserverImpl implements Keyserver {
     @Override
     public AuthResponse authenticateUserWithPassword(String username, String password) throws KeyserverException {
         return this.userLogic.authenticateWithPassword(username, password);
+    }
+    
+    @Override
+    public AuthResponse authenticateWithInternalToken(String tokenHash) throws KeyserverException {
+        return this.tokenLogic.authenticateWithInternalToken(tokenHash);
+    }
+    
+    @Override
+    public void revokeToken(Token.Kind kind, String tokenHash) throws KeyserverException {
+        this.tokenLogic.revokeToken(new Token(kind, tokenHash));
     }
 
     @Override

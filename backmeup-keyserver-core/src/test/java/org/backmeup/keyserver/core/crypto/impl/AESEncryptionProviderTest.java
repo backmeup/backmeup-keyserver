@@ -10,12 +10,12 @@ import org.junit.Test;
 
 public class AESEncryptionProviderTest {
 
-	@Test
-	public void testEncryptAndDecrypt() throws CryptoException {
-		EncryptionProvider ep = new AESEncryptionProvider("AES/CBC/PKCS5Padding");
-		byte[] key = StringUtils.getBytesUtf8("mypass which should have 32bytes");
-		byte[] encrypted = ep.encrypt(key, StringUtils.getBytesUtf8("mysecrettext"));
-		String message = StringUtils.newStringUtf8(ep.decrypt(key, encrypted));
-		assertEquals("mysecrettext", message);
-	}
+    @Test
+    public void testEncryptAndDecrypt() throws CryptoException {
+        EncryptionProvider ep = new AESEncryptionProvider("AES/CBC/PKCS5Padding");
+        byte[] key = StringUtils.getBytesUtf8("mypass which should have 32bytes");
+        byte[] encrypted = ep.encrypt(key, StringUtils.getBytesUtf8("mysecrettext"));
+        String message = StringUtils.newStringUtf8(ep.decrypt(key, encrypted));
+        assertEquals("mysecrettext", message);
+    }
 }

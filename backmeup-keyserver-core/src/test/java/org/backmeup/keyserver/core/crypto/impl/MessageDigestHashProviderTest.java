@@ -11,14 +11,14 @@ import org.junit.Test;
 
 public class MessageDigestHashProviderTest {
 
-	@Test
-	public void testHash() throws CryptoException {
-		String message = "mytest";
-		String expected = "9o0n2hfZ/UlECwuNrBMPT5ii1Maso8kiHNvIsmSyyL4=";
-		
-		HashProvider hp = new MessageDigestHashProvider("SHA-256");
-		String hash = StringUtils.newStringUtf8(Base64.encodeBase64	(hp.hash(StringUtils.getBytesUtf8(message))));
-		assertEquals(expected, hash);
-	}
+    @Test
+    public void testHash() throws CryptoException {
+        String message = "mytest";
+        String expected = "9o0n2hfZ/UlECwuNrBMPT5ii1Maso8kiHNvIsmSyyL4=";
+
+        HashProvider hp = new MessageDigestHashProvider("SHA-256");
+        String hash = StringUtils.newStringUtf8(Base64.encodeBase64(hp.hash(StringUtils.getBytesUtf8(message))));
+        assertEquals(expected, hash);
+    }
 
 }

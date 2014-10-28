@@ -22,7 +22,6 @@ import org.backmeup.keyserver.core.crypto.PepperApps;
 import org.backmeup.keyserver.core.db.Database;
 import org.backmeup.keyserver.core.db.DatabaseException;
 import org.backmeup.keyserver.model.AuthResponse;
-import org.backmeup.keyserver.model.InternalTokenValue;
 import org.backmeup.keyserver.model.JsonKeys;
 import org.backmeup.keyserver.model.KeyserverEntry;
 import org.backmeup.keyserver.model.Token;
@@ -183,15 +182,19 @@ public class DefaultUserLogic {
             byte[] accountKey = accountObj.get(JsonKeys.ACCOUNT_KEY).getBinaryValue();
 
             // create InternalToken for UI access
-            Token token = new Token(Token.TokenKind.INTERNAL);
-            InternalTokenValue tokenValue = new InternalTokenValue(userId, serviceUserId, TokenValue.Role.USER, username, accountKey);
+            Token token = new Token(Token.Kind.INTERNAL);
+            TokenValue tokenValue = new TokenValue(userId, serviceUserId, TokenValue.Role.USER);
+            tokenValue.putValue(JsonKeys.USERNAME, username);
+            tokenValue.putValue(JsonKeys.ACCOUNT_KEY, accountKey);
             token.setValue(tokenValue);
+            
             Calendar ttl = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
             ttl.add(Calendar.MINUTE, this.keyserver.uiTokenTimeout);
             token.setTTL(ttl);
+            
             this.keyserver.tokenLogic.createToken(token, accountKey);
 
-            return new AuthResponse(serviceUserId, token.getB64Token());
+            return new AuthResponse(token);
         } catch (DatabaseException | CryptoException | IOException e) {
             throw new KeyserverException(e);
         }

@@ -1,19 +1,36 @@
 package org.backmeup.keyserver.model;
 
+import java.util.Calendar;
+import java.util.HashSet;
+import java.util.Set;
+
 import javax.xml.bind.annotation.XmlRootElement;
+
+import org.backmeup.keyserver.model.TokenValue.Role;
 
 @XmlRootElement
 public class AuthResponse {
     private String serviceUserId;
     private String loginToken;
+    private Set<Role> roles = new HashSet<>();
+    private Calendar ttl;
 
     public AuthResponse() {
 
     }
 
-    public AuthResponse(String serviceUserId, String loginToken) {
+    public AuthResponse(String serviceUserId, String loginToken, Set<Role> roles, Calendar ttl) {
         this.serviceUserId = serviceUserId;
         this.loginToken = loginToken;
+        this.roles = roles;
+        this.ttl = ttl;
+    }
+    
+    public AuthResponse(Token token) {
+        this.serviceUserId = token.getValue().getServiceUserId();
+        this.loginToken = token.getB64Token();
+        this.roles = token.getValue().getRoles();
+        this.ttl = token.getTTL();
     }
 
     public String getServiceUserId() {
@@ -30,5 +47,21 @@ public class AuthResponse {
 
     public void setLoginToken(String loginToken) {
         this.loginToken = loginToken;
+    }
+
+    public Set<Role> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<Role> roles) {
+        this.roles = roles;
+    }
+
+    public Calendar getTtl() {
+        return ttl;
+    }
+
+    public void setTtl(Calendar ttl) {
+        this.ttl = ttl;
     }
 }

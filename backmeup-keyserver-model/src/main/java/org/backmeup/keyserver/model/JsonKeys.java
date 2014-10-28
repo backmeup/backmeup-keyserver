@@ -8,6 +8,7 @@ public final class JsonKeys {
     public static final String TOKEN = "token";
     public static final String ANNOTATION = "annotation";
     public static final String ROLES = "roles";
+    public static final String VALUES_MAP = "valuesMap";
     
     private JsonKeys() {
     }
