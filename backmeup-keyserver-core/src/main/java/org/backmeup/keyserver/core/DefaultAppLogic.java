@@ -64,7 +64,7 @@ public class DefaultAppLogic {
         try {
             KeyserverEntry appEntry = this.db.getEntry(appKey(appId));
             if (appEntry == null) {
-                throw new KeyserverException("appId not found");
+                throw new EntryNotFoundException(EntryNotFoundException.APP);
             }
 
             appEntry.expire();
@@ -83,7 +83,7 @@ public class DefaultAppLogic {
         try {
             KeyserverEntry appEntry = this.db.getEntry(appKey(appId));
             if (appEntry == null) {
-                throw new KeyserverException("appId not found");
+                throw new EntryNotFoundException(EntryNotFoundException.APP);
             }
 
             if (appEntry.getKeyringId() < this.keyring.getKeyringId()) {

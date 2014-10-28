@@ -43,8 +43,8 @@ public class DefaultKeyserverImplTest {
         
         try {
             ks.authenticateWithInternalToken(u.getLoginToken());
-        } catch(KeyserverException e) {
-            assertTrue(e.getMessage().equals("token not found"));
+        } catch(EntryNotFoundException e) {
+            assertTrue(e.getMessage().equals(EntryNotFoundException.TOKEN));
         }
     }
 
@@ -81,8 +81,8 @@ public class DefaultKeyserverImplTest {
     public void testAuthenticateNonExistantApp() throws KeyserverException {
         try {
             ks.authenticateApp("not here", "xxx");
-        } catch (KeyserverException e) {
-            assertTrue(e.getMessage().equals("appId not found"));
+        } catch (EntryNotFoundException e) {
+            assertTrue(e.getMessage().equals(EntryNotFoundException.APP));
         }
     }
 
@@ -102,8 +102,8 @@ public class DefaultKeyserverImplTest {
         ks.removeApp(u.getAppId());
         try {
             ks.authenticateApp(u.getAppId(), u.getPassword());
-        } catch (KeyserverException e) {
-            assertTrue(e.getMessage().equals("appId not found"));
+        } catch (EntryNotFoundException e) {
+            assertTrue(e.getMessage().equals(EntryNotFoundException.APP));
         }
     }
 }

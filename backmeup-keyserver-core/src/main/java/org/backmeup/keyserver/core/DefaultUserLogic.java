@@ -131,7 +131,7 @@ public class DefaultUserLogic {
         try {
             KeyserverEntry usernameEntry = this.keyserver.searchForEntry(username, PepperApps.USERNAME, USERNAME_ENTRY_FMT.toPattern());
             if (usernameEntry == null) {
-                throw new KeyserverException("username not found");
+                throw new EntryNotFoundException(EntryNotFoundException.USERNAME);
             }
 
             if (usernameEntry.getKeyringId() < this.keyring.getKeyringId()) {
@@ -167,7 +167,7 @@ public class DefaultUserLogic {
         try {
             KeyserverEntry accountEntry = this.db.getEntry(fmtKey(ACCOUNT_ENTRY_FMT, userId));
             if (accountEntry == null) {
-                throw new KeyserverException("account entry for " + userId + " not found");
+                throw new EntryNotFoundException(EntryNotFoundException.ACCOUNT);
             }
 
             if (accountEntry.getKeyringId() < this.keyring.getKeyringId()) {

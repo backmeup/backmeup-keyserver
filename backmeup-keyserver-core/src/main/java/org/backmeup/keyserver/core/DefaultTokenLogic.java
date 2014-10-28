@@ -96,7 +96,7 @@ public class DefaultTokenLogic {
         try {
             KeyserverEntry tokenEntry = this.keyserver.searchForEntry(token.getToken(), tokenKindApp, tkKey("{0}", tokenKindApp));
             if (tokenEntry == null) {
-                throw new KeyserverException("token not found");
+                throw new EntryNotFoundException(EntryNotFoundException.TOKEN);
             }
 
             if (tokenEntry.getKeyringId() < this.keyring.getKeyringId()) {
@@ -136,7 +136,7 @@ public class DefaultTokenLogic {
             
             KeyserverEntry tokenAnnotationEntry = this.keyserver.searchForEntry(token.getToken(), tokenKindApp, annKey(token.getValue().getUserId(), tokenKindApp, "{0}"));
             if (tokenAnnotationEntry == null) {
-                throw new KeyserverException("token annotation not found");
+                throw new EntryNotFoundException(EntryNotFoundException.TOKEN_ANNOTATION);
             }
 
             if (tokenAnnotationEntry.getKeyringId() < this.keyring.getKeyringId()) {
@@ -159,7 +159,7 @@ public class DefaultTokenLogic {
         try {
             KeyserverEntry tokenAnnotationEntry = this.db.getEntry(annKey(userId, tokenKindApp, tokenHash));
             if (tokenAnnotationEntry == null) {
-                throw new KeyserverException("token hash not found");
+                throw new EntryNotFoundException(EntryNotFoundException.TOKEN_ANNOTATION);
             }
         
             String tokenAnnotationJson = decryptString(this.keyring, hashByteArrayWithPepper(this.keyring, accountKey, tokenKindApp), tokenAnnotationEntry.getValue());
@@ -184,7 +184,7 @@ public class DefaultTokenLogic {
         try {
             KeyserverEntry tokenEntry = this.keyserver.searchForEntry(token.getToken(), tokenKindApp, tkKey("{0}", tokenKindApp));
             if (tokenEntry == null) {
-                throw new KeyserverException("token not found");
+                throw new EntryNotFoundException(EntryNotFoundException.TOKEN);
             }
 
             if (!token.hasValue()) {
@@ -225,7 +225,7 @@ public class DefaultTokenLogic {
         return token;
     }
 
-    private String mapTokenValueToJson(TokenValue value) throws KeyserverException {
+    private String mapTokenValueToJson(TokenValue value) {
         ObjectNode node = this.keyserver.jsonMapper.createObjectNode();
         node.put(JsonKeys.USER_ID, value.getUserId());
         node.put(JsonKeys.SERVICE_USER_ID, value.getServiceUserId());
@@ -283,7 +283,7 @@ public class DefaultTokenLogic {
         try {
             tokenEntry = this.keyserver.searchForEntry(token.getToken(), tokenKindApp, tkKey("{0}", tokenKindApp));
             if (tokenEntry == null) {
-                throw new KeyserverException("token not found");
+                throw new EntryNotFoundException(EntryNotFoundException.TOKEN);
             }
     
             if (tokenEntry.getKeyringId() < this.keyring.getKeyringId()) {
