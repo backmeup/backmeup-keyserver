@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Calendar;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -110,11 +111,10 @@ public class DefaultTokenLogic {
         }
     }
     
-    private void retrieveTokenValue(Token token, KeyserverEntry tokenEntry) throws CryptoException, KeyserverException {
+    private TokenValue retrieveTokenValue(Token token, KeyserverEntry tokenEntry) throws CryptoException, KeyserverException {
         String tokenValueJson = decryptString(this.keyring, hashByteArrayWithPepper(this.keyring, token.getToken(), token.getKind().getApplication()),
                 tokenEntry.getValue());
-        TokenValue tokenValue = this.mapJsonToTokenValue(tokenValueJson);
-        token.setValue(tokenValue);
+        return this.mapJsonToTokenValue(tokenValueJson);
     }
 
     protected void retrieveTokenAnnotation(Token token) throws KeyserverException {
@@ -142,14 +142,17 @@ public class DefaultTokenLogic {
             if (tokenAnnotationEntry.getKeyringId() < this.keyring.getKeyringId()) {
                 // TODO: migrate Entry
             }
-
-            String tokenAnnotationJson = decryptString(this.keyring, hashByteArrayWithPepper(this.keyring, accountKey, tokenKindApp), tokenAnnotationEntry.getValue());
-            Token t = this.mapJsonToToken(tokenAnnotationJson, token.getKind());
-            
+          
+            Token t = retrieveTokenAnnotation(tokenAnnotationEntry, accountKey, token.getKind());
             token.setAnnotation(t.getAnnotation());
         } catch (DatabaseException | CryptoException e) {
             throw new KeyserverException(e);
         }
+    }
+    
+    private Token retrieveTokenAnnotation(KeyserverEntry tokenAnnotationEntry, byte[] accountKey, Token.Kind kind) throws CryptoException, KeyserverException {
+        String tokenAnnotationJson = decryptString(this.keyring, hashByteArrayWithPepper(this.keyring, accountKey, kind.getApplication()), tokenAnnotationEntry.getValue());
+        return this.mapJsonToToken(tokenAnnotationJson, kind);
     }
     
     protected Token retrieveToken(String userId, Token.Kind kind, String tokenHash, byte[] accountKey, boolean includeValue) throws KeyserverException {
@@ -174,8 +177,18 @@ public class DefaultTokenLogic {
         return token;
     }
 
-    public List<Token> listTokens(String userId, byte[] accountKey) {
-        throw new UnsupportedOperationException();
+    public List<Token> listTokens(String userId, byte[] accountKey, Token.Kind kind) throws KeyserverException {
+        try {
+            List<Token> tokens = new LinkedList<>();
+            List<KeyserverEntry> tokenEntries = db.searchByKey(annKey(userId, kind.getApplication(), "%"), false);
+            
+            for(KeyserverEntry entry : tokenEntries) {
+                tokens.add(this.retrieveTokenAnnotation(entry, accountKey, kind));
+            }
+            return tokens;
+        } catch (DatabaseException | CryptoException e) {
+            throw new KeyserverException(e);
+        }
     }
 
     public void revokeToken(Token token) throws KeyserverException {
@@ -188,7 +201,7 @@ public class DefaultTokenLogic {
             }
 
             if (!token.hasValue()) {
-                this.retrieveTokenValue(token, tokenEntry);
+                token.setValue(this.retrieveTokenValue(token, tokenEntry));
             }
             tokenEntry.expire();
             this.db.updateTTL(tokenEntry);
@@ -290,7 +303,7 @@ public class DefaultTokenLogic {
                 // TODO: migrate Entry
             }
             
-            this.retrieveTokenValue(token, tokenEntry);
+            token.setValue(this.retrieveTokenValue(token, tokenEntry));
             
             Calendar ttl = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
             ttl.add(Calendar.MINUTE, this.keyserver.uiTokenTimeout);

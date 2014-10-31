@@ -1,5 +1,7 @@
 package org.backmeup.keyserver.core.db;
 
+import java.util.List;
+
 import org.backmeup.keyserver.model.KeyserverEntry;
 
 public interface Database {
@@ -16,4 +18,6 @@ public interface Database {
     void putEntry(KeyserverEntry entry) throws DatabaseException;
 
     void updateTTL(KeyserverEntry entry) throws DatabaseException;
+    
+    List<KeyserverEntry> searchByKey(String key, boolean allVersions) throws DatabaseException;
 }

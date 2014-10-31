@@ -2,6 +2,8 @@ package org.backmeup.keyserver.core.db.sql;
 
 import static org.junit.Assert.*;
 
+import java.util.List;
+
 import org.backmeup.keyserver.core.db.Database;
 import org.backmeup.keyserver.core.db.DatabaseException;
 import org.backmeup.keyserver.core.db.derby.DerbyDatabaseImpl;
@@ -132,6 +134,39 @@ public class DatabaseImplTest {
             assertTrue(de.getCause() instanceof java.sql.SQLIntegrityConstraintViolationException);
             assertTrue(de.getMessage().contains("ENTRY_EKEY"));
         }
+    }
+    
+    @Test
+    public void testSearchEntry() throws DatabaseException {
+        KeyserverEntry e = new KeyserverEntry("search01");
+        e.setValue(new byte[]{0});
+        db.putEntry(e);
+        e.setValue(new byte[]{1});
+        db.putEntry(e);
+        e = new KeyserverEntry("search02");
+        e.setValue(new byte[]{0});
+        db.putEntry(e);
+
+        List<KeyserverEntry> entries = db.searchByKey("search%", false);
+        assertEquals(2, entries.size());
+        e = entries.get(0);
+        assertEquals("search01", e.getKey());
+        assertEquals(2, e.getVersion());
+        e = entries.get(1);
+        assertEquals("search02", e.getKey());
+        assertEquals(1, e.getVersion());
+        
+        entries = db.searchByKey("search%", true);
+        assertEquals(3, entries.size());
+        e = entries.get(0);
+        assertEquals("search01", e.getKey());
+        assertEquals(2, e.getVersion());
+        e = entries.get(1);
+        assertEquals("search01", e.getKey());
+        assertEquals(1, e.getVersion());
+        e = entries.get(2);
+        assertEquals("search02", e.getKey());
+        assertEquals(1, e.getVersion());
     }
 
 }

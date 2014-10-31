@@ -13,6 +13,8 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.text.MessageFormat;
 import java.util.Calendar;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Properties;
 import java.util.TimeZone;
 
@@ -57,6 +59,7 @@ public class SQLDatabaseImpl implements Database {
     protected PreparedStatement psUpdateTTL;
     protected PreparedStatement psGet;
     protected PreparedStatement psGetWithVersion;
+    protected PreparedStatement psSearchByKey;
     
     protected static String getSQLStatement(String key) {
         return MessageFormat.format(SQL_STATEMENTS.getProperty(key), DB_TABLE);
@@ -75,6 +78,7 @@ public class SQLDatabaseImpl implements Database {
             this.psUpdateTTL = this.conn.prepareStatement(getSQLStatement("backmeup.keyserver.db.sql.updateTTL"));
             this.psGet = this.conn.prepareStatement(getSQLStatement("backmeup.keyserver.db.sql.get"));
             this.psGetWithVersion = this.conn.prepareStatement(getSQLStatement("backmeup.keyserver.db.sql.getWithVersion"));
+            this.psSearchByKey = this.conn.prepareStatement(getSQLStatement("backmeup.keyserver.db.sql.searchByKey"));
         } catch (SQLException e) {
             throw new DatabaseException(e);
         }
@@ -233,5 +237,34 @@ public class SQLDatabaseImpl implements Database {
         } catch (SQLException e) {
             throw new DatabaseException(e);
         }
+    }
+    
+    @Override
+    public List<KeyserverEntry> searchByKey(String key, boolean allVersions) throws DatabaseException {
+        List<KeyserverEntry> entries = new LinkedList<>();
+
+        try {
+            this.psSearchByKey.clearParameters();
+            this.psSearchByKey.setString(1, key);
+        } catch (SQLException e) {
+            throw new DatabaseException(e);
+        }
+         
+        try (ResultSet rs = this.psSearchByKey.executeQuery()) {
+            String lastKey = null;
+            
+            while (rs.next()) {
+                KeyserverEntry entry = createEntryFromResultSet(rs);
+                String actKey = entry.getKey();
+                if (allVersions || !actKey.equals(lastKey)) {
+                    entries.add(entry);
+                    lastKey = actKey;
+                }
+            }
+        } catch (SQLException e) {
+            throw new DatabaseException(e);
+        }
+
+        return entries;
     }
 }
