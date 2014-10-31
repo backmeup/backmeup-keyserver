@@ -45,7 +45,7 @@ public class DefaultKeyserverImpl implements Keyserver {
         this.servicePassword = Configuration.getProperty("backmeup.service.password");
         this.uiTokenTimeout = Integer.parseInt(Configuration.getProperty("backmeup.keyserver.uiTokenTimeout"));
 
-        this.db = new org.backmeup.keyserver.core.db.derby.DatabaseImpl();
+        this.db = new org.backmeup.keyserver.core.db.derby.DerbyDatabaseImpl();
         try {
             this.db.connect();
         } catch (DatabaseException e) {

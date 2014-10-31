@@ -1,10 +1,11 @@
-package org.backmeup.keyserver.core.db.derby;
+package org.backmeup.keyserver.core.db.sql;
 
 import static org.junit.Assert.*;
 
 import org.backmeup.keyserver.core.db.Database;
 import org.backmeup.keyserver.core.db.DatabaseException;
-import org.backmeup.keyserver.core.db.derby.DatabaseImpl;
+import org.backmeup.keyserver.core.db.derby.DerbyDatabaseImpl;
+import org.backmeup.keyserver.core.db.sql.SQLDatabaseImpl;
 import org.backmeup.keyserver.model.KeyserverEntry;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -16,10 +17,10 @@ public class DatabaseImplTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        db = new DatabaseImpl();
+        db = new DerbyDatabaseImpl();
         db.connect();
         assertTrue(db.isConnected());
-        assertTrue(((DatabaseImpl) db).checkForTable());
+        assertTrue(((SQLDatabaseImpl) db).checkForTable());
     }
 
     @AfterClass
@@ -33,8 +34,8 @@ public class DatabaseImplTest {
     @Before
     public void setUp() throws Exception {
         assertTrue(db.isConnected());
-        ((DatabaseImpl) db).dropTable();
-        ((DatabaseImpl) db).prepareTable();
+        ((SQLDatabaseImpl) db).dropTable();
+        ((SQLDatabaseImpl) db).prepareTable();
     }
 
     @Test

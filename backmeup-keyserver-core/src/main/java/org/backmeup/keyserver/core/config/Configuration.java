@@ -28,11 +28,6 @@ public final class Configuration {
     }
 
     public static String getProperty(String key, String defaultValue) {
-        String value = getProperty(key);
-        if (value != null) {
-            return value;
-        } else {
-            return defaultValue;
-        }
+        return PROPERTIES.getProperty(key, defaultValue);
     }
 }

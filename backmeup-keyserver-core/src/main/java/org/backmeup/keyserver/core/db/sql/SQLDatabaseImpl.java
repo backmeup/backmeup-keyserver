@@ -1,6 +1,7 @@
-package org.backmeup.keyserver.core.db.derby;
+package org.backmeup.keyserver.core.db.sql;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.Statement;
@@ -10,58 +11,70 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.text.MessageFormat;
 import java.util.Calendar;
+import java.util.Properties;
 import java.util.TimeZone;
 
+import org.backmeup.keyserver.core.config.Configuration;
 import org.backmeup.keyserver.core.db.Database;
 import org.backmeup.keyserver.core.db.DatabaseException;
 import org.backmeup.keyserver.model.KeyserverEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DatabaseImpl implements Database {
+public class SQLDatabaseImpl implements Database {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SQLDatabaseImpl.class);
+    protected static final Properties SQL_STATEMENTS = new Properties();
+    protected static final String SQL_STMT_FILE = "backmeup-keyserver-sql.properties";
 
     static {
         try {
-            Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
+            Class.forName(Configuration.getProperty("backmeup.keyserver.db.driver_name"));
         } catch (java.lang.ClassNotFoundException e) {
-            LOGGER.error("could not load derby database driver", e);
+            LOGGER.error("could not load database driver", e);
+        }
+        
+        try {
+            ClassLoader loader = Thread.currentThread().getContextClassLoader();
+            if (loader.getResourceAsStream(SQL_STMT_FILE) != null) {
+                SQL_STATEMENTS.load(loader.getResourceAsStream(SQL_STMT_FILE));
+            } else {
+                throw new IOException("unable to load properties file: " + SQL_STMT_FILE);
+            }
+        } catch (IOException e) {
+            throw new ExceptionInInitializerError(e);
         }
     }
 
-    private static final String DB_NAME = "keyserver";
-    private static final String DB_TABLE = "ENTRY";
-    private static final String DB_CREATE_SQL = "CREATE TABLE " + DB_TABLE + "(id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY CONSTRAINT "
-            + DB_TABLE + "_pk PRIMARY KEY, " + "ekey VARCHAR(128) NOT NULL, " + "value BLOB, " + "keyringId INT NOT NULL, "
-            + "version BIGINT NOT NULL DEFAULT 0, " + "created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, "
-            + "last_modified TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " + "ttl TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " + "CONSTRAINT " + DB_TABLE
-            + "_ekey UNIQUE(ekey, version))";
+    protected static final String DB_NAME = SQL_STATEMENTS.getProperty("backmeup.keyserver.db.name");
+    protected static final String DB_TABLE = SQL_STATEMENTS.getProperty("backmeup.keyserver.db.table");
 
-    private Connection conn;
-    private boolean connected;
-    private PreparedStatement psPut;
-    private PreparedStatement psUpdateTTL;
-    private PreparedStatement psGet;
-    private PreparedStatement psGetWithVersion;
+    protected Connection conn;
+    protected boolean connected;
+    protected PreparedStatement psPut;
+    protected PreparedStatement psUpdateTTL;
+    protected PreparedStatement psGet;
+    protected PreparedStatement psGetWithVersion;
+    
+    protected static String getSQLStatement(String key) {
+        return MessageFormat.format(SQL_STATEMENTS.getProperty(key), DB_TABLE);
+    }
 
     @Override
     @SuppressWarnings("all")
     public void connect() throws DatabaseException {
         try {
-            this.conn = DriverManager.getConnection("jdbc:derby:" + DB_NAME + ";create=true");
+            this.conn = DriverManager.getConnection(MessageFormat.format(Configuration.getProperty("backmeup.keyserver.db.connection_string"), DB_NAME));
             if (!this.checkForTable()) {
                 this.prepareTable();
             }
 
-            this.psPut = this.conn.prepareStatement("INSERT INTO " + DB_TABLE
-                    + "(ekey, value, keyringId, version, created_at, last_modified, ttl) VALUES (?, ?, ?, ?, ?, ?, ?)");
-            this.psUpdateTTL = this.conn.prepareStatement("UPDATE " + DB_TABLE + " SET ttl = ?  WHERE ekey = ? AND version = ?");
-            this.psGet = this.conn.prepareStatement("SELECT * FROM " + DB_TABLE
-                    + " WHERE ekey = ? AND (ttl IS NULL OR ttl > CURRENT_TIMESTAMP) ORDER BY version DESC FETCH FIRST ROW ONLY");
-            this.psGetWithVersion = this.conn.prepareStatement("SELECT * FROM " + DB_TABLE
-                    + " WHERE ekey = ? AND version = ? AND (ttl IS NULL OR ttl > CURRENT_TIMESTAMP)");
+            this.psPut = this.conn.prepareStatement(getSQLStatement("backmeup.keyserver.db.sql.put"));
+            this.psUpdateTTL = this.conn.prepareStatement(getSQLStatement("backmeup.keyserver.db.sql.updateTTL"));
+            this.psGet = this.conn.prepareStatement(getSQLStatement("backmeup.keyserver.db.sql.get"));
+            this.psGetWithVersion = this.conn.prepareStatement(getSQLStatement("backmeup.keyserver.db.sql.getWithVersion"));
         } catch (SQLException e) {
             throw new DatabaseException(e);
         }
@@ -78,7 +91,7 @@ public class DatabaseImpl implements Database {
 
     protected void prepareTable() throws SQLException {
         try (Statement s = conn.createStatement()) {
-            s.execute(DB_CREATE_SQL);
+            s.execute(getSQLStatement("backmeup.keyserver.db.sql.create"));
         }
     }
 
@@ -101,14 +114,6 @@ public class DatabaseImpl implements Database {
             }
         } catch (SQLException e) {
             throw new DatabaseException(e);
-        }
-
-        try (Connection c = DriverManager.getConnection("jdbc:derby:;shutdown=true")) {
-            // do nothing because of shutdown
-        } catch (SQLException e) {
-            if (!"XJ015".equals(e.getSQLState())) {
-                throw new DatabaseException(e);
-            }
         }
     }
 
@@ -169,7 +174,7 @@ public class DatabaseImpl implements Database {
         return entry;
     }
 
-    private KeyserverEntry createEntryFromResultSet(ResultSet rs) throws SQLException {
+    protected KeyserverEntry createEntryFromResultSet(ResultSet rs) throws SQLException {
         Calendar createdAt = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
         createdAt.setTime(rs.getTimestamp("created_at"));
         Calendar lastModified = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
@@ -229,5 +234,4 @@ public class DatabaseImpl implements Database {
             throw new DatabaseException(e);
         }
     }
-
 }
