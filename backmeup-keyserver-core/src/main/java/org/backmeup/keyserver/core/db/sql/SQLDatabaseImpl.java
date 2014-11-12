@@ -60,9 +60,14 @@ public class SQLDatabaseImpl implements Database {
     protected PreparedStatement psGet;
     protected PreparedStatement psGetWithVersion;
     protected PreparedStatement psSearchByKey;
+    protected PreparedStatement psSearchByKeyWithExpired;
     
-    protected static String getSQLStatement(String key) {
-        return MessageFormat.format(SQL_STATEMENTS.getProperty(key), DB_TABLE);
+    protected static String getSQLStatement(String key) throws DatabaseException {
+        String stmt = SQL_STATEMENTS.getProperty(key);
+        if (stmt == null) {
+            throw new DatabaseException("Statement "+key+" not found in "+SQL_STMT_FILE);
+        }
+        return MessageFormat.format(stmt, DB_TABLE);
     }
 
     @Override
@@ -79,6 +84,7 @@ public class SQLDatabaseImpl implements Database {
             this.psGet = this.conn.prepareStatement(getSQLStatement("backmeup.keyserver.db.sql.get"));
             this.psGetWithVersion = this.conn.prepareStatement(getSQLStatement("backmeup.keyserver.db.sql.getWithVersion"));
             this.psSearchByKey = this.conn.prepareStatement(getSQLStatement("backmeup.keyserver.db.sql.searchByKey"));
+            this.psSearchByKeyWithExpired = this.conn.prepareStatement(getSQLStatement("backmeup.keyserver.db.sql.searchByKeyWithExpired"));
         } catch (SQLException e) {
             throw new DatabaseException(e);
         }
@@ -93,7 +99,7 @@ public class SQLDatabaseImpl implements Database {
         }
     }
 
-    protected void prepareTable() throws SQLException {
+    protected void prepareTable() throws SQLException, DatabaseException {
         try (Statement s = conn.createStatement()) {
             s.execute(getSQLStatement("backmeup.keyserver.db.sql.create"));
         }
@@ -240,17 +246,24 @@ public class SQLDatabaseImpl implements Database {
     }
     
     @Override
-    public List<KeyserverEntry> searchByKey(String key, boolean allVersions) throws DatabaseException {
+    public List<KeyserverEntry> searchByKey(String key, boolean allVersions, boolean withExpired) throws DatabaseException {
         List<KeyserverEntry> entries = new LinkedList<>();
-
+        PreparedStatement search = null;
+        
+        if (withExpired) {
+            search = this.psSearchByKeyWithExpired;
+        } else {
+            search = this.psSearchByKey;
+        }
+        
         try {
-            this.psSearchByKey.clearParameters();
-            this.psSearchByKey.setString(1, key);
+            search.clearParameters();
+            search.setString(1, key);
         } catch (SQLException e) {
             throw new DatabaseException(e);
         }
          
-        try (ResultSet rs = this.psSearchByKey.executeQuery()) {
+        try (ResultSet rs = search.executeQuery()) {
             String lastKey = null;
             
             while (rs.next()) {

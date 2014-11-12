@@ -147,7 +147,7 @@ public class DatabaseImplTest {
         e.setValue(new byte[]{0});
         db.putEntry(e);
 
-        List<KeyserverEntry> entries = db.searchByKey("search%", false);
+        List<KeyserverEntry> entries = db.searchByKey("search%", false, false);
         assertEquals(2, entries.size());
         e = entries.get(0);
         assertEquals("search01", e.getKey());
@@ -156,7 +156,7 @@ public class DatabaseImplTest {
         assertEquals("search02", e.getKey());
         assertEquals(1, e.getVersion());
         
-        entries = db.searchByKey("search%", true);
+        entries = db.searchByKey("search%", true, false);
         assertEquals(3, entries.size());
         e = entries.get(0);
         assertEquals("search01", e.getKey());

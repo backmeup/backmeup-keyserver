@@ -3,6 +3,7 @@ package org.backmeup.keyserver.core;
 import static org.backmeup.keyserver.core.KeyserverUtils.*;
 
 import java.text.MessageFormat;
+import java.util.List;
 
 import org.backmeup.keyserver.core.crypto.CryptoException;
 import org.backmeup.keyserver.core.crypto.Keyring;
@@ -44,8 +45,8 @@ public class DefaultAppLogic {
                 appKey = generateKey(this.keyring);
                 appId = toBase64String(hashByteArrayWithPepper(this.keyring, appKey, PepperApps.APP));
 
-                KeyserverEntry aid = this.db.getEntry(appKey(appId));
-                collission = (aid != null);
+                List<KeyserverEntry> appIds = this.db.searchByKey(appKey(appId), true, true);
+                collission = !appIds.isEmpty();
             } while (collission);
 
             // [Hash(AppKey)].App

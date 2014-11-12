@@ -19,5 +19,5 @@ public interface Database {
 
     void updateTTL(KeyserverEntry entry) throws DatabaseException;
     
-    List<KeyserverEntry> searchByKey(String key, boolean allVersions) throws DatabaseException;
+    List<KeyserverEntry> searchByKey(String key, boolean allVersions, boolean withExpired) throws DatabaseException;
 }

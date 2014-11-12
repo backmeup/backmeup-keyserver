@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
@@ -62,9 +63,9 @@ public class DefaultUserLogic {
                 userId = toBase64String(hashByteArrayWithPepper(this.keyring, userKey, PepperApps.USER_ID));
                 serviceUserId = toBase64String(hashByteArrayWithPepper(this.keyring, userKey, PepperApps.SERVICE_USER_ID));
 
-                KeyserverEntry uid = this.db.getEntry(fmtKey(USER_ID_ENTRY_FMT, userId));
-                KeyserverEntry suid = this.db.getEntry(fmtKey(SERVICE_USER_ID_ENTRY_FMT, serviceUserId));
-                collission = (uid != null) || (suid != null);
+                List<KeyserverEntry> uids = this.db.searchByKey(fmtKey(USER_ID_ENTRY_FMT, userId), true, true);
+                List<KeyserverEntry> suids = this.db.searchByKey(fmtKey(SERVICE_USER_ID_ENTRY_FMT, serviceUserId), true, true);
+                collission = (!uids.isEmpty()) || (!suids.isEmpty());
             } while (collission);
 
             // [UserId].UserId

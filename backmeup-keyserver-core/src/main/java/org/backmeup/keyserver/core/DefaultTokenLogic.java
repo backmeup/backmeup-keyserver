@@ -65,11 +65,11 @@ public class DefaultTokenLogic {
                 tokenKey = generateKey(this.keyring);
                 tokenHash = toBase64String(hashByteArrayWithPepper(this.keyring, tokenKey, tokenKindApp));
 
-                KeyserverEntry t = this.db.getEntry(tkKey(tokenHash, tokenKindApp));
-                collission = (t != null);
+                List<KeyserverEntry> tokens = this.db.searchByKey(tkKey(tokenHash, tokenKindApp), true, true);
+                collission = !tokens.isEmpty();
             } while (collission);
 
-            token.setToken(tokenKey);
+            token.setToken(tokenKey);            
 
             // e.g. [Hash(Token)].InternalToken
             KeyserverEntry ke = new KeyserverEntry(tkKey(tokenHash, tokenKindApp));
@@ -180,7 +180,7 @@ public class DefaultTokenLogic {
     public List<Token> listTokens(String userId, byte[] accountKey, Token.Kind kind) throws KeyserverException {
         try {
             List<Token> tokens = new LinkedList<>();
-            List<KeyserverEntry> tokenEntries = db.searchByKey(annKey(userId, kind.getApplication(), "%"), false);
+            List<KeyserverEntry> tokenEntries = db.searchByKey(annKey(userId, kind.getApplication(), "%"), false, false);
             
             for(KeyserverEntry entry : tokenEntries) {
                 tokens.add(this.retrieveTokenAnnotation(entry, accountKey, kind));
