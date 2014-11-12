@@ -13,6 +13,8 @@ public class EntryNotFoundException extends KeyserverException {
     protected static final String TOKEN = "token not found";
     
     protected static final String TOKEN_ANNOTATION = "token annotation not found";
+    
+    protected static final String TOKEN_USER_REMOVED = "user of token doesn't exist anymore";
 
     public EntryNotFoundException(String message) {
         super(message);

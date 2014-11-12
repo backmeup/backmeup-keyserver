@@ -205,4 +205,8 @@ public class DefaultUserLogic {
             throw new KeyserverException(e);
         }
     }
+    
+    protected boolean checkServiceUserId(String serviceUserId) throws DatabaseException {
+        return this.db.getEntry(fmtKey(SERVICE_USER_ID_ENTRY_FMT, serviceUserId)) != null;
+    }
 }

@@ -297,8 +297,12 @@ public class DefaultTokenLogic {
                 // TODO: migrate Entry
             }
             
-            token.setValue(this.retrieveTokenValue(token, tokenEntry));
-            
+            TokenValue value = this.retrieveTokenValue(token, tokenEntry);
+            if(!this.keyserver.userLogic.checkServiceUserId(value.getServiceUserId())) {
+                throw new EntryNotFoundException(EntryNotFoundException.TOKEN_USER_REMOVED);
+            }
+            token.setValue(value);
+                    
             Calendar ttl = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
             ttl.add(Calendar.MINUTE, this.keyserver.uiTokenTimeout);
             token.setTTL(ttl);
