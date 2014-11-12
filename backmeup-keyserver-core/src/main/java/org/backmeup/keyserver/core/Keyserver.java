@@ -2,7 +2,7 @@ package org.backmeup.keyserver.core;
 
 import java.util.List;
 
-import org.backmeup.keyserver.model.AppUser;
+import org.backmeup.keyserver.model.App;
 import org.backmeup.keyserver.model.AuthResponse;
 import org.backmeup.keyserver.model.Token;
 
@@ -20,12 +20,12 @@ public interface Keyserver {
     
     void revokeToken(Token.Kind kind, String tokenHash) throws KeyserverException;
 
-    AppUser registerApp(AppUser.Approle role) throws KeyserverException;
+    App registerApp(App.Approle role) throws KeyserverException;
     
-    List<AppUser> listApps(String servicePassword) throws KeyserverException;
+    List<App> listApps(String servicePassword) throws KeyserverException;
 
     void removeApp(String appId) throws KeyserverException;
 
-    AppUser authenticateApp(String appId, String appKey) throws KeyserverException;
+    App authenticateApp(String appId, String appKey) throws KeyserverException;
 
 }

@@ -11,7 +11,7 @@ import org.backmeup.keyserver.core.crypto.Keyring;
 import org.backmeup.keyserver.core.crypto.PepperApps;
 import org.backmeup.keyserver.core.db.Database;
 import org.backmeup.keyserver.core.db.DatabaseException;
-import org.backmeup.keyserver.model.AppUser;
+import org.backmeup.keyserver.model.App;
 import org.backmeup.keyserver.model.KeyserverEntry;
 import org.backmeup.keyserver.model.Token;
 
@@ -38,8 +38,8 @@ public class DefaultAppLogic {
         return fmtKey(APP_ROLE_ENTRY_FORMAT, appId);
     }
 
-    public AppUser register(AppUser.Approle role) throws KeyserverException {
-        if (role == AppUser.Approle.CORE) {
+    public App register(App.Approle role) throws KeyserverException {
+        if (role == App.Approle.CORE) {
             throw new KeyserverException("Registration of app with role core is forbidden!");
         }
 
@@ -72,7 +72,7 @@ public class DefaultAppLogic {
             throw new KeyserverException(e);
         }
 
-        return new AppUser(appId, toBase64String(appKey), role);
+        return new App(appId, toBase64String(appKey), role);
     }
 
     public void remove(String appId) throws KeyserverException {
@@ -91,10 +91,10 @@ public class DefaultAppLogic {
         }
     }
     
-    public List<AppUser> listApps(String servicePassword) throws KeyserverException {
+    public List<App> listApps(String servicePassword) throws KeyserverException {
         try {
-            List<AppUser> apps = new LinkedList<>();
-            apps.add(new AppUser(this.keyserver.serviceId, null, AppUser.Approle.CORE));
+            List<App> apps = new LinkedList<>();
+            apps.add(new App(this.keyserver.serviceId, null, App.Approle.CORE));
             
             List<KeyserverEntry> appRoleEntries = db.searchByKey(appRoleKey("%"), false, false);
             byte[] key = stretchStringWithPepper(this.keyring, servicePassword, PepperApps.APP_ROLE);
@@ -103,7 +103,7 @@ public class DefaultAppLogic {
                 String appId = entry.getKey().split("\\.")[0];
                 
                 String appRoleValue = decryptString(this.keyring, hashByteArrayWithPepper(this.keyring, key, PepperApps.APP_ROLE), entry.getValue());
-                apps.add(new AppUser(appId, null, AppUser.Approle.valueOf(appRoleValue)));
+                apps.add(new App(appId, null, App.Approle.valueOf(appRoleValue)));
             }
             return apps;
         } catch (DatabaseException | CryptoException e) {
@@ -111,10 +111,10 @@ public class DefaultAppLogic {
         }
     }
 
-    public AppUser authenticate(String appId, String appKey) throws KeyserverException {
+    public App authenticate(String appId, String appKey) throws KeyserverException {
         // workaround for core app
         if (appId.equals(this.keyserver.serviceId) && appKey.equals(this.keyserver.servicePassword)) {
-            return new AppUser(appId, appKey, AppUser.Approle.CORE);
+            return new App(appId, appKey, App.Approle.CORE);
         }
 
         try {
@@ -128,7 +128,7 @@ public class DefaultAppLogic {
             }
 
             String appValue = decryptString(this.keyring, hashByteArrayWithPepper(this.keyring, fromBase64String(appKey), PepperApps.APP), appEntry.getValue());
-            return new AppUser(appId, appKey, AppUser.Approle.valueOf(appValue));
+            return new App(appId, appKey, App.Approle.valueOf(appValue));
         } catch (DatabaseException | CryptoException e) {
             throw new KeyserverException(e);
         }

@@ -2,12 +2,12 @@ package org.backmeup.keyserver.rest.auth;
 
 import java.security.Principal;
 import javax.ws.rs.core.SecurityContext;
-import org.backmeup.keyserver.model.AppUser;
+import org.backmeup.keyserver.model.App;
 
 public class KeyserverSecurityContext implements SecurityContext{
 	private final KeyserverAppPrincipal user;
 	
-	public KeyserverSecurityContext(AppUser user) {
+	public KeyserverSecurityContext(App user) {
 		this.user = new KeyserverAppPrincipal(user.getAppId(), user);
 	}
 

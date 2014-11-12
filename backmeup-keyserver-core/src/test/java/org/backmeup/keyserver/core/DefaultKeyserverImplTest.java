@@ -9,7 +9,7 @@ import java.util.List;
 import org.backmeup.keyserver.core.DefaultKeyserverImpl;
 import org.backmeup.keyserver.core.KeyserverException;
 import org.backmeup.keyserver.core.config.Configuration;
-import org.backmeup.keyserver.model.AppUser;
+import org.backmeup.keyserver.model.App;
 import org.backmeup.keyserver.model.AuthResponse;
 import org.backmeup.keyserver.model.Token;
 import org.junit.BeforeClass;
@@ -54,18 +54,18 @@ public class DefaultKeyserverImplTest {
 
     @Test
     public void testAuthenticateApp() throws KeyserverException {
-        AppUser u = ks.registerApp(AppUser.Approle.WORKER);
-        AppUser u2 = ks.authenticateApp(u.getAppId(), u.getPassword());
+        App u = ks.registerApp(App.Approle.WORKER);
+        App u2 = ks.authenticateApp(u.getAppId(), u.getPassword());
         assertEquals(u.getAppId(), u2.getAppId());
         assertEquals(u.getPassword(), u2.getPassword());
-        assertEquals(AppUser.Approle.WORKER, u.getApprole());
-        assertEquals(AppUser.Approle.WORKER, u2.getApprole());
+        assertEquals(App.Approle.WORKER, u.getApprole());
+        assertEquals(App.Approle.WORKER, u2.getApprole());
     }
 
     @Test
     public void testRegisterCoreApp() throws KeyserverException {
         try {
-            ks.registerApp(AppUser.Approle.CORE);
+            ks.registerApp(App.Approle.CORE);
         } catch (KeyserverException e) {
             assertTrue(e.getMessage().contains("forbidden"));
         }
@@ -75,10 +75,10 @@ public class DefaultKeyserverImplTest {
     public void testAuthenticateCoreApp() throws KeyserverException {
         String appId = Configuration.getProperty("backmeup.service.id");
         String appKey = Configuration.getProperty("backmeup.service.password");
-        AppUser u = ks.authenticateApp(appId, appKey);
+        App u = ks.authenticateApp(appId, appKey);
         assertEquals(u.getAppId(), appId);
         assertEquals(u.getPassword(), appKey);
-        assertEquals(AppUser.Approle.CORE, u.getApprole());
+        assertEquals(App.Approle.CORE, u.getApprole());
     }
 
     @Test
@@ -92,7 +92,7 @@ public class DefaultKeyserverImplTest {
 
     @Test
     public void testAuthenticateAppFail() throws KeyserverException {
-        AppUser u = ks.registerApp(AppUser.Approle.WORKER);
+        App u = ks.registerApp(App.Approle.WORKER);
         try {
             ks.authenticateApp(u.getAppId(), "xxx");
         } catch (KeyserverException e) {
@@ -104,13 +104,13 @@ public class DefaultKeyserverImplTest {
     public void testListApp() throws KeyserverException {
         ks.removeApp("%"); //fix this because of security?
         
-        AppUser u = ks.registerApp(AppUser.Approle.WORKER);
-        AppUser u2 = ks.registerApp(AppUser.Approle.INDEXER);
+        App u = ks.registerApp(App.Approle.WORKER);
+        App u2 = ks.registerApp(App.Approle.INDEXER);
         
-        List<AppUser> apps = ks.listApps(ks.servicePassword);
-        Collections.sort(apps, new Comparator<AppUser>() {
+        List<App> apps = ks.listApps(ks.servicePassword);
+        Collections.sort(apps, new Comparator<App>() {
             @Override
-            public int compare(AppUser o1, AppUser o2) {
+            public int compare(App o1, App o2) {
                 int c = o1.getApprole().compareTo(o2.getApprole());
                 if (c != 0) {
                     return c;
@@ -120,25 +120,25 @@ public class DefaultKeyserverImplTest {
         });;
         assertEquals(3, apps.size());
      
-        AppUser a = apps.get(0);
+        App a = apps.get(0);
         assertEquals(ks.serviceId, a.getAppId());
         assertNull(a.getPassword());
-        assertEquals(AppUser.Approle.CORE, a.getApprole());
+        assertEquals(App.Approle.CORE, a.getApprole());
         
         a = apps.get(1);
         assertEquals(u.getAppId(), a.getAppId());
         assertNull(a.getPassword());
-        assertEquals(AppUser.Approle.WORKER, a.getApprole());
+        assertEquals(App.Approle.WORKER, a.getApprole());
         
         a = apps.get(2);
         assertEquals(u2.getAppId(), a.getAppId());
         assertNull(a.getPassword());
-        assertEquals(AppUser.Approle.INDEXER, a.getApprole());
+        assertEquals(App.Approle.INDEXER, a.getApprole());
     }
 
     @Test
     public void testRemoveApp() throws KeyserverException {
-        AppUser u = ks.registerApp(AppUser.Approle.WORKER);
+        App u = ks.registerApp(App.Approle.WORKER);
         ks.removeApp(u.getAppId());
         try {
             ks.authenticateApp(u.getAppId(), u.getPassword());

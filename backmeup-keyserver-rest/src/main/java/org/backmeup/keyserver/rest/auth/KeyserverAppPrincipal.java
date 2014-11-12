@@ -1,13 +1,13 @@
 package org.backmeup.keyserver.rest.auth;
 
 import java.security.Principal;
-import org.backmeup.keyserver.model.AppUser;
+import org.backmeup.keyserver.model.App;
 
 public class KeyserverAppPrincipal implements Principal {
 	private String userId;
-	private final AppUser user;
+	private final App user;
 
-	public KeyserverAppPrincipal(String userId, AppUser user) {
+	public KeyserverAppPrincipal(String userId, App user) {
 		super();
 		this.userId = userId;
 		this.user = user;
@@ -21,7 +21,7 @@ public class KeyserverAppPrincipal implements Principal {
 		this.userId = userId;
 	}
 
-	public AppUser getUser() {
+	public App getUser() {
 		return user;
 	}
 

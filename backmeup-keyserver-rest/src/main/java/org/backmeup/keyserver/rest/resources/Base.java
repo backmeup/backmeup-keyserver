@@ -1,8 +1,12 @@
 package org.backmeup.keyserver.rest.resources;
 
+import javax.inject.Inject;
 import javax.servlet.ServletContext;
 import javax.ws.rs.core.Context;
 
+
+
+import org.backmeup.keyserver.core.Keyserver;
 //import org.backmeup.logic.BusinessLogic;
 //import org.backmeup.rest.BusinessLogicContextHolder;
 import org.backmeup.keyserver.rest.cdi.JNDIBeanManager;
@@ -19,29 +23,13 @@ public class Base {
 
     private Mapper mapper;
     
-    
-    /*
-    private BusinessLogic logic;
+    @Inject
+    private Keyserver keyserverLogic;
 
-    @Context
-    private ServletContext context;
-
-    protected BusinessLogic getLogic() {
-        BusinessLogicContextHolder contextHolder = new BusinessLogicContextHolder(context);
-
-        logic = contextHolder.get();
-
-        if (logic == null) {
-            // just in case we are running in an embedded server
-            logic = fetchInstanceFromJndi(BusinessLogic.class);
-            contextHolder.set(logic);
-        }
-
-        return logic;
+    public Keyserver getKeyserverLogic() {
+        return keyserverLogic;
     }
     
-    
-    */
     protected Mapper getMapper() {
     	if (mapper == null) {
     		mapper = fetchInstanceFromJndi(Mapper.class);

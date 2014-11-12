@@ -7,7 +7,7 @@ package org.backmeup.keyserver.model;
  * @author spawn
  *
  */
-public class AppUser {
+public class App {
 
     public static enum Approle {
         CORE, WORKER, STORAGE, INDEXER
@@ -17,7 +17,7 @@ public class AppUser {
     private String password;
     private Approle approle;
 
-    public AppUser(String appId, String password, Approle approle) {
+    public App(String appId, String password, Approle approle) {
         this.appId = appId;
         this.password = password;
         this.approle = approle;

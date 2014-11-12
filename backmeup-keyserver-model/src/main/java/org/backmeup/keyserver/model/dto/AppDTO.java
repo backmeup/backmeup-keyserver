@@ -12,10 +12,6 @@ public class AppDTO {
 
     }
 
-    public AppDTO(String password) {
-        this.password = password;
-    }
-
     public String getAppId() {
         return appId;
     }

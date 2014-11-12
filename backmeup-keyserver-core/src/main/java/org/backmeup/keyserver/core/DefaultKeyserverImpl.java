@@ -18,7 +18,7 @@ import org.backmeup.keyserver.core.crypto.Keyring;
 import org.backmeup.keyserver.core.crypto.PepperApps;
 import org.backmeup.keyserver.core.db.Database;
 import org.backmeup.keyserver.core.db.DatabaseException;
-import org.backmeup.keyserver.model.AppUser;
+import org.backmeup.keyserver.model.App;
 import org.backmeup.keyserver.model.AuthResponse;
 import org.backmeup.keyserver.model.KeyserverEntry;
 import org.backmeup.keyserver.model.Token;
@@ -152,12 +152,12 @@ public class DefaultKeyserverImpl implements Keyserver {
     }
 
     @Override
-    public AppUser registerApp(AppUser.Approle role) throws KeyserverException {
+    public App registerApp(App.Approle role) throws KeyserverException {
         return this.appLogic.register(role);
     }
     
     @Override
-    public List<AppUser> listApps(String servicePassword) throws KeyserverException {
+    public List<App> listApps(String servicePassword) throws KeyserverException {
         return this.appLogic.listApps(servicePassword);
     }
 
@@ -167,7 +167,7 @@ public class DefaultKeyserverImpl implements Keyserver {
     }
 
     @Override
-    public AppUser authenticateApp(String appId, String appKey) throws KeyserverException {
+    public App authenticateApp(String appId, String appKey) throws KeyserverException {
         return this.appLogic.authenticate(appId, appKey);
     }
 }

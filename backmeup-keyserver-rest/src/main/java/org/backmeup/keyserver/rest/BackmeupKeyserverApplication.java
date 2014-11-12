@@ -8,7 +8,9 @@ import javax.ws.rs.core.Application;
 import org.backmeup.keyserver.rest.filters.SecurityInterceptor;
 import org.backmeup.keyserver.rest.filters.TimingResourceFilter;
 import org.backmeup.keyserver.rest.provider.JacksonJsonConfiguration;
-import org.backmeup.keyserver.rest.resources.App;
+import org.backmeup.keyserver.rest.resources.Applications;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /*
 import org.backmeup.rest.filters.SecurityInterceptor;
@@ -27,7 +29,7 @@ public class BackmeupKeyserverApplication extends Application {
 
     public BackmeupKeyserverApplication() {
         // The default life-cycle for resource class instances is per-request. 
-    	set.add(App.class);
+    	set.add(Applications.class);
         /*
         set.add(Users.class);
         set.add(Authentication.class);

@@ -27,6 +27,11 @@
 			<artifactId>resteasy-jackson-provider</artifactId>
 			<version>${version.org.jboss.resteasy}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.jboss.resteasy</groupId>
+			<artifactId>resteasy-cdi</artifactId>
+			<version>${version.org.jboss.resteasy}</version>
+		</dependency>
 
 		<dependency>
 			<groupId>org.backmeup</groupId>
@@ -78,6 +83,7 @@
 						<configuration>
 							<url>${config.tomcat.manager.url}</url>
 							<server>${config.tomcat.authentication.id}</server>
+							<path>${config.tomcat.context.path}</path>
 						</configuration>
 						<executions>
 							<execution>

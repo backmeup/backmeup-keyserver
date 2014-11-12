@@ -1,5 +1,6 @@
 package org.backmeup.keyserver.rest.filters;
 
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -10,6 +11,7 @@ import java.util.StringTokenizer;
 import javax.annotation.security.DenyAll;
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
+import javax.inject.Inject;
 import javax.servlet.ServletContext;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
@@ -17,12 +19,12 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.Provider;
 
-import org.backmeup.keyserver.model.AppUser;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.binary.StringUtils;
+import org.backmeup.keyserver.core.Keyserver;
+import org.backmeup.keyserver.core.KeyserverException;
+import org.backmeup.keyserver.model.App;
 import org.backmeup.keyserver.rest.auth.KeyserverSecurityContext;
-/*
-import org.backmeup.rest.BusinessLogicContextHolder;
-import org.backmeup.rest.cdi.JNDIBeanManager;
-*/
 import org.jboss.resteasy.core.Headers;
 import org.jboss.resteasy.core.ResourceMethodInvoker;
 import org.jboss.resteasy.core.ServerResponse;
@@ -35,24 +37,13 @@ public class SecurityInterceptor implements ContainerRequestFilter {
     private static final ServerResponse ACCESS_DENIED = new ServerResponse("Access denied for this resource", 401, new Headers<>());
     private static final String AUTHORIZATION_PROPERTY = "Authorization";
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private static final Logger LOGGER = LoggerFactory.getLogger(SecurityInterceptor.class);
 
     @Context
     private ServletContext context;
 
-    /*
-     * private BusinessLogic logic;
-     * 
-     * private BusinessLogic getLogic() { BusinessLogicContextHolder
-     * contextHolder = new BusinessLogicContextHolder(context);
-     * 
-     * logic = contextHolder.get();
-     * 
-     * if (logic == null) { logic = fetchInstanceFromJndi(BusinessLogic.class);
-     * contextHolder.set(logic); }
-     * 
-     * return logic; }
-     */
+    @Inject
+    private Keyserver keyserverLogic;
 
     @Override
     public void filter(ContainerRequestContext requestContext) {
@@ -78,24 +69,30 @@ public class SecurityInterceptor implements ContainerRequestFilter {
             // Get token from header
             final String accessToken = authorization.get(0);
 
-            // Split username/userId and password tokens
+            String appId;
+            String password;
+            // Split appId and password tokens
             final StringTokenizer tokenizer = new StringTokenizer(accessToken, ";");
-            final String appId = tokenizer.nextToken(); // userId can only be a
-                                                        // String
-            final String password = tokenizer.nextToken();
+            if (tokenizer.countTokens() == 2) {
+                appId = this.decodeBase64String(tokenizer.nextToken());
+                password = this.decodeBase64String(tokenizer.nextToken());
+            } else {
+                appId = "";
+                password = "";
+            }
 
             // Verify token
             if (method.isAnnotationPresent(RolesAllowed.class)) {
                 RolesAllowed rolesAnnotation = method.getAnnotation(RolesAllowed.class);
                 Set<String> rolesSet = new HashSet<>(Arrays.asList(rolesAnnotation.value()));
 
-                AppUser user = resolveUser(appId, password);
+                App user = resolveApp(appId, password);
                 if (user == null) {
                     requestContext.abortWith(ACCESS_DENIED);
                     return;
                 }
 
-                if (!isUserAllowed(user, rolesSet)) {
+                if (!isAppAllowed(user, rolesSet)) {
                     requestContext.abortWith(ACCESS_DENIED);
                     return;
                 }
@@ -105,29 +102,36 @@ public class SecurityInterceptor implements ContainerRequestFilter {
         }
     }
 
-    private AppUser resolveUser(final String userId, final String password) {
-        // TODO replace test implementation
-
-        return new AppUser(userId, password, AppUser.Approle.CORE);
-
-        /*
-         * try { return getLogic().getAppUserByUserId(userId); } catch
-         * (UnknownAppUserException uaue) { return null; }
-         */
+    private App resolveApp(final String appId, final String password) {
+        try {
+            return keyserverLogic.authenticateApp(appId, password);
+        } catch (KeyserverException e) {
+            LOGGER.info("Login failed. Appid \"{}\" or password wrong.", appId, e);
+            return null;
+        }
     }
 
-    private boolean isUserAllowed(final AppUser user, final Set<String> rolesSet) {
+    private boolean isAppAllowed(final App app, final Set<String> rolesSet) {        
+        if (rolesSet.contains(app.getApprole().name())) {
+            return true;
+        }
         
-        //TODO replace test function
-        
-        boolean isAllowed = true;
-
-        // Verify user role
-        // if (rolesSet.contains(userRole)) {
-        // isAllowed = true;
-        // }
-
-        return isAllowed;
+        return false;
+    }
+    
+    /**
+     * Decodes a given base64 String
+     * 
+     * @param s
+     * @return decoded UTF-8 String
+     */
+    private String decodeBase64String(final String s) {
+        try {
+            return new String(Base64.decodeBase64(StringUtils.getBytesUtf8(s)), "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            LOGGER.error("Base64 decoding failed", e);
+            return "";
+        }
     }
 
     /*
@@ -136,7 +140,7 @@ public class SecurityInterceptor implements ContainerRequestFilter {
             JNDIBeanManager jndiManager = JNDIBeanManager.getInstance();
             return jndiManager.getBean(classType);
         } catch (Exception e) {
-            logger.error("", e);
+            LOGGER.error("", e);
             return null;
         }
     }
