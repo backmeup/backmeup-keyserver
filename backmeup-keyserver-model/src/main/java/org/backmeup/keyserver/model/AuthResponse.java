@@ -12,6 +12,7 @@ import org.backmeup.keyserver.model.TokenValue.Role;
 public class AuthResponse {
     private String serviceUserId;
     private String loginToken;
+    private String username;
     private Set<Role> roles = new HashSet<>();
     private Calendar ttl;
 
@@ -19,9 +20,10 @@ public class AuthResponse {
 
     }
 
-    public AuthResponse(String serviceUserId, String loginToken, Set<Role> roles, Calendar ttl) {
+    public AuthResponse(String serviceUserId, String loginToken, String username, Set<Role> roles, Calendar ttl) {
         this.serviceUserId = serviceUserId;
         this.loginToken = loginToken;
+        this.setUsername(username);
         this.roles = roles;
         this.ttl = ttl;
     }
@@ -29,6 +31,7 @@ public class AuthResponse {
     public AuthResponse(Token token) {
         this.serviceUserId = token.getValue().getServiceUserId();
         this.loginToken = token.getB64Token();
+        this.setUsername(token.getValue().getValueAsString(JsonKeys.USERNAME));
         this.roles = token.getValue().getRoles();
         this.ttl = token.getTTL();
     }
@@ -63,5 +66,13 @@ public class AuthResponse {
 
     public void setTtl(Calendar ttl) {
         this.ttl = ttl;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 }

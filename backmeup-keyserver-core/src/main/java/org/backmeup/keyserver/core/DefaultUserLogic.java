@@ -160,6 +160,11 @@ public class DefaultUserLogic {
          * catch(DatabaseException e) { throw new KeyserverException(e); }
          */
     }
+    
+    public void changePassword(String username, String oldPassword, String newPassword) throws KeyserverException {
+        throw new UnsupportedOperationException("not implemented yet");
+        //TODO
+    }
 
     public AuthResponse authenticateWithPassword(String username, String password) throws KeyserverException {
         String userId = this.getUserId(username);

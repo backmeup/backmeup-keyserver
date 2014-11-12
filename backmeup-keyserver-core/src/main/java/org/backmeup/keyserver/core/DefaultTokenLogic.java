@@ -282,12 +282,6 @@ public class DefaultTokenLogic {
         return value;
     }
     
-    
-    public AuthResponse authenticateWithExternalToken(String tokenHash) throws KeyserverException {
-        throw new UnsupportedOperationException("not implemented yet");
-        //TODO: retrieve and convert to internal token
-    }
-    
     public AuthResponse authenticateWithInternalToken(String tokenHash) throws KeyserverException {
         Token token = new Token(Token.Kind.INTERNAL, tokenHash);
         String tokenKindApp = Token.Kind.INTERNAL.getApplication();
@@ -320,5 +314,10 @@ public class DefaultTokenLogic {
     public AuthResponse authenticateWithOnetimeToken(String tokenHash) throws KeyserverException {
         throw new UnsupportedOperationException("not implemented yet");
         //TODO: retrieve and convert to internal token (change response type!)
+    }
+    
+    public AuthResponse authenticateWithExternalToken(String tokenHash) throws KeyserverException {
+        throw new UnsupportedOperationException("not implemented yet");
+        //TODO: retrieve and convert to internal token
     }
 }
