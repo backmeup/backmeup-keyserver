@@ -20,6 +20,7 @@
 		<config.tomcat.manager.url>http://127.0.0.1:8080/manager/text</config.tomcat.manager.url>
 		<config.tomcat.authentication.id>backmeup.keyserver.tomcat</config.tomcat.authentication.id>
 		<config.integrationTestCategory>org.backmeup.keyserver.tests.IntegrationTest</config.integrationTestCategory>
+		<config.tomcat.context.path>/backmeup-keyserver</config.tomcat.context.path>
 
 		<version.backmeup.keyserver.model>1.0-SNAPSHOT</version.backmeup.keyserver.model>
 		<version.backmeup.keyserver.core>1.0-SNAPSHOT</version.backmeup.keyserver.core>
@@ -129,7 +130,11 @@
 			<plugin>
 				<groupId>org.apache.tomcat.maven</groupId>
 				<artifactId>tomcat7-maven-plugin</artifactId>
-				<version>2.0</version>
+				<version>${version.org.apache.tomcat.maven}</version>
+				<configuration>
+					<path>${config.tomcat.context.path}</path>
+					<port>8081</port>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
