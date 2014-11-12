@@ -37,6 +37,7 @@
 		<version.com.lambdaworks.scrypt>1.4.0</version.com.lambdaworks.scrypt>
 		<version.com.jayway.restassured.rest-assured>2.3.4</version.com.jayway.restassured.rest-assured>
 		<version.net.sourceforge.findbugs>2.0.3</version.net.sourceforge.findbugs>
+		<version.ch.qos-logback.logback-classic>1.1.2</version.ch.qos-logback.logback-classic>
 
 
 
