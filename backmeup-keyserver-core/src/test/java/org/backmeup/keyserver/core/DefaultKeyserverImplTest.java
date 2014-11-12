@@ -11,6 +11,7 @@ import org.backmeup.keyserver.core.KeyserverException;
 import org.backmeup.keyserver.core.config.Configuration;
 import org.backmeup.keyserver.model.App;
 import org.backmeup.keyserver.model.AuthResponse;
+import org.backmeup.keyserver.model.JsonKeys;
 import org.backmeup.keyserver.model.Token;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -34,6 +35,13 @@ public class DefaultKeyserverImplTest {
         AuthResponse u2 = ks.authenticateWithInternalToken(u.getLoginToken());
         assertEquals(u.getServiceUserId(), u2.getServiceUserId());
         assertEquals(u.getRoles(), u2.getRoles());
+        
+        Token tk = new Token(Token.Kind.INTERNAL, u.getLoginToken());
+        ks.tokenLogic.retrieveTokenValue(tk);
+        byte[] accountKey = KeyserverUtils.fromBase64String(tk.getValue().getValueAsString(JsonKeys.ACCOUNT_KEY));
+        assertNotNull(accountKey);
+        byte[] pubkKey = ks.userLogic.getPubKKey(tk.getValue().getUserId(), accountKey);
+        assertNotNull(pubkKey);
     }
 
     @Test

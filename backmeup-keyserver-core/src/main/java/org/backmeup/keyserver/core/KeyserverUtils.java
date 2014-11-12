@@ -102,6 +102,26 @@ public class KeyserverUtils {
         return StringUtils.newStringUtf8(ep.decrypt(key, message));
     }
     
+    public static byte[] encryptByteArray(Keyring k, byte[] key, byte[] message) throws CryptoException {
+        EncryptionProvider ep;
+        try {
+            ep = ProviderRegistry.getEncryptionProvider(k.getEncryptionAlgorithm());
+        } catch (NoSuchAlgorithmException e) {
+            throw new CryptoException(e);
+        }
+        return ep.encrypt(key, message);
+    }
+
+    public static byte[] decryptByteArray(Keyring k, byte[] key, byte[] message) throws CryptoException {
+        EncryptionProvider ep;
+        try {
+            ep = ProviderRegistry.getEncryptionProvider(k.getEncryptionAlgorithm());
+        } catch (NoSuchAlgorithmException e) {
+            throw new CryptoException(e);
+        }
+        return ep.decrypt(key, message);
+    }
+    
     public static String fmtKey(MessageFormat format, Object... inputs) {
         return format.format(inputs);
     }

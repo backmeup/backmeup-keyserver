@@ -66,6 +66,7 @@ public class DefaultKeyserverImpl implements Keyserver {
         peppers.put(PepperApps.SERVICE_USER_ID, fromBase64String("T0O0lfI0teC2cLdw+bxoubgPiu5HtUZkdxY5lbK1arc="));
         peppers.put(PepperApps.USERNAME, fromBase64String("7Z+P9DEhLl2fP0zgaIgqF6SRiOdfqHLXAP9Z4+Ff1OE="));
         peppers.put(PepperApps.ACCOUNT, fromBase64String("Y3WIQAJGXFteocB3j4+wHfsvYoTcH19kvcBgCMl7vKI="));
+        peppers.put(PepperApps.ACCOUNT_PUBK_KEY, fromBase64String("wPObGSVdhAZ8nCXL/0tKA6iMiYyqb1f35KCzEMOg48g="));
         peppers.put(PepperApps.APP, fromBase64String("OEv+feVGv/qLYPYtgE9LNWtuEZ93km3l5iNTVy24L6Q="));
         peppers.put(PepperApps.APP_ROLE, fromBase64String("aCdm9z3XxyhutcxgXrD1XsmWE3zYgS9TSuF6Dt9WUUw="));
         peppers.put(PepperApps.INTERNAL_TOKEN, fromBase64String("8hnYznxAPvD1M2+675voGToc1J08DimzWcgoGcWupeI="));

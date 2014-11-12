@@ -1,13 +1,6 @@
 package org.backmeup.keyserver.core;
 
-import static org.backmeup.keyserver.core.KeyserverUtils.decryptString;
-import static org.backmeup.keyserver.core.KeyserverUtils.encryptString;
-import static org.backmeup.keyserver.core.KeyserverUtils.fmtKey;
-import static org.backmeup.keyserver.core.KeyserverUtils.generateKey;
-import static org.backmeup.keyserver.core.KeyserverUtils.hashByteArrayWithPepper;
-import static org.backmeup.keyserver.core.KeyserverUtils.hashStringWithPepper;
-import static org.backmeup.keyserver.core.KeyserverUtils.stretchStringWithPepper;
-import static org.backmeup.keyserver.core.KeyserverUtils.toBase64String;
+import static org.backmeup.keyserver.core.KeyserverUtils.*;
 
 import java.io.IOException;
 import java.text.MessageFormat;
@@ -34,6 +27,7 @@ public class DefaultUserLogic {
     private static final MessageFormat SERVICE_USER_ID_ENTRY_FMT = new MessageFormat("{0}."+PepperApps.USER_ID);
     private static final MessageFormat USERNAME_ENTRY_FMT = new MessageFormat("{0}."+PepperApps.USERNAME);
     private static final MessageFormat ACCOUNT_ENTRY_FMT = new MessageFormat("{0}."+PepperApps.ACCOUNT);
+    private static final MessageFormat ACCOUNT_PUBKKEY_ENTRY_FMT = new MessageFormat("{0}."+PepperApps.ACCOUNT_PUBK_KEY);
     
     private DefaultKeyserverImpl keyserver;
     private Keyring keyring;
@@ -45,9 +39,10 @@ public class DefaultUserLogic {
         this.db = this.keyserver.db;
     }
 
-    protected Map<String, String> createBaseUser(String username, String password) throws KeyserverException {
-        String userId = null;
-        String serviceUserId = null;
+    protected Map<String, Object> createBaseUser(String username, String password) throws KeyserverException {
+        String userId;
+        String serviceUserId;
+        byte[] accountKey;
 
         try {
             KeyserverEntry alreadyExistingUser = this.keyserver.searchForEntry(username, PepperApps.USERNAME, USERNAME_ENTRY_FMT.toPattern());
@@ -75,20 +70,32 @@ public class DefaultUserLogic {
             // [ServiceUserId].ServiceUserId
             ke = new KeyserverEntry(fmtKey(SERVICE_USER_ID_ENTRY_FMT, serviceUserId));
             db.putEntry(ke);
+            
+            // generate accountKey, which is saved later in [UserId].Account or in [Hash(UserKey)].InternalToken
+            accountKey = generateKey(this.keyring);
+            
+            // [UserId].Account.PKey
+            byte[] pkkey = generateKey(this.keyring);
+            ke = new KeyserverEntry(fmtKey(ACCOUNT_PUBKKEY_ENTRY_FMT, userId));
+            byte[] payload = encryptByteArray(this.keyring, hashByteArrayWithPepper(this.keyring, accountKey, PepperApps.ACCOUNT_PUBK_KEY), pkkey);
+            ke.setValue(payload);
+            db.putEntry(ke);
+            
         } catch (CryptoException | DatabaseException e) {
             throw new KeyserverException(e);
         }
 
-        Map<String, String> ret = new HashMap<>();
+        Map<String, Object> ret = new HashMap<>();
         ret.put(JsonKeys.USER_ID, userId);
         ret.put(JsonKeys.SERVICE_USER_ID, serviceUserId);
+        ret.put(JsonKeys.ACCOUNT_KEY, accountKey);
         return ret;
     }
 
     public String registerUser(String username, String password) throws KeyserverException {
-        Map<String, String> ids = this.createBaseUser(username, password);
-        String userId = ids.get(JsonKeys.USER_ID);
-        String serviceUserId = ids.get(JsonKeys.SERVICE_USER_ID);
+        Map<String, Object> baseUser = this.createBaseUser(username, password);
+        String userId = (String) baseUser.get(JsonKeys.USER_ID);
+        String serviceUserId = (String) baseUser.get(JsonKeys.SERVICE_USER_ID);
 
         try {
             // [Hash(Benutzername)].UserName
@@ -102,7 +109,7 @@ public class DefaultUserLogic {
             db.putEntry(ke);
 
             // [UserId].Account
-            byte[] accountKey = generateKey(this.keyring);
+            byte[] accountKey = (byte[]) baseUser.get(JsonKeys.ACCOUNT_KEY);
             key = stretchStringWithPepper(this.keyring, username + ";" + password, PepperApps.ACCOUNT);
 
             ObjectNode valueNode = this.keyserver.jsonMapper.createObjectNode();
@@ -121,9 +128,8 @@ public class DefaultUserLogic {
     }
 
     public String registerAnonoumysUser(String username, String password) throws KeyserverException {
-        Map<String, String> ids = this.createBaseUser(username, password);
-        // String userId = ids.get(JsonKeys.USER_ID);
-        String serviceUserId = ids.get(JsonKeys.SERVICE_USER_ID);
+        Map<String, Object> baseUser = this.createBaseUser(username, password);
+        String serviceUserId = (String) baseUser.get(JsonKeys.SERVICE_USER_ID);
 
         return serviceUserId;
     }
@@ -141,6 +147,27 @@ public class DefaultUserLogic {
 
             byte[] key = stretchStringWithPepper(this.keyring, username, PepperApps.USERNAME);
             return decryptString(this.keyring, hashByteArrayWithPepper(this.keyring, key, PepperApps.USERNAME), usernameEntry.getValue());
+        } catch (DatabaseException | CryptoException e) {
+            throw new KeyserverException(e);
+        }
+    }
+    
+    protected boolean checkServiceUserId(String serviceUserId) throws DatabaseException {
+        return this.db.getEntry(fmtKey(SERVICE_USER_ID_ENTRY_FMT, serviceUserId)) != null;
+    }
+    
+    protected byte[] getPubKKey(String userId, byte[] accountKey) throws KeyserverException {
+        try {
+            KeyserverEntry pubkkeyEntry = this.db.getEntry(fmtKey(ACCOUNT_PUBKKEY_ENTRY_FMT, userId));
+            if (pubkkeyEntry == null) {
+                throw new EntryNotFoundException(EntryNotFoundException.ACCOUNT);
+            }
+
+            if (pubkkeyEntry.getKeyringId() < this.keyring.getKeyringId()) {
+                // TODO: migrate Entry
+            }
+
+            return decryptByteArray(this.keyring, hashByteArrayWithPepper(this.keyring, accountKey, PepperApps.ACCOUNT_PUBK_KEY), pubkkeyEntry.getValue());
         } catch (DatabaseException | CryptoException e) {
             throw new KeyserverException(e);
         }
@@ -204,9 +231,5 @@ public class DefaultUserLogic {
         } catch (DatabaseException | CryptoException | IOException e) {
             throw new KeyserverException(e);
         }
-    }
-    
-    protected boolean checkServiceUserId(String serviceUserId) throws DatabaseException {
-        return this.db.getEntry(fmtKey(SERVICE_USER_ID_ENTRY_FMT, serviceUserId)) != null;
     }
 }

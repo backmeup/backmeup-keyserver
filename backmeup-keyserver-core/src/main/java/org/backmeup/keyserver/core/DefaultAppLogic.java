@@ -13,7 +13,6 @@ import org.backmeup.keyserver.core.db.Database;
 import org.backmeup.keyserver.core.db.DatabaseException;
 import org.backmeup.keyserver.model.App;
 import org.backmeup.keyserver.model.KeyserverEntry;
-import org.backmeup.keyserver.model.Token;
 
 public class DefaultAppLogic {
     

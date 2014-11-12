@@ -104,7 +104,7 @@ public class DefaultTokenLogic {
                 // TODO: migrate Entry
             }
 
-            this.retrieveTokenValue(token, tokenEntry);
+            token.setValue(this.retrieveTokenValue(token, tokenEntry));
             token.setTTL(tokenEntry.getTTL());
         } catch (DatabaseException | CryptoException e) {
             throw new KeyserverException(e);
