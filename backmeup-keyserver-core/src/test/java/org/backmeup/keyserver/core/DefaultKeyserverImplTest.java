@@ -2,6 +2,10 @@ package org.backmeup.keyserver.core;
 
 import static org.junit.Assert.*;
 
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
 import org.backmeup.keyserver.core.DefaultKeyserverImpl;
 import org.backmeup.keyserver.core.KeyserverException;
 import org.backmeup.keyserver.core.config.Configuration;
@@ -94,6 +98,42 @@ public class DefaultKeyserverImplTest {
         } catch (KeyserverException e) {
             assertTrue(e.getCause().getCause() instanceof javax.crypto.BadPaddingException);
         }
+    }
+    
+    @Test
+    public void testListApp() throws KeyserverException {
+        ks.removeApp("%"); //fix this because of security?
+        
+        AppUser u = ks.registerApp(AppUser.Approle.WORKER);
+        AppUser u2 = ks.registerApp(AppUser.Approle.INDEXER);
+        
+        List<AppUser> apps = ks.listApps(ks.servicePassword);
+        Collections.sort(apps, new Comparator<AppUser>() {
+            @Override
+            public int compare(AppUser o1, AppUser o2) {
+                int c = o1.getApprole().compareTo(o2.getApprole());
+                if (c != 0) {
+                    return c;
+                }
+                return o1.getAppId().compareTo(o2.getAppId());
+            }
+        });;
+        assertEquals(3, apps.size());
+     
+        AppUser a = apps.get(0);
+        assertEquals(ks.serviceId, a.getAppId());
+        assertNull(a.getPassword());
+        assertEquals(AppUser.Approle.CORE, a.getApprole());
+        
+        a = apps.get(1);
+        assertEquals(u.getAppId(), a.getAppId());
+        assertNull(a.getPassword());
+        assertEquals(AppUser.Approle.WORKER, a.getApprole());
+        
+        a = apps.get(2);
+        assertEquals(u2.getAppId(), a.getAppId());
+        assertNull(a.getPassword());
+        assertEquals(AppUser.Approle.INDEXER, a.getApprole());
     }
 
     @Test

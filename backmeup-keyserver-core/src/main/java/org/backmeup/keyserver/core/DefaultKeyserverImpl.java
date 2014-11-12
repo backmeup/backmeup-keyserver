@@ -7,6 +7,7 @@ import java.security.SecureRandom;
 import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -66,6 +67,7 @@ public class DefaultKeyserverImpl implements Keyserver {
         peppers.put(PepperApps.USERNAME, fromBase64String("7Z+P9DEhLl2fP0zgaIgqF6SRiOdfqHLXAP9Z4+Ff1OE="));
         peppers.put(PepperApps.ACCOUNT, fromBase64String("Y3WIQAJGXFteocB3j4+wHfsvYoTcH19kvcBgCMl7vKI="));
         peppers.put(PepperApps.APP, fromBase64String("OEv+feVGv/qLYPYtgE9LNWtuEZ93km3l5iNTVy24L6Q="));
+        peppers.put(PepperApps.APP_ROLE, fromBase64String("aCdm9z3XxyhutcxgXrD1XsmWE3zYgS9TSuF6Dt9WUUw="));
         peppers.put(PepperApps.INTERNAL_TOKEN, fromBase64String("8hnYznxAPvD1M2+675voGToc1J08DimzWcgoGcWupeI="));
 
         Keyring k = new Keyring(1, peppers, "SHA-256", "SCRYPT", "AES/CBC/PKCS5Padding", 256);
@@ -140,6 +142,11 @@ public class DefaultKeyserverImpl implements Keyserver {
     }
     
     @Override
+    public List<Token> listTokens(String userId, byte[] accountKey, Token.Kind kind) throws KeyserverException {
+        return this.tokenLogic.listTokens(userId, accountKey, kind);
+    }
+    
+    @Override
     public void revokeToken(Token.Kind kind, String tokenHash) throws KeyserverException {
         this.tokenLogic.revokeToken(new Token(kind, tokenHash));
     }
@@ -147,6 +154,11 @@ public class DefaultKeyserverImpl implements Keyserver {
     @Override
     public AppUser registerApp(AppUser.Approle role) throws KeyserverException {
         return this.appLogic.register(role);
+    }
+    
+    @Override
+    public List<AppUser> listApps(String servicePassword) throws KeyserverException {
+        return this.appLogic.listApps(servicePassword);
     }
 
     @Override
