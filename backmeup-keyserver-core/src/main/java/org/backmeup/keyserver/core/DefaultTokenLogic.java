@@ -30,7 +30,6 @@ import org.backmeup.keyserver.model.TokenValue;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.node.ObjectNode;
-import org.codehaus.jackson.type.TypeReference;
 
 public class DefaultTokenLogic {
     private static final MessageFormat TK_ENTRY_FORMAT = new MessageFormat("{0}.{1}");
@@ -203,13 +202,11 @@ public class DefaultTokenLogic {
             if (!token.hasValue()) {
                 token.setValue(this.retrieveTokenValue(token, tokenEntry));
             }
-            tokenEntry.expire();
-            this.db.updateTTL(tokenEntry);
+            this.keyserver.expireEntry(tokenEntry);
             
             KeyserverEntry tokenAnnotationEntry = this.keyserver.searchForEntry(token.getToken(), tokenKindApp, annKey(token.getValue().getUserId(), tokenKindApp, "{0}"));
             if (tokenAnnotationEntry != null) {
-                tokenAnnotationEntry.expire();
-                this.db.updateTTL(tokenAnnotationEntry);
+                this.keyserver.expireEntry(tokenAnnotationEntry);
             }  
         } catch (DatabaseException | CryptoException e) {
             throw new KeyserverException(e);
@@ -306,8 +303,7 @@ public class DefaultTokenLogic {
             Calendar ttl = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
             ttl.add(Calendar.MINUTE, this.keyserver.uiTokenTimeout);
             token.setTTL(ttl);
-            tokenEntry.setTTL(ttl);
-            this.db.updateTTL(tokenEntry);
+            this.keyserver.expireEntry(tokenEntry);
         } catch (CryptoException | DatabaseException e) {
             throw new KeyserverException(e);
         }

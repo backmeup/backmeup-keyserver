@@ -127,9 +127,13 @@ public class SQLDatabaseImpl implements Database {
         }
     }
 
-    protected void dropTable() throws DatabaseException {
+    /*
+     * This method should only be called for testing purposes!
+     */
+    public void cleanup() throws DatabaseException {
         try (Statement s = conn.createStatement()) {
             s.execute("DROP TABLE " + DB_TABLE);
+            this.prepareTable();
         } catch (SQLException e) {
             throw new DatabaseException(e);
         }

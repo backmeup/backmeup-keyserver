@@ -1,7 +1,8 @@
 package org.backmeup.keyserver.core;
 
-import static org.backmeup.keyserver.core.KeyserverUtils.fromBase64String;
 import static org.backmeup.keyserver.core.KeyserverUtils.toBase64String;
+import static org.backmeup.keyserver.core.KeyserverUtils.fromBase64String;
+
 
 import java.security.SecureRandom;
 import java.text.MessageFormat;
@@ -67,6 +68,7 @@ public class DefaultKeyserverImpl implements Keyserver {
         peppers.put(PepperApps.USERNAME, fromBase64String("7Z+P9DEhLl2fP0zgaIgqF6SRiOdfqHLXAP9Z4+Ff1OE="));
         peppers.put(PepperApps.ACCOUNT, fromBase64String("Y3WIQAJGXFteocB3j4+wHfsvYoTcH19kvcBgCMl7vKI="));
         peppers.put(PepperApps.ACCOUNT_PUBK_KEY, fromBase64String("wPObGSVdhAZ8nCXL/0tKA6iMiYyqb1f35KCzEMOg48g="));
+        peppers.put(PepperApps.PROFILE, fromBase64String("O00X9u+2ncUgA2i8TW57DukMyAy6Qen2XFTiTaUNBes="));
         peppers.put(PepperApps.APP, fromBase64String("OEv+feVGv/qLYPYtgE9LNWtuEZ93km3l5iNTVy24L6Q="));
         peppers.put(PepperApps.APP_ROLE, fromBase64String("aCdm9z3XxyhutcxgXrD1XsmWE3zYgS9TSuF6Dt9WUUw="));
         peppers.put(PepperApps.INTERNAL_TOKEN, fromBase64String("8hnYznxAPvD1M2+675voGToc1J08DimzWcgoGcWupeI="));
@@ -121,6 +123,21 @@ public class DefaultKeyserverImpl implements Keyserver {
     protected KeyserverEntry searchForEntry(byte[] hashInput, String pepperApplication, String keyPattern) throws CryptoException, DatabaseException {
         return this.searchForEntry(new byte[][] { hashInput }, new String[] { pepperApplication }, keyPattern);
     }
+    
+    protected void expireEntry(KeyserverEntry entry) throws DatabaseException {
+        entry.expire();
+        this.db.updateTTL(entry);
+    }
+    
+    protected void updateEntry(KeyserverEntry entry, byte[] value) throws DatabaseException {
+        this.expireEntry(entry);
+        entry.setValue(value);
+        this.db.putEntry(entry);
+    }
+    
+    //=========================================================================
+    // User logic
+    //=========================================================================
 
     @Override
     public String registerUser(String username, String password) throws KeyserverException {
@@ -137,6 +154,18 @@ public class DefaultKeyserverImpl implements Keyserver {
         return this.userLogic.authenticateWithPassword(username, password);
     }
     
+    public void setProfile(String userId, byte[] accountKey, String profile) throws KeyserverException {       
+        this.userLogic.setProfile(userId, accountKey, profile);
+    }
+    
+    public String getProfile(String userId, byte[] accountKey) throws KeyserverException {
+        return this.userLogic.getProfile(userId, accountKey);
+    }
+    
+    //=========================================================================
+    // Token logic
+    //=========================================================================
+    
     @Override
     public AuthResponse authenticateWithInternalToken(String tokenHash) throws KeyserverException {
         return this.tokenLogic.authenticateWithInternalToken(tokenHash);
@@ -152,6 +181,10 @@ public class DefaultKeyserverImpl implements Keyserver {
         this.tokenLogic.revokeToken(new Token(kind, tokenHash));
     }
 
+    //=========================================================================
+    // App logic
+    //=========================================================================
+    
     @Override
     public App registerApp(App.Approle role) throws KeyserverException {
         return this.appLogic.register(role);

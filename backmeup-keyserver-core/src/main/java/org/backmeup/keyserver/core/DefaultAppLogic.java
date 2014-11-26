@@ -82,8 +82,7 @@ public class DefaultAppLogic {
             }
             
             for(KeyserverEntry ke : appEntries) {
-                ke.expire();
-                this.db.updateTTL(ke);
+                this.keyserver.expireEntry(ke);
             }
         } catch (DatabaseException e) {
             throw new KeyserverException(e);

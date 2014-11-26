@@ -24,10 +24,11 @@ import org.codehaus.jackson.node.ObjectNode;
 
 public class DefaultUserLogic {
     private static final MessageFormat USER_ID_ENTRY_FMT = new MessageFormat("{0}."+PepperApps.USER_ID);
-    private static final MessageFormat SERVICE_USER_ID_ENTRY_FMT = new MessageFormat("{0}."+PepperApps.USER_ID);
+    private static final MessageFormat SERVICE_USER_ID_ENTRY_FMT = new MessageFormat("{0}."+PepperApps.SERVICE_USER_ID);
     private static final MessageFormat USERNAME_ENTRY_FMT = new MessageFormat("{0}."+PepperApps.USERNAME);
     private static final MessageFormat ACCOUNT_ENTRY_FMT = new MessageFormat("{0}."+PepperApps.ACCOUNT);
     private static final MessageFormat ACCOUNT_PUBKKEY_ENTRY_FMT = new MessageFormat("{0}."+PepperApps.ACCOUNT_PUBK_KEY);
+    private static final MessageFormat PROFILE_ENTRY_FMT = new MessageFormat("{0}."+PepperApps.PROFILE);
     
     private DefaultKeyserverImpl keyserver;
     private Keyring keyring;
@@ -120,6 +121,11 @@ public class DefaultUserLogic {
             ke = new KeyserverEntry(fmtKey(ACCOUNT_ENTRY_FMT, userId));
             ke.setValue(payload);
             db.putEntry(ke);
+            
+            //[UserId].Profile
+            //TODO: default profile structure?
+            String profile = "";
+            this.setProfile(userId, accountKey, profile);
         } catch (CryptoException | DatabaseException e) {
             throw new KeyserverException(e);
         }
@@ -176,17 +182,6 @@ public class DefaultUserLogic {
     public void remove(String username) throws KeyserverException {
         // TODO
         throw new UnsupportedOperationException("not implemented yet");
-        /*
-         * String userId = this.getUserId(username);
-         * 
-         * 
-         * try { KeyserverEntry appEntry = this.db.getEntry(appId+".App"); if
-         * (appEntry == null) { throw new KeyserverException("appId not found");
-         * }
-         * 
-         * appEntry.expire(); this.db.updateTTL(appEntry); }
-         * catch(DatabaseException e) { throw new KeyserverException(e); }
-         */
     }
     
     public void changePassword(String username, String oldPassword, String newPassword) throws KeyserverException {
@@ -229,6 +224,44 @@ public class DefaultUserLogic {
 
             return new AuthResponse(token);
         } catch (DatabaseException | CryptoException | IOException e) {
+            throw new KeyserverException(e);
+        }
+    }
+    
+    public void setProfile(String userId, byte[] accountKey, String profile) throws KeyserverException {       
+        try {
+            byte[] payload = encryptString(this.keyring, hashByteArrayWithPepper(this.keyring, accountKey, PepperApps.PROFILE), profile);
+            
+            KeyserverEntry profileEntry = this.db.getEntry(fmtKey(PROFILE_ENTRY_FMT, userId));
+            if (profileEntry == null) {
+                profileEntry = new KeyserverEntry(fmtKey(PROFILE_ENTRY_FMT, userId));
+                profileEntry.setValue(payload);
+                db.putEntry(profileEntry);
+            }
+
+            if (profileEntry.getKeyringId() < this.keyring.getKeyringId()) {
+                // TODO: migrate Entry
+            }
+            
+            this.keyserver.updateEntry(profileEntry, payload);
+        } catch (DatabaseException | CryptoException e) {
+            throw new KeyserverException(e);
+        }
+    }
+    
+    public String getProfile(String userId, byte[] accountKey) throws KeyserverException {      
+        try {
+            KeyserverEntry profileEntry = this.db.getEntry(fmtKey(PROFILE_ENTRY_FMT, userId));
+            if (profileEntry == null) {
+                throw new EntryNotFoundException(EntryNotFoundException.PROFILE);
+            }
+
+            if (profileEntry.getKeyringId() < this.keyring.getKeyringId()) {
+                // TODO: migrate Entry
+            }
+            
+            return decryptString(this.keyring, hashByteArrayWithPepper(this.keyring, accountKey, PepperApps.PROFILE), profileEntry.getValue());
+        } catch (DatabaseException | CryptoException e) {
             throw new KeyserverException(e);
         }
     }

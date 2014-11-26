@@ -9,6 +9,8 @@ public class EntryNotFoundException extends KeyserverException {
     protected static final String USERNAME = "username not found";
 
     protected static final String ACCOUNT = "account not found";
+    
+    protected static final String PROFILE = "profile not found";
 
     protected static final String TOKEN = "token not found";
     

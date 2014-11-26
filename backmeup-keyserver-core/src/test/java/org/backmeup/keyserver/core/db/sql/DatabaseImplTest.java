@@ -36,8 +36,7 @@ public class DatabaseImplTest {
     @Before
     public void setUp() throws Exception {
         assertTrue(db.isConnected());
-        ((SQLDatabaseImpl) db).dropTable();
-        ((SQLDatabaseImpl) db).prepareTable();
+        ((SQLDatabaseImpl) db).cleanup();
     }
 
     @Test

@@ -9,6 +9,7 @@ public final class PepperApps {
     public static final String APP = "App";
     public static final String APP_ROLE = "AppRole";
     public static final String INTERNAL_TOKEN = "InternalToken";
+    public static final String PROFILE = "Profile";
     
     private PepperApps() {   
     }
