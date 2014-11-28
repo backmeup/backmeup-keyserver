@@ -1,7 +1,5 @@
 package org.backmeup.keyserver.core;
 
-import static org.backmeup.keyserver.core.KeyserverUtils.decryptString;
-import static org.backmeup.keyserver.core.KeyserverUtils.encryptString;
 import static org.backmeup.keyserver.core.KeyserverUtils.fmtKey;
 import static org.backmeup.keyserver.core.KeyserverUtils.generateKey;
 import static org.backmeup.keyserver.core.KeyserverUtils.hashByteArrayWithPepper;
@@ -9,18 +7,15 @@ import static org.backmeup.keyserver.core.KeyserverUtils.toBase64String;
 
 import java.io.IOException;
 import java.text.MessageFormat;
-import java.util.Calendar;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TimeZone;
 
 import org.backmeup.keyserver.core.crypto.CryptoException;
 import org.backmeup.keyserver.core.crypto.Keyring;
 import org.backmeup.keyserver.core.crypto.PepperApps;
-import org.backmeup.keyserver.core.db.Database;
 import org.backmeup.keyserver.core.db.DatabaseException;
 import org.backmeup.keyserver.model.AuthResponse;
 import org.backmeup.keyserver.model.JsonKeys;
@@ -37,12 +32,10 @@ public class DefaultTokenLogic {
     
     private DefaultKeyserverImpl keyserver;
     private Keyring keyring;
-    private Database db;
 
     public DefaultTokenLogic(DefaultKeyserverImpl keyserver) {
         this.keyserver = keyserver;
         this.keyring = this.keyserver.activeKeyring;
-        this.db = this.keyserver.db;
     }
     
     private static String tkKey(String tokenHash, String tokenKindApp) {
@@ -64,26 +57,20 @@ public class DefaultTokenLogic {
                 tokenKey = generateKey(this.keyring);
                 tokenHash = toBase64String(hashByteArrayWithPepper(this.keyring, tokenKey, tokenKindApp));
 
-                List<KeyserverEntry> tokens = this.db.searchByKey(tkKey(tokenHash, tokenKindApp), true, true);
+                List<KeyserverEntry> tokens = this.keyserver.db.searchByKey(tkKey(tokenHash, tokenKindApp), true, true);
                 collission = !tokens.isEmpty();
             } while (collission);
 
             token.setToken(tokenKey);            
 
             // e.g. [Hash(Token)].InternalToken
-            KeyserverEntry ke = new KeyserverEntry(tkKey(tokenHash, tokenKindApp));
-            byte[] payload = encryptString(this.keyring, hashByteArrayWithPepper(this.keyring, tokenKey, tokenKindApp), this.mapTokenValueToJson(token.getValue()));
-            ke.setValue(payload);
-            ke.setTTL(token.getTTL());
-            this.db.putEntry(ke);
-
+            byte[] payload = this.keyserver.encryptString(tokenKey, tokenKindApp, this.mapTokenValueToJson(token.getValue()));
+            this.keyserver.createEntry(tkKey(tokenHash, tokenKindApp), payload, token.getTTL());
+ 
             if (token.getAnnotation() != null) {
                 // e.g. [UserId].Account.InternalToken.[Hash(Token)]
-                ke = new KeyserverEntry(annKey(token.getValue().getUserId(), tokenKindApp, tokenHash));
-                payload = encryptString(this.keyring, hashByteArrayWithPepper(this.keyring, accountKey, tokenKindApp), this.mapTokenToJson(token));
-                ke.setValue(payload);
-                ke.setTTL(token.getTTL());
-                this.db.putEntry(ke);
+                payload = this.keyserver.encryptString(accountKey, tokenKindApp, this.mapTokenToJson(token));
+                this.keyserver.createEntry(annKey(token.getValue().getUserId(), tokenKindApp, tokenHash), payload, token.getTTL());
             }
         } catch (CryptoException | DatabaseException e) {
             throw new KeyserverException(e);
@@ -94,15 +81,7 @@ public class DefaultTokenLogic {
         String tokenKindApp = token.getKind().getApplication();
 
         try {
-            KeyserverEntry tokenEntry = this.keyserver.searchForEntry(token.getToken(), tokenKindApp, tkKey("{0}", tokenKindApp));
-            if (tokenEntry == null) {
-                throw new EntryNotFoundException(EntryNotFoundException.TOKEN);
-            }
-
-            if (tokenEntry.getKeyringId() < this.keyring.getKeyringId()) {
-                // TODO: migrate Entry
-            }
-
+            KeyserverEntry tokenEntry = this.keyserver.checkedSearchForEntry(token.getToken(), tokenKindApp, tkKey("{0}", tokenKindApp), EntryNotFoundException.TOKEN, true);
             token.setValue(this.retrieveTokenValue(token, tokenEntry));
             token.setTTL(tokenEntry.getTTL());
         } catch (DatabaseException | CryptoException e) {
@@ -111,8 +90,7 @@ public class DefaultTokenLogic {
     }
     
     private TokenValue retrieveTokenValue(Token token, KeyserverEntry tokenEntry) throws CryptoException, KeyserverException {
-        String tokenValueJson = decryptString(this.keyring, hashByteArrayWithPepper(this.keyring, token.getToken(), token.getKind().getApplication()),
-                tokenEntry.getValue());
+        String tokenValueJson = this.keyserver.decryptString(token.getToken(), token.getKind().getApplication(), tokenEntry.getValue());
         return this.mapJsonToTokenValue(tokenValueJson);
     }
 
@@ -133,15 +111,7 @@ public class DefaultTokenLogic {
                 default: throw new IllegalArgumentException("Token of kind "+token.getKind()+" do not support an annotation");
             }
             
-            KeyserverEntry tokenAnnotationEntry = this.keyserver.searchForEntry(token.getToken(), tokenKindApp, annKey(token.getValue().getUserId(), tokenKindApp, "{0}"));
-            if (tokenAnnotationEntry == null) {
-                throw new EntryNotFoundException(EntryNotFoundException.TOKEN_ANNOTATION);
-            }
-
-            if (tokenAnnotationEntry.getKeyringId() < this.keyring.getKeyringId()) {
-                // TODO: migrate Entry
-            }
-          
+            KeyserverEntry tokenAnnotationEntry = this.keyserver.checkedSearchForEntry(token.getToken(), tokenKindApp, annKey(token.getValue().getUserId(), tokenKindApp, "{0}"), EntryNotFoundException.TOKEN_ANNOTATION, true);
             Token t = retrieveTokenAnnotation(tokenAnnotationEntry, accountKey, token.getKind());
             token.setAnnotation(t.getAnnotation());
         } catch (DatabaseException | CryptoException e) {
@@ -150,7 +120,7 @@ public class DefaultTokenLogic {
     }
     
     private Token retrieveTokenAnnotation(KeyserverEntry tokenAnnotationEntry, byte[] accountKey, Token.Kind kind) throws CryptoException, KeyserverException {
-        String tokenAnnotationJson = decryptString(this.keyring, hashByteArrayWithPepper(this.keyring, accountKey, kind.getApplication()), tokenAnnotationEntry.getValue());
+        String tokenAnnotationJson = this.keyserver.decryptString(accountKey, kind.getApplication(), tokenAnnotationEntry.getValue());
         return this.mapJsonToToken(tokenAnnotationJson, kind);
     }
     
@@ -159,13 +129,10 @@ public class DefaultTokenLogic {
         String tokenKindApp = kind.getApplication();
         
         try {
-            KeyserverEntry tokenAnnotationEntry = this.db.getEntry(annKey(userId, tokenKindApp, tokenHash));
-            if (tokenAnnotationEntry == null) {
-                throw new EntryNotFoundException(EntryNotFoundException.TOKEN_ANNOTATION);
-            }
-        
-            String tokenAnnotationJson = decryptString(this.keyring, hashByteArrayWithPepper(this.keyring, accountKey, tokenKindApp), tokenAnnotationEntry.getValue());
+            KeyserverEntry tokenAnnotationEntry = this.keyserver.checkedGetEntry(annKey(userId, tokenKindApp, tokenHash), EntryNotFoundException.TOKEN_ANNOTATION, false);       
+            String tokenAnnotationJson = this.keyserver.decryptString(accountKey, tokenKindApp, tokenAnnotationEntry.getValue());
             token = this.mapJsonToToken(tokenAnnotationJson, kind);
+            
             if (includeValue) {
                 this.retrieveTokenValue(token);
             }
@@ -179,7 +146,7 @@ public class DefaultTokenLogic {
     public List<Token> listTokens(String userId, byte[] accountKey, Token.Kind kind) throws KeyserverException {
         try {
             List<Token> tokens = new LinkedList<>();
-            List<KeyserverEntry> tokenEntries = db.searchByKey(annKey(userId, kind.getApplication(), "%"), false, false);
+            List<KeyserverEntry> tokenEntries = this.keyserver.db.searchByKey(annKey(userId, kind.getApplication(), "%"), false, false);
             
             for(KeyserverEntry entry : tokenEntries) {
                 tokens.add(this.retrieveTokenAnnotation(entry, accountKey, kind));
@@ -194,11 +161,8 @@ public class DefaultTokenLogic {
         String tokenKindApp = token.getKind().getApplication();
 
         try {
-            KeyserverEntry tokenEntry = this.keyserver.searchForEntry(token.getToken(), tokenKindApp, tkKey("{0}", tokenKindApp));
-            if (tokenEntry == null) {
-                throw new EntryNotFoundException(EntryNotFoundException.TOKEN);
-            }
-
+            KeyserverEntry tokenEntry = this.keyserver.checkedSearchForEntry(token.getToken(), tokenKindApp, tkKey("{0}", tokenKindApp), EntryNotFoundException.TOKEN, false);
+            
             if (!token.hasValue()) {
                 token.setValue(this.retrieveTokenValue(token, tokenEntry));
             }
@@ -279,30 +243,34 @@ public class DefaultTokenLogic {
         return value;
     }
     
+    public Token createInternalToken(String userId, String serviceUserId, String username, byte[] accountKey) throws KeyserverException {
+        Token token = new Token(Token.Kind.INTERNAL);
+        TokenValue tokenValue = new TokenValue(userId, serviceUserId, TokenValue.Role.USER);
+        tokenValue.putValue(JsonKeys.USERNAME, username);
+        tokenValue.putValue(JsonKeys.ACCOUNT_KEY, accountKey);
+        token.setValue(tokenValue);
+        
+        token.setTTL(KeyserverUtils.getActTimePlusMinuteOffset(this.keyserver.uiTokenTimeout));
+        
+        this.createToken(token, accountKey);
+        return token;
+    }
+    
     public AuthResponse authenticateWithInternalToken(String tokenHash) throws KeyserverException {
         Token token = new Token(Token.Kind.INTERNAL, tokenHash);
         String tokenKindApp = Token.Kind.INTERNAL.getApplication();
         
         KeyserverEntry tokenEntry;
         try {
-            tokenEntry = this.keyserver.searchForEntry(token.getToken(), tokenKindApp, tkKey("{0}", tokenKindApp));
-            if (tokenEntry == null) {
-                throw new EntryNotFoundException(EntryNotFoundException.TOKEN);
-            }
-    
-            if (tokenEntry.getKeyringId() < this.keyring.getKeyringId()) {
-                // TODO: migrate Entry
-            }
-            
+            tokenEntry = this.keyserver.checkedSearchForEntry(token.getToken(), tokenKindApp, tkKey("{0}", tokenKindApp), EntryNotFoundException.TOKEN, true);
+                        
             TokenValue value = this.retrieveTokenValue(token, tokenEntry);
             if(!this.keyserver.userLogic.checkServiceUserId(value.getServiceUserId())) {
                 throw new EntryNotFoundException(EntryNotFoundException.TOKEN_USER_REMOVED);
             }
             token.setValue(value);
-                    
-            Calendar ttl = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-            ttl.add(Calendar.MINUTE, this.keyserver.uiTokenTimeout);
-            token.setTTL(ttl);
+            
+            token.setTTL(KeyserverUtils.getActTimePlusMinuteOffset(this.keyserver.uiTokenTimeout));
             this.keyserver.expireEntry(tokenEntry);
         } catch (CryptoException | DatabaseException e) {
             throw new KeyserverException(e);

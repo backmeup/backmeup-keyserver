@@ -5,13 +5,15 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.backmeup.keyserver.core.crypto.impl.AESEncryptionProvider;
+import org.backmeup.keyserver.core.crypto.impl.AsciiPasswordProvider;
 import org.backmeup.keyserver.core.crypto.impl.MessageDigestHashProvider;
 import org.backmeup.keyserver.core.crypto.impl.SCryptKeyStretchingProvider;
 
 public class ProviderRegistry {
     private static Map<String, HashProvider> hashProviders = new HashMap<>();
-    private static Map<String, KeyStretchingProvider> keyStretchingProviders  = new HashMap<>();
-    private static Map<String, EncryptionProvider> encryptionProviders  = new HashMap<>();
+    private static Map<String, KeyStretchingProvider> keyStretchingProviders = new HashMap<>();
+    private static Map<String, EncryptionProvider> encryptionProviders = new HashMap<>();
+    private static Map<String, PasswordProvider> passwordProviders = new HashMap<>();
 
     static {
         loadProviders();
@@ -20,7 +22,7 @@ public class ProviderRegistry {
     private ProviderRegistry() {
 
     }
-    
+
     @SuppressWarnings("all")
     private static void loadProviders() {
         // load default providers
@@ -29,6 +31,7 @@ public class ProviderRegistry {
         registerHashProvider("SHA-512", new MessageDigestHashProvider("SHA-512"));
         registerEncryptionProvider("AES/CBC/PKCS5Padding", new AESEncryptionProvider("AES/CBC/PKCS5Padding"));
         registerKeyStretchingProvider("SCRYPT", new SCryptKeyStretchingProvider());
+        registerPasswordProvider("ASCII", new AsciiPasswordProvider());
     }
 
     public static void registerHashProvider(String algorithm, HashProvider provider) {
@@ -43,33 +46,31 @@ public class ProviderRegistry {
         encryptionProviders.put(algorithm, provider);
     }
 
-    public static HashProvider getHashProvider(String algorithm)
-            throws NoSuchAlgorithmException {
-        HashProvider provider = hashProviders.get(algorithm);
+    public static void registerPasswordProvider(String algorithm, PasswordProvider provider) {
+        passwordProviders.put(algorithm, provider);
+    }
+
+    private static <T> T getProvider(Map<String, T> providerList, String algorithm) throws NoSuchAlgorithmException {
+        T provider = providerList.get(algorithm);
         if (provider == null) {
-            throw new NoSuchAlgorithmException(
-                    "No hash provider for algorithm " + algorithm);
+            throw new NoSuchAlgorithmException("No provider for algorithm " + algorithm);
         }
         return provider;
     }
 
-    public static KeyStretchingProvider getKeyStretchingProvider(
-            String algorithm) throws NoSuchAlgorithmException {
-        KeyStretchingProvider provider = keyStretchingProviders.get(algorithm);
-        if (provider == null) {
-            throw new NoSuchAlgorithmException(
-                    "No key stretching provider for algorithm " + algorithm);
-        }
-        return provider;
+    public static HashProvider getHashProvider(String algorithm) throws NoSuchAlgorithmException {
+        return getProvider(hashProviders, algorithm);
     }
 
-    public static EncryptionProvider getEncryptionProvider(String algorithm)
-            throws NoSuchAlgorithmException {
-        EncryptionProvider provider = encryptionProviders.get(algorithm);
-        if (provider == null) {
-            throw new NoSuchAlgorithmException(
-                    "No encryption provider for algorithm " + algorithm);
-        }
-        return provider;
+    public static KeyStretchingProvider getKeyStretchingProvider(String algorithm) throws NoSuchAlgorithmException {
+        return getProvider(keyStretchingProviders, algorithm);
+    }
+
+    public static EncryptionProvider getEncryptionProvider(String algorithm) throws NoSuchAlgorithmException {
+        return getProvider(encryptionProviders, algorithm);
+    }
+
+    public static PasswordProvider getPasswordProvider(String algorithm) throws NoSuchAlgorithmException {
+        return getProvider(passwordProviders, algorithm);
     }
 }

@@ -3,6 +3,8 @@ package org.backmeup.keyserver.core;
 import java.security.NoSuchAlgorithmException;
 import java.text.MessageFormat;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.TimeZone;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.StringUtils;
@@ -11,6 +13,7 @@ import org.backmeup.keyserver.core.crypto.EncryptionProvider;
 import org.backmeup.keyserver.core.crypto.HashProvider;
 import org.backmeup.keyserver.core.crypto.KeyStretchingProvider;
 import org.backmeup.keyserver.core.crypto.Keyring;
+import org.backmeup.keyserver.core.crypto.PasswordProvider;
 import org.backmeup.keyserver.core.crypto.ProviderRegistry;
 
 public class KeyserverUtils {
@@ -46,6 +49,16 @@ public class KeyserverUtils {
         arrs[0] = Arrays.copyOf(a, offset);
         arrs[1] = Arrays.copyOfRange(a, offset, a.length);
         return arrs;
+    }
+    
+    public static Calendar getActTime() {
+        return Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+    }
+    
+    public static Calendar getActTimePlusMinuteOffset(int amount) {
+        Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+        c.add(Calendar.MINUTE, amount);
+        return c;
     }
 
     public static String hashStringWithPepper(Keyring k, String hashInput, String pepperApplication) throws CryptoException {
@@ -120,6 +133,16 @@ public class KeyserverUtils {
             throw new CryptoException(e);
         }
         return ep.decrypt(key, message);
+    }
+    
+    public static String generatePassword(Keyring k) throws CryptoException {
+        PasswordProvider pp;
+        try {
+            pp = ProviderRegistry.getPasswordProvider(k.getPasswordAlgorithm());
+        } catch (NoSuchAlgorithmException e) {
+            throw new CryptoException(e);
+        }
+        return pp.getPassword(k.getPasswordLength());
     }
     
     public static String fmtKey(MessageFormat format, Object... inputs) {

@@ -1,11 +1,12 @@
 package org.backmeup.keyserver.core;
 
+import static org.backmeup.keyserver.core.KeyserverUtils.hashByteArrayWithPepper;
 import static org.backmeup.keyserver.core.KeyserverUtils.toBase64String;
 import static org.backmeup.keyserver.core.KeyserverUtils.fromBase64String;
 
-
 import java.security.SecureRandom;
 import java.text.MessageFormat;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -69,17 +70,34 @@ public class DefaultKeyserverImpl implements Keyserver {
         peppers.put(PepperApps.ACCOUNT, fromBase64String("Y3WIQAJGXFteocB3j4+wHfsvYoTcH19kvcBgCMl7vKI="));
         peppers.put(PepperApps.ACCOUNT_PUBK_KEY, fromBase64String("wPObGSVdhAZ8nCXL/0tKA6iMiYyqb1f35KCzEMOg48g="));
         peppers.put(PepperApps.PROFILE, fromBase64String("O00X9u+2ncUgA2i8TW57DukMyAy6Qen2XFTiTaUNBes="));
+        peppers.put(PepperApps.INDEX, fromBase64String("md5V+eUUL3+2fxTuuqG8OLqzTftYaLYplbVeMhox6YE="));
         peppers.put(PepperApps.APP, fromBase64String("OEv+feVGv/qLYPYtgE9LNWtuEZ93km3l5iNTVy24L6Q="));
         peppers.put(PepperApps.APP_ROLE, fromBase64String("aCdm9z3XxyhutcxgXrD1XsmWE3zYgS9TSuF6Dt9WUUw="));
         peppers.put(PepperApps.INTERNAL_TOKEN, fromBase64String("8hnYznxAPvD1M2+675voGToc1J08DimzWcgoGcWupeI="));
 
-        Keyring k = new Keyring(1, peppers, "SHA-256", "SCRYPT", "AES/CBC/PKCS5Padding", 256);
+        Keyring k = new Keyring(1, peppers, "SHA-256", "SCRYPT", "AES/CBC/PKCS5Padding", 256, "ASCII", 64);
         this.keyrings.put(1, k);
 
         // set highest one as active keyring
         this.activeKeyring = this.keyrings.get(this.keyrings.firstKey());
     }
 
+    protected KeyserverEntry createEntry(String key, byte[] payload, Calendar ttl) throws DatabaseException {
+        KeyserverEntry entry = new KeyserverEntry(key);
+        if (payload != null) {
+            entry.setValue(payload);
+        }
+        
+        entry.setTTL(ttl);
+        
+        this.db.putEntry(entry);
+        return entry;
+    }
+    
+    protected KeyserverEntry createEntry(String key, byte[] payload) throws DatabaseException {
+        return this.createEntry(key, payload, null);
+    }
+    
     protected KeyserverEntry searchForEntry(String[] hashInputs, String[] pepperApplications, String keyPattern) throws CryptoException, DatabaseException {
         MessageFormat key = new MessageFormat(keyPattern);
 
@@ -124,6 +142,48 @@ public class DefaultKeyserverImpl implements Keyserver {
         return this.searchForEntry(new byte[][] { hashInput }, new String[] { pepperApplication }, keyPattern);
     }
     
+    protected KeyserverEntry checkedGetEntry(String key, String notFoundMessage, boolean checkMigration) throws DatabaseException, EntryNotFoundException {
+        KeyserverEntry entry = this.db.getEntry(key);
+        if (entry == null) {
+            throw new EntryNotFoundException(notFoundMessage);
+        }
+
+        if (checkMigration && (entry.getKeyringId() < this.activeKeyring.getKeyringId())) {
+            // TODO: migrate Entry
+        }
+        return entry;
+    }
+    
+    protected KeyserverEntry checkedGetEntry(String key, String notFoundMessage) throws DatabaseException, EntryNotFoundException {
+        return this.checkedGetEntry(key, notFoundMessage, true);
+    }
+    
+    protected KeyserverEntry checkedSearchForEntry(String hashInput, String pepperApplication, String keyPattern, String notFoundMessage, boolean checkMigration) throws CryptoException, DatabaseException, EntryNotFoundException {
+        KeyserverEntry entry = this.searchForEntry(hashInput, pepperApplication, keyPattern);
+        if (entry == null) {
+            throw new EntryNotFoundException(notFoundMessage);
+        }
+
+        if (checkMigration && (entry.getKeyringId() < this.activeKeyring.getKeyringId())) {
+            // TODO: migrate Entry
+        }
+        
+        return entry;
+    }
+    
+    protected KeyserverEntry checkedSearchForEntry(byte[] hashInput, String pepperApplication, String keyPattern, String notFoundMessage, boolean checkMigration) throws CryptoException, DatabaseException, EntryNotFoundException {
+        KeyserverEntry entry = this.searchForEntry(hashInput, pepperApplication, keyPattern);
+        if (entry == null) {
+            throw new EntryNotFoundException(notFoundMessage);
+        }
+
+        if (checkMigration && (entry.getKeyringId() < this.activeKeyring.getKeyringId())) {
+            // TODO: migrate Entry
+        }
+        
+        return entry;
+    }
+    
     protected void expireEntry(KeyserverEntry entry) throws DatabaseException {
         entry.expire();
         this.db.updateTTL(entry);
@@ -135,6 +195,22 @@ public class DefaultKeyserverImpl implements Keyserver {
         this.db.putEntry(entry);
     }
     
+    protected String decryptString(byte[] key, String pepperApplication, byte[] value) throws CryptoException {
+        return KeyserverUtils.decryptString(this.activeKeyring, hashByteArrayWithPepper(this.activeKeyring, key, pepperApplication), value);
+    }
+    
+    protected byte[] encryptString(byte[] key, String pepperApplication, String value) throws CryptoException { 
+        return KeyserverUtils.encryptString(this.activeKeyring, hashByteArrayWithPepper(this.activeKeyring, key, pepperApplication), value);
+    }
+    
+    protected byte[] decryptByteArray(byte[] key, String pepperApplication, byte[] value) throws CryptoException {
+        return KeyserverUtils.decryptByteArray(this.activeKeyring, hashByteArrayWithPepper(this.activeKeyring, key, pepperApplication), value);
+    }
+    
+    protected byte[] encryptByteArray(byte[] key, String pepperApplication, byte[] value) throws CryptoException {
+        return KeyserverUtils.encryptByteArray(this.activeKeyring, hashByteArrayWithPepper(this.activeKeyring, key, pepperApplication), value);
+    }
+
     //=========================================================================
     // User logic
     //=========================================================================
@@ -160,6 +236,10 @@ public class DefaultKeyserverImpl implements Keyserver {
     
     public String getProfile(String userId, byte[] accountKey) throws KeyserverException {
         return this.userLogic.getProfile(userId, accountKey);
+    }
+    
+    public String getIndexKey(String userId, byte[] accountKey) throws KeyserverException {
+        return this.userLogic.getIndexKey(userId, accountKey);
     }
     
     //=========================================================================

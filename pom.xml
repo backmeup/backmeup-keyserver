@@ -34,6 +34,7 @@
 		<version.org.slf4j>1.7.6</version.org.slf4j>
 		<version.net.sf.dozer>5.4.0</version.net.sf.dozer>
 		<version.commons-codec>1.9</version.commons-codec>
+		<version.commons-lang3>3.3.2</version.commons-lang3>
 		<version.com.lambdaworks.scrypt>1.4.0</version.com.lambdaworks.scrypt>
 		<version.com.jayway.restassured.rest-assured>2.3.4</version.com.jayway.restassured.rest-assured>
 		<version.net.sourceforge.findbugs>2.0.3</version.net.sourceforge.findbugs>

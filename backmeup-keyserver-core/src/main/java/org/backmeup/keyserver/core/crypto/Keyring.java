@@ -11,11 +11,13 @@ public class Keyring {
     private String keyStretchingAlgorithm;
     private String encryptionAlgorithm;
     private int encryptionKeyLength;
+    private String passwordAlgorithm;
+    private int passwordLength;
 
     // TODO: Gültigkeitszeitraum notwendig?
 
-    public Keyring(int keyringId, Map<String, byte[]> peppers, String hashAlgorithm, String keyStretchingAlgorithm, String encryptionAlgorithm,
-            int encryptionKeyLength) {
+    public Keyring(int keyringId, Map<String, byte[]> peppers, String hashAlgorithm, String keyStretchingAlgorithm, String encryptionAlgorithm, 
+            int encryptionKeyLength, String passwordAlgorithm, int passwordLength) {
         this.keyringId = keyringId;
         this.peppers = new HashMap<>();
         this.peppers.putAll(peppers);
@@ -23,6 +25,8 @@ public class Keyring {
         this.keyStretchingAlgorithm = keyStretchingAlgorithm;
         this.encryptionAlgorithm = encryptionAlgorithm;
         this.encryptionKeyLength = encryptionKeyLength;
+        this.passwordAlgorithm = passwordAlgorithm;
+        this.passwordLength = passwordLength;
     }
 
     public int getKeyringId() {
@@ -41,6 +45,18 @@ public class Keyring {
         return encryptionAlgorithm;
     }
 
+    public int getEncryptionKeyLength() {
+        return this.encryptionKeyLength;
+    }
+
+    public String getPasswordAlgorithm() {
+        return passwordAlgorithm;
+    }
+
+    public int getPasswordLength() {
+        return this.passwordLength;
+    }
+
     public byte[] getPepper(String application) {
         byte[] pepper = this.peppers.get(application);
         if (pepper == null) {
@@ -49,9 +65,5 @@ public class Keyring {
         }
 
         return pepper;
-    }
-
-    public int getEncryptionKeyLength() {
-        return this.encryptionKeyLength;
     }
 }

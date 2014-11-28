@@ -1,6 +1,11 @@
 package org.backmeup.keyserver.core;
 
-import static org.backmeup.keyserver.core.KeyserverUtils.*;
+import static org.backmeup.keyserver.core.KeyserverUtils.fmtKey;
+import static org.backmeup.keyserver.core.KeyserverUtils.generateKey;
+import static org.backmeup.keyserver.core.KeyserverUtils.hashByteArrayWithPepper;
+import static org.backmeup.keyserver.core.KeyserverUtils.toBase64String;
+import static org.backmeup.keyserver.core.KeyserverUtils.fromBase64String;
+import static org.backmeup.keyserver.core.KeyserverUtils.stretchStringWithPepper;
 
 import java.text.MessageFormat;
 import java.util.LinkedList;
@@ -9,7 +14,6 @@ import java.util.List;
 import org.backmeup.keyserver.core.crypto.CryptoException;
 import org.backmeup.keyserver.core.crypto.Keyring;
 import org.backmeup.keyserver.core.crypto.PepperApps;
-import org.backmeup.keyserver.core.db.Database;
 import org.backmeup.keyserver.core.db.DatabaseException;
 import org.backmeup.keyserver.model.App;
 import org.backmeup.keyserver.model.KeyserverEntry;
@@ -21,12 +25,10 @@ public class DefaultAppLogic {
     
     private DefaultKeyserverImpl keyserver;
     private Keyring keyring;
-    private Database db;
 
     public DefaultAppLogic(DefaultKeyserverImpl keyserver) {
         this.keyserver = keyserver;
         this.keyring = this.keyserver.activeKeyring;
-        this.db = this.keyserver.db;
     }
     
     private static String appKey(String appId) {
@@ -51,22 +53,18 @@ public class DefaultAppLogic {
                 appKey = generateKey(this.keyring);
                 appId = toBase64String(hashByteArrayWithPepper(this.keyring, appKey, PepperApps.APP));
 
-                List<KeyserverEntry> appIds = this.db.searchByKey(appKey(appId), true, true);
+                List<KeyserverEntry> appIds = this.keyserver.db.searchByKey(appKey(appId), true, true);
                 collission = !appIds.isEmpty();
             } while (collission);
 
             // [Hash(AppKey)].App
-            KeyserverEntry ke = new KeyserverEntry(appKey(appId));
-            byte[] payload = encryptString(this.keyring, hashByteArrayWithPepper(this.keyring, appKey, PepperApps.APP), role.name());
-            ke.setValue(payload);
-            this.db.putEntry(ke);
+            byte[] payload = this.keyserver.encryptString(appKey, PepperApps.APP, role.name());
+            this.keyserver.createEntry(appKey(appId), payload);
             
             // [Hash(AppKey)].AppRole
-            ke = new KeyserverEntry(appRoleKey(appId));
             byte[] key = stretchStringWithPepper(this.keyring, this.keyserver.servicePassword, PepperApps.APP_ROLE);
-            payload = encryptString(this.keyring, hashByteArrayWithPepper(this.keyring, key, PepperApps.APP_ROLE), role.name());
-            ke.setValue(payload);
-            this.db.putEntry(ke);
+            payload = this.keyserver.encryptString(key, PepperApps.APP_ROLE, role.name());
+            this.keyserver.createEntry(appRoleKey(appId), payload);
         } catch (CryptoException | DatabaseException e) {
             throw new KeyserverException(e);
         }
@@ -76,7 +74,7 @@ public class DefaultAppLogic {
 
     public void remove(String appId) throws KeyserverException {
         try {
-            List<KeyserverEntry> appEntries = this.db.searchByKey(appId+".%", true, false);
+            List<KeyserverEntry> appEntries = this.keyserver.db.searchByKey(appId+".%", true, false);
             if (appEntries.isEmpty()) {
                 throw new EntryNotFoundException(EntryNotFoundException.APP);
             }
@@ -94,13 +92,12 @@ public class DefaultAppLogic {
             List<App> apps = new LinkedList<>();
             apps.add(new App(this.keyserver.serviceId, null, App.Approle.CORE));
             
-            List<KeyserverEntry> appRoleEntries = db.searchByKey(appRoleKey("%"), false, false);
+            List<KeyserverEntry> appRoleEntries = this.keyserver.db.searchByKey(appRoleKey("%"), false, false);
             byte[] key = stretchStringWithPepper(this.keyring, servicePassword, PepperApps.APP_ROLE);
             
             for(KeyserverEntry entry : appRoleEntries) {
                 String appId = entry.getKey().split("\\.")[0];
-                
-                String appRoleValue = decryptString(this.keyring, hashByteArrayWithPepper(this.keyring, key, PepperApps.APP_ROLE), entry.getValue());
+                String appRoleValue = this.keyserver.decryptString(key, PepperApps.APP_ROLE, entry.getValue());
                 apps.add(new App(appId, null, App.Approle.valueOf(appRoleValue)));
             }
             return apps;
@@ -116,16 +113,8 @@ public class DefaultAppLogic {
         }
 
         try {
-            KeyserverEntry appEntry = this.db.getEntry(appKey(appId));
-            if (appEntry == null) {
-                throw new EntryNotFoundException(EntryNotFoundException.APP);
-            }
-
-            if (appEntry.getKeyringId() < this.keyring.getKeyringId()) {
-                // TODO: migrate Entry
-            }
-
-            String appValue = decryptString(this.keyring, hashByteArrayWithPepper(this.keyring, fromBase64String(appKey), PepperApps.APP), appEntry.getValue());
+            KeyserverEntry appEntry = this.keyserver.checkedGetEntry(appKey(appId), EntryNotFoundException.APP);
+            String appValue = this.keyserver.decryptString(fromBase64String(appKey), PepperApps.APP, appEntry.getValue());
             return new App(appId, appKey, App.Approle.valueOf(appValue));
         } catch (DatabaseException | CryptoException e) {
             throw new KeyserverException(e);

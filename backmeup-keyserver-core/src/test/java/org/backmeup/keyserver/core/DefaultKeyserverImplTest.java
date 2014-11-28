@@ -94,6 +94,16 @@ public class DefaultKeyserverImplTest {
         profile = ks.getProfile(u.getUserId(), u.getAccountKey());
         assertEquals("Test", profile);
     }
+    
+    @Test
+    public void testIndexKey() throws KeyserverException {
+        ks.registerUser(USERNAME, PASSWORD);
+        AuthResponse u = ks.authenticateUserWithPassword(USERNAME, PASSWORD);
+
+        String indexKey = ks.getIndexKey(u.getUserId(), u.getAccountKey());
+        assertNotNull(indexKey);
+        assertEquals(64, indexKey.length());
+    }
 
     //=========================================================================
     // Token logic

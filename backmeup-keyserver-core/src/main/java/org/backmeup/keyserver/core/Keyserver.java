@@ -22,6 +22,8 @@ public interface Keyserver {
     
     String getProfile(String userId, byte[] accountKey) throws KeyserverException;
     
+    String getIndexKey(String userId, byte[] accountKey) throws KeyserverException;
+    
     //=========================================================================
     // Token logic
     //=========================================================================
