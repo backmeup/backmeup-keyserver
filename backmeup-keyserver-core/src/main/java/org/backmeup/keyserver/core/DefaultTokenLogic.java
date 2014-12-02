@@ -68,10 +68,23 @@ public class DefaultTokenLogic {
             this.keyserver.createEntry(tkKey(tokenHash, tokenKindApp), payload, token.getTTL());
  
             if (token.getAnnotation() != null) {
-                // e.g. [UserId].Account.InternalToken.[Hash(Token)]
-                payload = this.keyserver.encryptString(accountKey, tokenKindApp, this.mapTokenToJson(token));
-                this.keyserver.createEntry(annKey(token.getValue().getUserId(), tokenKindApp, tokenHash), payload, token.getTTL());
+                this.createAnnotaton(token, tokenHash, accountKey);
             }
+        } catch (CryptoException | DatabaseException e) {
+            throw new KeyserverException(e);
+        }
+    }
+    
+    protected void createAnnotaton(Token token, String tokenHash, byte[] accountKey) throws KeyserverException {
+        try {
+            String tokenKindApp = token.getKind().getApplication();
+            if (tokenHash == null) {
+                tokenHash = toBase64String(hashByteArrayWithPepper(this.keyring, token.getToken(), tokenKindApp));
+            }
+            
+            // e.g. [UserId].Account.InternalToken.[Hash(Token)]
+            byte[] payload = this.keyserver.encryptString(accountKey, tokenKindApp, this.mapTokenToJson(token));
+            this.keyserver.createEntry(annKey(token.getValue().getUserId(), tokenKindApp, tokenHash), payload, token.getTTL());
         } catch (CryptoException | DatabaseException e) {
             throw new KeyserverException(e);
         }
@@ -276,12 +289,13 @@ public class DefaultTokenLogic {
         KeyserverEntry tokenEntry;
         try {
             tokenEntry = this.keyserver.checkedSearchForEntry(token.getToken(), tokenKindApp, tkKey("{0}", tokenKindApp), EntryNotFoundException.TOKEN, true);
-                        
+            
             TokenValue value = this.retrieveTokenValue(token, tokenEntry);
+            token.setValue(value);
             if(!this.keyserver.userLogic.checkServiceUserId(value.getServiceUserId())) {
+                this.revoke(token);
                 throw new EntryNotFoundException(EntryNotFoundException.TOKEN_USER_REMOVED);
             }
-            token.setValue(value);
             
             token.setTTL(KeyserverUtils.getActTimePlusMinuteOffset(this.keyserver.uiTokenTimeout));
             this.keyserver.expireEntry(tokenEntry);

@@ -136,26 +136,67 @@ public class DefaultUserLogic {
     protected String getUserId(String username) throws KeyserverException {
         try {
             KeyserverEntry usernameEntry = this.keyserver.checkedSearchForEntry(username, PepperApps.USERNAME, USERNAME_ENTRY_FMT.toPattern(), EntryNotFoundException.USERNAME, true);
-            
-            byte[] key = stretchStringWithPepper(this.keyring, username, PepperApps.USERNAME);
-            return this.keyserver.decryptString(key, PepperApps.USERNAME, usernameEntry.getValue());
+            return this.decodeUserId(usernameEntry, username);
         } catch (DatabaseException | CryptoException e) {
             throw new KeyserverException(e);
         }
+    }
+    
+    protected String decodeUserId(KeyserverEntry usernameEntry, String username) throws CryptoException {
+        byte[] key = stretchStringWithPepper(this.keyring, username, PepperApps.USERNAME);
+        return this.keyserver.decryptString(key, PepperApps.USERNAME, usernameEntry.getValue());
     }
     
     protected boolean checkServiceUserId(String serviceUserId) throws DatabaseException {
         return this.keyserver.db.getEntry(fmtKey(SERVICE_USER_ID_ENTRY_FMT, serviceUserId)) != null;
     }
 
-    public void remove(String username) throws KeyserverException {
-        throw new UnsupportedOperationException("not implemented yet");
-        // TODO
+    public void remove(String serviceUserId, String username, byte[] accountKey) throws KeyserverException {
+        try {
+            //get and delete [Hash(Benutzername)].UserName
+            KeyserverEntry usernameEntry = this.keyserver.checkedSearchForEntry(username, PepperApps.USERNAME, USERNAME_ENTRY_FMT.toPattern(), EntryNotFoundException.USERNAME, true);
+            //we need the userId to delete the rest of data
+            String userId = this.decodeUserId(usernameEntry, username);
+            this.keyserver.expireEntry(usernameEntry);
+            
+            //get and delete [ServiceUserId].ServiceUserId
+            KeyserverEntry serviceUserIdEntry = this.keyserver.checkedGetEntry(fmtKey(SERVICE_USER_ID_ENTRY_FMT, serviceUserId), EntryNotFoundException.SERVICE_USER_ID);
+            this.keyserver.expireEntry(serviceUserIdEntry);
+            
+            //if accountKey is provided - delete all tokens of user
+            //else all token annotations will be deleted in next step but actual tokens will remain in database
+            //they will be deleted at later usage
+            if (accountKey != null) {
+                this.keyserver.tokenLogic.removeTokens(userId, accountKey);
+            }
+            
+            //get all [UserId].% entries and delete them
+            List<KeyserverEntry> userIdEntries = this.keyserver.db.searchByKey(userId+".%", true, false);
+            for (KeyserverEntry entry : userIdEntries) {
+                this.keyserver.expireEntry(entry);
+            }
+        } catch (DatabaseException | CryptoException e) {
+            throw new KeyserverException(e);
+        }
+
     }
     
-    public void changePassword(String username, String oldPassword, String newPassword) throws KeyserverException {
-        throw new UnsupportedOperationException("not implemented yet");
-        //TODO
+    public void changePassword(String userId, String username, String oldPassword, String newPassword) throws KeyserverException {
+        try {
+            KeyserverEntry accountEntry = this.keyserver.checkedGetEntry(fmtKey(ACCOUNT_ENTRY_FMT, userId), EntryNotFoundException.ACCOUNT);
+
+            //decrypt with the old one
+            byte[] key = stretchStringWithPepper(this.keyring, username + ";" + oldPassword, PepperApps.ACCOUNT);
+            String accountValue = this.keyserver.decryptString(key, PepperApps.ACCOUNT, accountEntry.getValue());
+            
+            //encrypt with the one
+            key = stretchStringWithPepper(this.keyring, username + ";" + newPassword, PepperApps.ACCOUNT);
+            byte[] payload = this.keyserver.encryptString(key, PepperApps.ACCOUNT, accountValue);
+            
+            this.keyserver.updateEntry(accountEntry, payload);
+        } catch (DatabaseException | CryptoException e) {
+            throw new KeyserverException(e);
+        }
     }
 
     public AuthResponse authenticateWithPassword(String username, String password) throws KeyserverException {

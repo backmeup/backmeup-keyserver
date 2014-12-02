@@ -15,7 +15,13 @@ public interface Keyserver {
     String registerUser(String username, String password) throws KeyserverException;
 
     String registerAnonoumysUser(String username, String password) throws KeyserverException;
+    
+    void removeUser(String serviceUserId, String username) throws KeyserverException;
+    
+    void removeUser(String serviceUserId, String username, byte[] accountKey) throws KeyserverException;
 
+    void changeUserPassword(String userId, String username, String oldPassword, String newPassword) throws KeyserverException;
+    
     AuthResponse authenticateUserWithPassword(String username, String password) throws KeyserverException;
     
     void setProfile(String userId, byte[] accountKey, String profile) throws KeyserverException;

@@ -7,6 +7,8 @@ public class EntryNotFoundException extends KeyserverException {
     protected static final String APP = "app not found";
 
     protected static final String USERNAME = "username not found";
+    
+    protected static final String SERVICE_USER_ID = "serviceUserId not found";
 
     protected static final String ACCOUNT = "account not found";
     

@@ -62,6 +62,17 @@ public class DefaultKeyserverImplTest {
     }
     
     @Test
+    public void testAuthenticateUserWithPasswordFail() throws KeyserverException {
+        ks.registerUser(USERNAME, PASSWORD);
+        
+        try {
+            ks.authenticateUserWithPassword(USERNAME, "xxx");
+        } catch(KeyserverException e) {
+            assertTrue(e.getCause().getCause() instanceof javax.crypto.BadPaddingException);
+        }
+    }
+    
+    @Test
     public void testAuthenticateUserWithInternalToken() throws KeyserverException {
         String serviceUserId = ks.registerUser(USERNAME, PASSWORD);
         AuthResponse u = ks.authenticateUserWithPassword(USERNAME, PASSWORD);
@@ -103,6 +114,110 @@ public class DefaultKeyserverImplTest {
         String indexKey = ks.getIndexKey(u.getUserId(), u.getAccountKey());
         assertNotNull(indexKey);
         assertEquals(64, indexKey.length());
+    }
+ 
+    @Test
+    public void testRemoveUserWithLogin() throws KeyserverException {
+        ks.registerUser(USERNAME, PASSWORD);
+        AuthResponse u = ks.authenticateUserWithPassword(USERNAME, PASSWORD);
+              
+        ks.removeUser(u.getServiceUserId(), u.getUsername(), u.getAccountKey());
+        
+        try {
+            ks.authenticateUserWithPassword(USERNAME, PASSWORD);
+        } catch(EntryNotFoundException e) {
+            assertEquals(EntryNotFoundException.USERNAME, e.getMessage());
+        }
+        
+        try {
+            ks.authenticateWithInternalToken(u.getB64Token());
+        } catch(EntryNotFoundException e) {
+            assertEquals(EntryNotFoundException.TOKEN_USER_REMOVED, e.getMessage());
+            
+        }
+    }
+    
+    @Test
+    public void testRemoveUserWithLogin2() throws KeyserverException {
+        ks.registerUser(USERNAME, PASSWORD);
+        AuthResponse u = ks.authenticateUserWithPassword(USERNAME, PASSWORD);
+        
+        //fake an annotation which login tokens normally don't have
+        //we need this to test the difference between removeUserWithLogin2 and testRemoveUserByAdmin
+        //see below
+        Token t = u.getToken();
+        t.setAnnotation("Test");
+        ks.tokenLogic.createAnnotaton(t, null, u.getAccountKey());
+        
+        ks.removeUser(u.getServiceUserId(), u.getUsername(), u.getAccountKey());
+        
+        try {
+            ks.authenticateUserWithPassword(USERNAME, PASSWORD);
+        } catch(EntryNotFoundException e) {
+            assertEquals(EntryNotFoundException.USERNAME, e.getMessage());
+        }
+        
+        try {
+            ks.authenticateWithInternalToken(u.getB64Token());
+        } catch(EntryNotFoundException e) {
+            //token should be deleted
+            assertEquals(EntryNotFoundException.TOKEN, e.getMessage());
+            
+        }
+    }
+    
+    @Test
+    public void testRemoveUserByAdmin() throws KeyserverException {
+        ks.registerUser(USERNAME, PASSWORD);
+        AuthResponse u = ks.authenticateUserWithPassword(USERNAME, PASSWORD);
+
+        //fake an annotation which login tokens normally don't have
+        //we need this to test the difference between removeUserWithLogin2 and testRemoveUserByAdmin
+        //see below
+        Token t = u.getToken();
+        t.setAnnotation("Test");
+        ks.tokenLogic.createAnnotaton(t, null, u.getAccountKey());
+        
+        ks.removeUser(u.getServiceUserId(), u.getUsername());
+        
+        try {
+            ks.authenticateUserWithPassword(USERNAME, PASSWORD);
+        } catch(EntryNotFoundException e) {
+            assertEquals(EntryNotFoundException.USERNAME, e.getMessage());
+        }
+        
+        try {
+            ks.authenticateWithInternalToken(u.getB64Token());
+        } catch(EntryNotFoundException e) {
+            //token still exists, but user not
+            assertEquals(EntryNotFoundException.TOKEN_USER_REMOVED, e.getMessage());
+        }
+        
+        //but now it should be gone
+        try {
+            ks.authenticateWithInternalToken(u.getB64Token());
+        } catch(EntryNotFoundException e) {
+            assertEquals(EntryNotFoundException.TOKEN, e.getMessage());
+            
+        }
+    }
+    
+    @Test
+    public void testChangeUserPassword() throws KeyserverException {
+        ks.registerUser(USERNAME, PASSWORD);
+        AuthResponse u = ks.authenticateUserWithPassword(USERNAME, PASSWORD);
+
+        ks.changeUserPassword(u.getUserId(), USERNAME, PASSWORD, "test");
+            
+        try {
+            ks.authenticateUserWithPassword(USERNAME, PASSWORD);
+        } catch(KeyserverException e) {
+            assertTrue(e.getCause().getCause() instanceof javax.crypto.BadPaddingException);
+        }
+        
+        AuthResponse u2 = ks.authenticateUserWithPassword(USERNAME, "test");
+        assertEquals(u.getUsername(), u2.getUsername());
+        assertEquals(u.getServiceUserId(), u2.getServiceUserId());
     }
 
     //=========================================================================
@@ -218,7 +333,7 @@ public class DefaultKeyserverImplTest {
         try {
             ks.authenticateApp(u.getAppId(), u.getPassword());
         } catch (EntryNotFoundException e) {
-            assertTrue(e.getMessage().equals(EntryNotFoundException.APP));
+            assertEquals(EntryNotFoundException.APP, e.getMessage());
         }
     }
 }

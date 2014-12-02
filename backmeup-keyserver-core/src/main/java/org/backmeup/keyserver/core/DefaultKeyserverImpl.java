@@ -224,20 +224,38 @@ public class DefaultKeyserverImpl implements Keyserver {
     public String registerAnonoumysUser(String username, String password) throws KeyserverException {
         return this.userLogic.registerAnonoumys(username, password);
     }
+    
+    @Override
+    public void removeUser(String serviceUserId, String username) throws KeyserverException {
+        this.userLogic.remove(serviceUserId, username, null);
+    }
+    
+    @Override
+    public void removeUser(String serviceUserId, String username, byte[] accountKey) throws KeyserverException {
+        this.userLogic.remove(serviceUserId, username, accountKey);
+    }
+    
+    @Override
+    public void changeUserPassword(String userId, String username, String oldPassword, String newPassword) throws KeyserverException {
+        this.userLogic.changePassword(userId, username, oldPassword, newPassword);
+    }
 
     @Override
     public AuthResponse authenticateUserWithPassword(String username, String password) throws KeyserverException {
         return this.userLogic.authenticateWithPassword(username, password);
     }
     
+    @Override
     public void setProfile(String userId, byte[] accountKey, String profile) throws KeyserverException {       
         this.userLogic.setProfile(userId, accountKey, profile);
     }
     
+    @Override
     public String getProfile(String userId, byte[] accountKey) throws KeyserverException {
         return this.userLogic.getProfile(userId, accountKey);
     }
     
+    @Override
     public String getIndexKey(String userId, byte[] accountKey) throws KeyserverException {
         return this.userLogic.getIndexKey(userId, accountKey);
     }
