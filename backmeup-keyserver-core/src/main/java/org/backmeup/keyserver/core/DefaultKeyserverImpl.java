@@ -2,22 +2,19 @@ package org.backmeup.keyserver.core;
 
 import static org.backmeup.keyserver.core.KeyserverUtils.hashByteArrayWithPepper;
 import static org.backmeup.keyserver.core.KeyserverUtils.toBase64String;
-import static org.backmeup.keyserver.core.KeyserverUtils.fromBase64String;
 
 import java.security.SecureRandom;
 import java.text.MessageFormat;
 import java.util.Calendar;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
 import org.backmeup.keyserver.core.config.Configuration;
+import org.backmeup.keyserver.core.config.KeyringConfiguration;
 import org.backmeup.keyserver.core.crypto.CryptoException;
 import org.backmeup.keyserver.core.crypto.Keyring;
-import org.backmeup.keyserver.core.crypto.PepperApps;
 import org.backmeup.keyserver.core.db.Database;
 import org.backmeup.keyserver.core.db.DatabaseException;
 import org.backmeup.keyserver.model.App;
@@ -42,7 +39,7 @@ public class DefaultKeyserverImpl implements Keyserver {
     protected DefaultTokenLogic tokenLogic;
 
     public DefaultKeyserverImpl() throws KeyserverException {
-        this.loadKeyserverConfigFile();
+        this.loadKeyrings();
 
         this.serviceId = Configuration.getProperty("backmeup.service.id");
         this.servicePassword = Configuration.getProperty("backmeup.service.password");
@@ -60,23 +57,10 @@ public class DefaultKeyserverImpl implements Keyserver {
         this.tokenLogic = new DefaultTokenLogic(this);
     }
 
-    private void loadKeyserverConfigFile() {
-        // TODO: load keyring config file and initialize keyrings
-        // simple fake it for now
-        Map<String, byte[]> peppers = new HashMap<>();
-        peppers.put(PepperApps.USER_ID, fromBase64String("5MlQkEfznxZSadtncDwqKVGfTGrcZ020pWrZJ5+WR3E="));
-        peppers.put(PepperApps.SERVICE_USER_ID, fromBase64String("T0O0lfI0teC2cLdw+bxoubgPiu5HtUZkdxY5lbK1arc="));
-        peppers.put(PepperApps.USERNAME, fromBase64String("7Z+P9DEhLl2fP0zgaIgqF6SRiOdfqHLXAP9Z4+Ff1OE="));
-        peppers.put(PepperApps.ACCOUNT, fromBase64String("Y3WIQAJGXFteocB3j4+wHfsvYoTcH19kvcBgCMl7vKI="));
-        peppers.put(PepperApps.ACCOUNT_PUBK_KEY, fromBase64String("wPObGSVdhAZ8nCXL/0tKA6iMiYyqb1f35KCzEMOg48g="));
-        peppers.put(PepperApps.PROFILE, fromBase64String("O00X9u+2ncUgA2i8TW57DukMyAy6Qen2XFTiTaUNBes="));
-        peppers.put(PepperApps.INDEX, fromBase64String("md5V+eUUL3+2fxTuuqG8OLqzTftYaLYplbVeMhox6YE="));
-        peppers.put(PepperApps.APP, fromBase64String("OEv+feVGv/qLYPYtgE9LNWtuEZ93km3l5iNTVy24L6Q="));
-        peppers.put(PepperApps.APP_ROLE, fromBase64String("aCdm9z3XxyhutcxgXrD1XsmWE3zYgS9TSuF6Dt9WUUw="));
-        peppers.put(PepperApps.INTERNAL_TOKEN, fromBase64String("8hnYznxAPvD1M2+675voGToc1J08DimzWcgoGcWupeI="));
-
-        Keyring k = new Keyring(1, peppers, "SHA-256", "SCRYPT", "AES/CBC/PKCS5Padding", 256, "ASCII", 64);
-        this.keyrings.put(1, k);
+    private void loadKeyrings() {        
+        for(Keyring k : KeyringConfiguration.getKeyrings()) {
+            this.keyrings.put(k.getKeyringId(), k);
+        }
 
         // set highest one as active keyring
         this.activeKeyring = this.keyrings.get(this.keyrings.firstKey());

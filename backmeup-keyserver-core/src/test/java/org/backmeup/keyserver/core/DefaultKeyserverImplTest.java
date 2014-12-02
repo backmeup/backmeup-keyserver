@@ -113,7 +113,7 @@ public class DefaultKeyserverImplTest {
 
         String indexKey = ks.getIndexKey(u.getUserId(), u.getAccountKey());
         assertNotNull(indexKey);
-        assertEquals(64, indexKey.length());
+        assertEquals(ks.activeKeyring.getPasswordLength(), indexKey.length());
     }
  
     @Test

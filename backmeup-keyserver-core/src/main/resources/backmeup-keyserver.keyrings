@@ -1,0 +1,23 @@
+[
+	{
+		"keyringId": 1,
+		"hashAlgorithm": "SHA-256",
+		"keyStretchingAlgorithm": "SCRYPT",
+		"encryptionAlgorithm": "AES/CBC/PKCS5Padding",
+		"encryptionKeyLength": 256,
+		"passwordAlgorithm": "ASCII",
+		"passwordLength": 64,
+		"peppers": {
+			"UserId": "5MlQkEfznxZSadtncDwqKVGfTGrcZ020pWrZJ5+WR3E=",
+			"ServiceUserId": "T0O0lfI0teC2cLdw+bxoubgPiu5HtUZkdxY5lbK1arc=",
+			"UserName": "7Z+P9DEhLl2fP0zgaIgqF6SRiOdfqHLXAP9Z4+Ff1OE=",
+			"Account": "Y3WIQAJGXFteocB3j4+wHfsvYoTcH19kvcBgCMl7vKI=",
+			"Account.PubK_Key": "wPObGSVdhAZ8nCXL/0tKA6iMiYyqb1f35KCzEMOg48g=",
+			"Profile": "O00X9u+2ncUgA2i8TW57DukMyAy6Qen2XFTiTaUNBes=",
+			"Index": "md5V+eUUL3+2fxTuuqG8OLqzTftYaLYplbVeMhox6YE=",
+			"App": "OEv+feVGv/qLYPYtgE9LNWtuEZ93km3l5iNTVy24L6Q=",
+			"AppRole": "aCdm9z3XxyhutcxgXrD1XsmWE3zYgS9TSuF6Dt9WUUw=",
+			"InternalToken":"8hnYznxAPvD1M2+675voGToc1J08DimzWcgoGcWupeI="
+		}
+	}
+]

@@ -16,7 +16,11 @@ public class Keyring {
 
     // TODO: Gültigkeitszeitraum notwendig?
 
-    public Keyring(int keyringId, Map<String, byte[]> peppers, String hashAlgorithm, String keyStretchingAlgorithm, String encryptionAlgorithm, 
+    @SuppressWarnings("unused")
+    private Keyring() {
+    }
+
+    public Keyring(int keyringId, Map<String, byte[]> peppers, String hashAlgorithm, String keyStretchingAlgorithm, String encryptionAlgorithm,
             int encryptionKeyLength, String passwordAlgorithm, int passwordLength) {
         this.keyringId = keyringId;
         this.peppers = new HashMap<>();
@@ -57,13 +61,18 @@ public class Keyring {
         return this.passwordLength;
     }
 
+    //needed for jackson mapping
+    @SuppressWarnings("all") 
+    private void setPeppers(final Map<String, byte[]> peppers) {
+           this.peppers = peppers;
+    }
+
     public byte[] getPepper(String application) {
-        byte[] pepper = this.peppers.get(application);
-        if (pepper == null) {
+        if (this.peppers.containsKey(application)) {
+            return this.peppers.get(application);
+        } else {
             throw new MissingResourceException("pepper " + application + " not found in keyring " + this.keyringId, "keyring " + this.keyringId,
                     application);
         }
-
-        return pepper;
     }
 }
