@@ -58,7 +58,7 @@ public class DefaultKeyserverImplTest {
         assertEquals(serviceUserId, u.getServiceUserId());
         assertEquals(USERNAME, u.getUsername());
         assertTrue(u.getRoles().contains(TokenValue.Role.USER));
-        assertNotNull(u.getLoginToken());
+        assertNotNull(u.getB64Token());
     }
     
     @Test
@@ -66,7 +66,7 @@ public class DefaultKeyserverImplTest {
         String serviceUserId = ks.registerUser(USERNAME, PASSWORD);
         AuthResponse u = ks.authenticateUserWithPassword(USERNAME, PASSWORD);
 
-        AuthResponse u2 = ks.authenticateWithInternalToken(u.getLoginToken());
+        AuthResponse u2 = ks.authenticateWithInternalToken(u.getB64Token());
         assertEquals(serviceUserId, u2.getServiceUserId());
         assertEquals(u.getServiceUserId(), u2.getServiceUserId());
         assertEquals(u.getRoles(), u2.getRoles());
@@ -114,12 +114,12 @@ public class DefaultKeyserverImplTest {
         String serviceUserId = ks.registerUser("wolfgang2", PASSWORD);
         AuthResponse u = ks.authenticateUserWithPassword("wolfgang2", PASSWORD);
         assertEquals(serviceUserId, u.getServiceUserId());
-        assertNotNull(u.getLoginToken());
+        assertNotNull(u.getB64Token());
 
-        ks.revokeToken(Token.Kind.INTERNAL, u.getLoginToken());
+        ks.revokeToken(Token.Kind.INTERNAL, u.getB64Token());
         
         try {
-            ks.authenticateWithInternalToken(u.getLoginToken());
+            ks.authenticateWithInternalToken(u.getB64Token());
         } catch(EntryNotFoundException e) {
             assertTrue(e.getMessage().equals(EntryNotFoundException.TOKEN));
         }

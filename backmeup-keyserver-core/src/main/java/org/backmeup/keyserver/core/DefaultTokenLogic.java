@@ -46,7 +46,7 @@ public class DefaultTokenLogic {
         return fmtKey(ANN_ENTRY_FORMAT, userId, tokenKindApp, tokenHash);
     }
 
-    public void createToken(Token token, byte[] accountKey) throws KeyserverException {
+    public void create(Token token, byte[] accountKey) throws KeyserverException {
         String tokenHash = null;
         byte[] tokenKey = null;
         String tokenKindApp = token.getKind().getApplication();
@@ -157,7 +157,7 @@ public class DefaultTokenLogic {
         }
     }
 
-    public void revokeToken(Token token) throws KeyserverException {
+    public void revoke(Token token) throws KeyserverException {
         String tokenKindApp = token.getKind().getApplication();
 
         try {
@@ -174,6 +174,19 @@ public class DefaultTokenLogic {
             }  
         } catch (DatabaseException | CryptoException e) {
             throw new KeyserverException(e);
+        }
+    }
+    
+    public void removeTokens(String userId, byte[] accountKey) throws KeyserverException {
+        for (Token.Kind kind : Token.Kind.values()) {
+            this.removeTokens(userId, accountKey, kind);
+        }
+    }
+    
+    public void removeTokens(String userId, byte[] accountKey, Token.Kind kind) throws KeyserverException {
+        List<Token> tokens = this.listTokens(userId, accountKey, kind);
+        for (Token token : tokens) {
+            this.revoke(token);
         }
     }
 
@@ -243,7 +256,7 @@ public class DefaultTokenLogic {
         return value;
     }
     
-    public Token createInternalToken(String userId, String serviceUserId, String username, byte[] accountKey) throws KeyserverException {
+    public Token createInternal(String userId, String serviceUserId, String username, byte[] accountKey) throws KeyserverException {
         Token token = new Token(Token.Kind.INTERNAL);
         TokenValue tokenValue = new TokenValue(userId, serviceUserId, TokenValue.Role.USER);
         tokenValue.putValue(JsonKeys.USERNAME, username);
@@ -252,11 +265,11 @@ public class DefaultTokenLogic {
         
         token.setTTL(KeyserverUtils.getActTimePlusMinuteOffset(this.keyserver.uiTokenTimeout));
         
-        this.createToken(token, accountKey);
+        this.create(token, accountKey);
         return token;
     }
     
-    public AuthResponse authenticateWithInternalToken(String tokenHash) throws KeyserverException {
+    public AuthResponse authenticateWithInternal(String tokenHash) throws KeyserverException {
         Token token = new Token(Token.Kind.INTERNAL, tokenHash);
         String tokenKindApp = Token.Kind.INTERNAL.getApplication();
         
@@ -279,12 +292,12 @@ public class DefaultTokenLogic {
         return new AuthResponse(token);
     }
     
-    public AuthResponse authenticateWithOnetimeToken(String tokenHash) throws KeyserverException {
+    public AuthResponse authenticateWithOnetime(String tokenHash) throws KeyserverException {
         throw new UnsupportedOperationException("not implemented yet");
         //TODO: retrieve and convert to internal token (change response type!)
     }
     
-    public AuthResponse authenticateWithExternalToken(String tokenHash) throws KeyserverException {
+    public AuthResponse authenticateWithExternal(String tokenHash) throws KeyserverException {
         throw new UnsupportedOperationException("not implemented yet");
         //TODO: retrieve and convert to internal token
     }

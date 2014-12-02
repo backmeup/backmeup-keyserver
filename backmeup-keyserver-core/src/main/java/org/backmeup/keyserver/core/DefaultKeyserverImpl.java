@@ -217,12 +217,12 @@ public class DefaultKeyserverImpl implements Keyserver {
 
     @Override
     public String registerUser(String username, String password) throws KeyserverException {
-        return this.userLogic.registerUser(username, password);
+        return this.userLogic.register(username, password);
     }
 
     @Override
     public String registerAnonoumysUser(String username, String password) throws KeyserverException {
-        return this.userLogic.registerAnonoumysUser(username, password);
+        return this.userLogic.registerAnonoumys(username, password);
     }
 
     @Override
@@ -248,7 +248,7 @@ public class DefaultKeyserverImpl implements Keyserver {
     
     @Override
     public AuthResponse authenticateWithInternalToken(String tokenHash) throws KeyserverException {
-        return this.tokenLogic.authenticateWithInternalToken(tokenHash);
+        return this.tokenLogic.authenticateWithInternal(tokenHash);
     }
     
     @Override
@@ -258,7 +258,7 @@ public class DefaultKeyserverImpl implements Keyserver {
     
     @Override
     public void revokeToken(Token.Kind kind, String tokenHash) throws KeyserverException {
-        this.tokenLogic.revokeToken(new Token(kind, tokenHash));
+        this.tokenLogic.revoke(new Token(kind, tokenHash));
     }
 
     //=========================================================================

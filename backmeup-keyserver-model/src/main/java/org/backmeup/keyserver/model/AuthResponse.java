@@ -22,7 +22,7 @@ public class AuthResponse {
         return this.token.getValue().getServiceUserId();
     }
 
-    public String getLoginToken() {
+    public String getB64Token() {
         return this.token.getB64Token();
     }
 

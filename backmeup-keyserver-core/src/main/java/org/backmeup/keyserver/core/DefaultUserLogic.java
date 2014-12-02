@@ -84,7 +84,7 @@ public class DefaultUserLogic {
         return ret;
     }
 
-    public String registerUser(String username, String password) throws KeyserverException {
+    public String register(String username, String password) throws KeyserverException {
         Map<String, Object> baseUser = this.createBaseUser(username, password);
         String userId = (String) baseUser.get(JsonKeys.USER_ID);
         String serviceUserId = (String) baseUser.get(JsonKeys.SERVICE_USER_ID);
@@ -126,7 +126,7 @@ public class DefaultUserLogic {
         return serviceUserId;
     }
 
-    public String registerAnonoumysUser(String username, String password) throws KeyserverException {
+    public String registerAnonoumys(String username, String password) throws KeyserverException {
         Map<String, Object> baseUser = this.createBaseUser(username, password);
         String serviceUserId = (String) baseUser.get(JsonKeys.SERVICE_USER_ID);
 
@@ -172,7 +172,7 @@ public class DefaultUserLogic {
             byte[] accountKey = accountObj.get(JsonKeys.ACCOUNT_KEY).getBinaryValue();
 
             // create InternalToken for UI access
-            Token token = this.keyserver.tokenLogic.createInternalToken(userId, serviceUserId, username, accountKey);
+            Token token = this.keyserver.tokenLogic.createInternal(userId, serviceUserId, username, accountKey);
 
             return new AuthResponse(token);
         } catch (DatabaseException | CryptoException | IOException e) {
