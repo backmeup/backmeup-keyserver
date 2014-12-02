@@ -78,13 +78,14 @@ public class DefaultTokenLogic {
     protected void createAnnotaton(Token token, String tokenHash, byte[] accountKey) throws KeyserverException {
         try {
             String tokenKindApp = token.getKind().getApplication();
-            if (tokenHash == null) {
-                tokenHash = toBase64String(hashByteArrayWithPepper(this.keyring, token.getToken(), tokenKindApp));
+            String theHash = tokenHash;
+            if (theHash == null) {
+                theHash = toBase64String(hashByteArrayWithPepper(this.keyring, token.getToken(), tokenKindApp));
             }
             
             // e.g. [UserId].Account.InternalToken.[Hash(Token)]
             byte[] payload = this.keyserver.encryptString(accountKey, tokenKindApp, this.mapTokenToJson(token));
-            this.keyserver.createEntry(annKey(token.getValue().getUserId(), tokenKindApp, tokenHash), payload, token.getTTL());
+            this.keyserver.createEntry(annKey(token.getValue().getUserId(), tokenKindApp, theHash), payload, token.getTTL());
         } catch (CryptoException | DatabaseException e) {
             throw new KeyserverException(e);
         }
