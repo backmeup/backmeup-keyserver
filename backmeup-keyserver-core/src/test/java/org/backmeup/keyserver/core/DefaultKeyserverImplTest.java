@@ -219,6 +219,72 @@ public class DefaultKeyserverImplTest {
         assertEquals(u.getUsername(), u2.getUsername());
         assertEquals(u.getServiceUserId(), u2.getServiceUserId());
     }
+    
+    //=========================================================================
+    // PluginData logic
+    //=========================================================================
+    
+    @Test
+    public void testCreatePluginData() throws KeyserverException {
+        ks.registerUser(USERNAME, PASSWORD);
+        AuthResponse u = ks.authenticateUserWithPassword(USERNAME, PASSWORD);
+        
+        String userId = u.getUserId();
+        String pluginId = "facebook1";
+        String data = "json with oauth-token";
+
+        ks.createPluginData(userId, pluginId, u.getAccountKey(), data);
+        byte[] pluginKey = ks.getPluginDataKey(userId, pluginId, u.getAccountKey());
+        String savedData = ks.getPluginData(userId, pluginId, pluginKey);
+        assertEquals(data, savedData);
+    }
+    
+    @Test
+    public void testUpdatePluginData() throws KeyserverException {
+        ks.registerUser(USERNAME, PASSWORD);
+        AuthResponse u = ks.authenticateUserWithPassword(USERNAME, PASSWORD);
+        
+        String userId = u.getUserId();
+        String pluginId = "facebook1";
+        String data = "json with oauth-token";
+
+        ks.createPluginData(userId, pluginId, u.getAccountKey(), data);
+        byte[] pluginKey = ks.getPluginDataKey(userId, pluginId, u.getAccountKey());
+        String savedData = ks.getPluginData(userId, pluginId, pluginKey);
+        assertEquals(data, savedData);
+        
+        ks.updatePluginData(userId, pluginId, pluginKey, "xxx");
+        savedData = ks.getPluginData(userId, pluginId, pluginKey);
+        assertEquals("xxx", savedData);
+    }
+    
+    @Test
+    public void testRemovePluginData() throws KeyserverException {
+        ks.registerUser(USERNAME, PASSWORD);
+        AuthResponse u = ks.authenticateUserWithPassword(USERNAME, PASSWORD);
+        
+        String userId = u.getUserId();
+        String pluginId = "facebook1";
+        
+        ks.createPluginData(userId, pluginId, u.getAccountKey(), "xxx");
+        byte[] pluginKey = ks.getPluginDataKey(userId, pluginId, u.getAccountKey());
+        
+        ks.removePluginData(userId, pluginId);
+
+        try {
+            ks.getPluginDataKey(userId, pluginId, u.getAccountKey());
+        } catch(EntryNotFoundException e) {
+            assertEquals(EntryNotFoundException.PLUGIN_KEY, e.getMessage());
+            
+        }
+        
+        try {
+            ks.getPluginData(userId, pluginId, pluginKey);
+        } catch(EntryNotFoundException e) {
+            assertEquals(EntryNotFoundException.PLUGIN, e.getMessage());
+            
+        }
+    }
 
     //=========================================================================
     // Token logic

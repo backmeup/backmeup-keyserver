@@ -37,33 +37,44 @@ public class DefaultKeyserverImpl implements Keyserver {
     protected DefaultAppLogic appLogic;
     protected DefaultUserLogic userLogic;
     protected DefaultTokenLogic tokenLogic;
+    protected DefaultPluginDataLogic pluglinDataLogic;
 
     public DefaultKeyserverImpl() throws KeyserverException {
         this.loadKeyrings();
-
-        this.serviceId = Configuration.getProperty("backmeup.service.id");
-        this.servicePassword = Configuration.getProperty("backmeup.service.password");
-        this.uiTokenTimeout = Integer.parseInt(Configuration.getProperty("backmeup.keyserver.uiTokenTimeout"));
-
-        this.db = new org.backmeup.keyserver.core.db.derby.DerbyDatabaseImpl();
-        try {
-            this.db.connect();
-        } catch (DatabaseException e) {
-            throw new KeyserverException("keyserver cannot connect to database", e);
-        }
-
-        this.appLogic = new DefaultAppLogic(this);
-        this.userLogic = new DefaultUserLogic(this);
-        this.tokenLogic = new DefaultTokenLogic(this);
+        this.loadConfig();
+        this.connectDB();
+        this.registerLogic();
     }
 
-    private void loadKeyrings() {        
+    protected void loadKeyrings() {        
         for(Keyring k : KeyringConfiguration.getKeyrings()) {
             this.keyrings.put(k.getKeyringId(), k);
         }
 
         // set highest one as active keyring
         this.activeKeyring = this.keyrings.get(this.keyrings.firstKey());
+    }
+    
+    protected void loadConfig() {
+        this.serviceId = Configuration.getProperty("backmeup.service.id");
+        this.servicePassword = Configuration.getProperty("backmeup.service.password");
+        this.uiTokenTimeout = Integer.parseInt(Configuration.getProperty("backmeup.keyserver.uiTokenTimeout"));
+    }
+    
+    protected void connectDB() throws KeyserverException {
+        this.db = new org.backmeup.keyserver.core.db.derby.DerbyDatabaseImpl();
+        try {
+            this.db.connect();
+        } catch (DatabaseException e) {
+            throw new KeyserverException("keyserver cannot connect to database", e);
+        }
+    }
+    
+    protected void registerLogic() {
+        this.appLogic = new DefaultAppLogic(this);
+        this.userLogic = new DefaultUserLogic(this);
+        this.tokenLogic = new DefaultTokenLogic(this);
+        this.pluglinDataLogic = new DefaultPluginDataLogic(this);
     }
 
     protected KeyserverEntry createEntry(String key, byte[] payload, Calendar ttl) throws DatabaseException {
@@ -244,6 +255,35 @@ public class DefaultKeyserverImpl implements Keyserver {
         return this.userLogic.getIndexKey(userId, accountKey);
     }
     
+    //=========================================================================
+    // PluginData logic
+    //=========================================================================
+    
+    @Override
+    public void createPluginData(String userId, String pluginId, byte[] accountKey, String data) throws KeyserverException {
+        this.pluglinDataLogic.create(userId, pluginId, accountKey, data);
+    }
+    
+    @Override
+    public byte[] getPluginDataKey(String userId, String pluginId, byte[] accountKey) throws KeyserverException {
+        return this.pluglinDataLogic.getPluginKey(userId, pluginId, accountKey);
+    }
+    
+    @Override
+    public void removePluginData(String userId, String pluginId) throws KeyserverException {
+        this.pluglinDataLogic.remove(userId, pluginId);
+    }
+    
+    @Override
+    public void updatePluginData(String userId, String pluginId, byte[] pluginKey, String data) throws KeyserverException { 
+        this.pluglinDataLogic.update(userId, pluginId, pluginKey, data);
+    }
+    
+    @Override
+    public String getPluginData(String userId, String pluginId, byte[] pluginKey) throws KeyserverException {      
+        return this.pluglinDataLogic.get(userId, pluginId, pluginKey);
+    }
+
     //=========================================================================
     // Token logic
     //=========================================================================

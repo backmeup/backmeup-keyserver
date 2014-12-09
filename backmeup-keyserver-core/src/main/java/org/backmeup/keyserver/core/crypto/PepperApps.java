@@ -11,6 +11,7 @@ public final class PepperApps {
     public static final String INTERNAL_TOKEN = "InternalToken";
     public static final String PROFILE = "Profile";
     public static final String INDEX = "Index";
+    public static final String PLUGIN = "Plugin";
     
     private PepperApps() {   
     }

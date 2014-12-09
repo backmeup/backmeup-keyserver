@@ -30,6 +30,20 @@ public interface Keyserver {
     
     String getIndexKey(String userId, byte[] accountKey) throws KeyserverException;
     
+  //=========================================================================
+    // PluginData logic
+    //=========================================================================
+    
+    void createPluginData(String userId, String pluginId, byte[] accountKey, String data) throws KeyserverException;
+    
+    byte[] getPluginDataKey(String userId, String pluginId, byte[] accountKey) throws KeyserverException;
+    
+    void removePluginData(String userId, String pluginId) throws KeyserverException;
+    
+    void updatePluginData(String userId, String pluginId, byte[] pluginKey, String data) throws KeyserverException;
+    
+    String getPluginData(String userId, String pluginId, byte[] pluginKey) throws KeyserverException;
+    
     //=========================================================================
     // Token logic
     //=========================================================================
