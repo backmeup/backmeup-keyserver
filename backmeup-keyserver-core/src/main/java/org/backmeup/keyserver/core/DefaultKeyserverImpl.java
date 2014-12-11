@@ -40,13 +40,17 @@ public class DefaultKeyserverImpl implements Keyserver {
     protected DefaultPluginDataLogic pluglinDataLogic;
 
     public DefaultKeyserverImpl() throws KeyserverException {
-        this.loadKeyrings();
         this.loadConfig();
         this.connectDB();
         this.registerLogic();
     }
 
-    protected void loadKeyrings() {        
+    private void loadConfig() {
+        this.serviceId = Configuration.getProperty("backmeup.service.id");
+        this.servicePassword = Configuration.getProperty("backmeup.service.password");
+        this.uiTokenTimeout = Integer.parseInt(Configuration.getProperty("backmeup.keyserver.uiTokenTimeout"));
+        
+        //load keyrings
         for(Keyring k : KeyringConfiguration.getKeyrings()) {
             this.keyrings.put(k.getKeyringId(), k);
         }
@@ -55,13 +59,7 @@ public class DefaultKeyserverImpl implements Keyserver {
         this.activeKeyring = this.keyrings.get(this.keyrings.firstKey());
     }
     
-    protected void loadConfig() {
-        this.serviceId = Configuration.getProperty("backmeup.service.id");
-        this.servicePassword = Configuration.getProperty("backmeup.service.password");
-        this.uiTokenTimeout = Integer.parseInt(Configuration.getProperty("backmeup.keyserver.uiTokenTimeout"));
-    }
-    
-    protected void connectDB() throws KeyserverException {
+    private void connectDB() throws KeyserverException {
         this.db = new org.backmeup.keyserver.core.db.derby.DerbyDatabaseImpl();
         try {
             this.db.connect();
@@ -70,7 +68,7 @@ public class DefaultKeyserverImpl implements Keyserver {
         }
     }
     
-    protected void registerLogic() {
+    private void registerLogic() {
         this.appLogic = new DefaultAppLogic(this);
         this.userLogic = new DefaultUserLogic(this);
         this.tokenLogic = new DefaultTokenLogic(this);
