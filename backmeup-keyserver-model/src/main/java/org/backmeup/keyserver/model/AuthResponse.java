@@ -9,6 +9,7 @@ import org.backmeup.keyserver.model.TokenValue.Role;
 @XmlRootElement
 public class AuthResponse {
     private Token token;
+    private AuthResponse next;
 
     @SuppressWarnings("unused")
     private AuthResponse() {
@@ -16,6 +17,11 @@ public class AuthResponse {
 
     public AuthResponse(Token token) {
         this.token = token;
+    }
+    
+    public AuthResponse(Token token, AuthResponse next) {
+        this.token = token;
+        this.next = next;
     }
 
     public String getServiceUserId() {
@@ -36,6 +42,14 @@ public class AuthResponse {
 
     public String getUsername() {
         return this.token.getValue().getValueAsString(JsonKeys.USERNAME);
+    }
+    
+    public boolean hasNext() {
+        return this.next != null;
+    }
+    
+    public AuthResponse getNext() {
+        return this.next;
     }
 
     /*

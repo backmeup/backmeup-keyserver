@@ -16,11 +16,13 @@ public class EntryNotFoundException extends KeyserverException {
     
     protected static final String INDEX = "index key not found";
 
-    protected static final String TOKEN = "token not found";
+    protected static final String TOKEN = "token not found or expired";
     
     protected static final String TOKEN_ANNOTATION = "token annotation not found";
     
     protected static final String TOKEN_USER_REMOVED = "user of token doesn't exist anymore";
+
+    protected static final String TOKEN_USED_TO_EARLY = "token used to early";
 
     protected static final String PLUGIN_KEY = "plugin key not found";
 

@@ -1,5 +1,6 @@
 package org.backmeup.keyserver.core;
 
+import java.util.Calendar;
 import java.util.List;
 
 import org.backmeup.keyserver.model.App;
@@ -49,6 +50,12 @@ public interface Keyserver {
     //=========================================================================
     
     AuthResponse authenticateWithInternalToken(String tokenHash) throws KeyserverException;
+    
+    AuthResponse createOnetime(String userId, String serviceUserId, String username, byte[] accountKey, String[] pluginIds, Calendar scheduledExecutionTime) throws KeyserverException;
+    
+    AuthResponse authenticateWithOnetime(String tokenHash) throws KeyserverException;
+
+    AuthResponse authenticateWithOnetime(String tokenHash, Calendar scheduledExecutionTime) throws KeyserverException;
     
     List<Token> listTokens(String userId, byte[] accountKey, Token.Kind kind) throws KeyserverException;
     

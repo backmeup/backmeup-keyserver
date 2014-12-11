@@ -7,6 +7,8 @@ import static org.backmeup.keyserver.core.KeyserverUtils.toBase64String;
 
 import java.io.IOException;
 import java.text.MessageFormat;
+import java.util.Calendar;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -67,7 +69,7 @@ public class DefaultTokenLogic {
             byte[] payload = this.keyserver.encryptString(tokenKey, tokenKindApp, this.mapTokenValueToJson(token.getValue()));
             this.keyserver.createEntry(tkKey(tokenHash, tokenKindApp), payload, token.getTTL());
  
-            if (token.getAnnotation() != null) {
+            if (token.getAnnotation() != null && accountKey != null) {
                 this.createAnnotaton(token, tokenHash, accountKey);
             }
         } catch (CryptoException | DatabaseException e) {
@@ -283,6 +285,39 @@ public class DefaultTokenLogic {
         return token;
     }
     
+    public AuthResponse createOnetime(String userId, String serviceUserId, String username, byte[] accountKey, String[] pluginIds, Calendar scheduledExecutionTime) throws KeyserverException {
+        Token token = new Token(Token.Kind.ONETIME);
+        TokenValue tokenValue = new TokenValue(userId, serviceUserId, TokenValue.Role.BACKUP_JOB);
+        tokenValue.putValue(JsonKeys.USERNAME, username);
+        tokenValue.putValue(JsonKeys.ACCOUNT_KEY, accountKey);
+        
+        Map<String, String> pluginKeys = new HashMap<>();
+        for (String pluginId : pluginIds) {
+            pluginKeys.put(pluginId, KeyserverUtils.toBase64String(this.keyserver.pluglinDataLogic.getPluginKey(userId, pluginId, accountKey)));
+        }
+        tokenValue.putValue(JsonKeys.PLUGIN_KEYS, pluginKeys);
+        
+        token.setValue(tokenValue);
+        this.scheduleJobToken(token, scheduledExecutionTime);
+        
+        this.create(token, accountKey);
+        return new AuthResponse(token);
+    }
+    
+    private void scheduleJobToken(Token token, Calendar scheduledExecutionTime) {
+        TokenValue value = token.getValue();
+        
+        Calendar earliestStartTime = (Calendar) scheduledExecutionTime.clone();
+        earliestStartTime.add(Calendar.MINUTE, -1 * this.keyserver.backupTokenFromTimout);
+        value.putValue(JsonKeys.EARLIEST_START_TIME, earliestStartTime);
+        
+        Calendar latestStartTime = (Calendar) scheduledExecutionTime.clone();
+        latestStartTime.add(Calendar.MINUTE, this.keyserver.backupTokenToTimout);
+        value.putValue(JsonKeys.LATEST_START_TIME, latestStartTime);
+        
+        token.setTTL(latestStartTime);
+    }
+    
     public AuthResponse authenticateWithInternal(String tokenHash) throws KeyserverException {
         Token token = new Token(Token.Kind.INTERNAL, tokenHash);
         String tokenKindApp = Token.Kind.INTERNAL.getApplication();
@@ -307,9 +342,49 @@ public class DefaultTokenLogic {
         return new AuthResponse(token);
     }
     
-    public AuthResponse authenticateWithOnetime(String tokenHash) throws KeyserverException {
-        throw new UnsupportedOperationException("not implemented yet");
-        //TODO: retrieve and convert to internal token (change response type!)
+    public AuthResponse authenticateWithOnetime(String tokenHash, Calendar scheduledExecutionTime) throws KeyserverException {
+        Token onetimeToken = new Token(Token.Kind.ONETIME, tokenHash);
+        String tokenKindApp = Token.Kind.ONETIME.getApplication();
+        Token internalToken = null;
+        AuthResponse nextAuth = null;
+        
+        KeyserverEntry tokenEntry;
+        try {
+            tokenEntry = this.keyserver.checkedSearchForEntry(onetimeToken.getToken(), tokenKindApp, tkKey("{0}", tokenKindApp), EntryNotFoundException.TOKEN, true);
+            
+            TokenValue value = this.retrieveTokenValue(onetimeToken, tokenEntry);
+            onetimeToken.setValue(value);
+            onetimeToken.setTTL(tokenEntry.getTTL());
+            
+            if(!this.keyserver.userLogic.checkServiceUserId(value.getServiceUserId())) {
+                this.revoke(onetimeToken);
+                throw new EntryNotFoundException(EntryNotFoundException.TOKEN_USER_REMOVED);
+            }
+            
+            if(KeyserverUtils.getActTime().before(value.getValueAsCalendar(JsonKeys.EARLIEST_START_TIME))) {
+                this.revoke(onetimeToken);
+                throw new EntryNotFoundException(EntryNotFoundException.TOKEN_USED_TO_EARLY);
+            }
+            
+            //"convert" to internal token
+            internalToken = new Token(onetimeToken);
+            internalToken.setKind(Token.Kind.INTERNAL);
+            this.create(internalToken, null);
+            
+            //re-schedule token
+            if (scheduledExecutionTime != null) {
+                Token newToken = new Token(onetimeToken);
+                this.scheduleJobToken(newToken, scheduledExecutionTime);
+                this.create(newToken, null);
+                nextAuth = new AuthResponse(newToken);
+            }
+            
+            this.revoke(onetimeToken);
+        } catch (CryptoException | DatabaseException e) {
+            throw new KeyserverException(e);
+        }
+        
+        return new AuthResponse(internalToken, nextAuth);
     }
     
     public AuthResponse authenticateWithExternal(String tokenHash) throws KeyserverException {

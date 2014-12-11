@@ -1,5 +1,6 @@
 package org.backmeup.keyserver.model;
 
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -34,6 +35,7 @@ public class TokenValue {
        this.userId = value.userId;
        this.serviceUserId = value.serviceUserId;
        this.roles.addAll(value.getRoles());
+       this.values.putAll(value.getValues());
     }
 
     public String getUserId() {
@@ -90,5 +92,16 @@ public class TokenValue {
     
     public byte[] getValueAsByteArray(String key) {
         return (byte[]) this.values.get(key);
+    }
+    
+    public Calendar getValueAsCalendar(String key) {
+        Object time = this.values.get(key);
+        if (time instanceof Calendar) {
+            return (Calendar) time;
+        } else {        
+            Calendar c = Calendar.getInstance();
+            c.setTimeInMillis((Long) time);
+            return c;
+        }
     }
 }

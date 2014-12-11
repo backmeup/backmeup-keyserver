@@ -33,6 +33,8 @@ public class DefaultKeyserverImpl implements Keyserver {
     protected String serviceId = null;
     protected String servicePassword = null;
     protected int uiTokenTimeout;
+    protected int backupTokenFromTimout;
+    protected int backupTokenToTimout;
 
     protected DefaultAppLogic appLogic;
     protected DefaultUserLogic userLogic;
@@ -49,6 +51,8 @@ public class DefaultKeyserverImpl implements Keyserver {
         this.serviceId = Configuration.getProperty("backmeup.service.id");
         this.servicePassword = Configuration.getProperty("backmeup.service.password");
         this.uiTokenTimeout = Integer.parseInt(Configuration.getProperty("backmeup.keyserver.uiTokenTimeout"));
+        this.backupTokenFromTimout = Integer.parseInt(Configuration.getProperty("backmeup.keyserver.backupTokenFromTimout"));
+        this.backupTokenToTimout = Integer.parseInt(Configuration.getProperty("backmeup.keyserver.backupTokenToTimout"));
         
         //load keyrings
         for(Keyring k : KeyringConfiguration.getKeyrings()) {
@@ -299,6 +303,21 @@ public class DefaultKeyserverImpl implements Keyserver {
     @Override
     public void revokeToken(Token.Kind kind, String tokenHash) throws KeyserverException {
         this.tokenLogic.revoke(new Token(kind, tokenHash));
+    }
+    
+    @Override
+    public AuthResponse createOnetime(String userId, String serviceUserId, String username, byte[] accountKey, String[] pluginIds, Calendar scheduledExecutionTime) throws KeyserverException {
+        return this.tokenLogic.createOnetime(userId, serviceUserId, username, accountKey, pluginIds, scheduledExecutionTime);
+    }
+    
+    @Override
+    public AuthResponse authenticateWithOnetime(String tokenHash) throws KeyserverException {
+        return this.authenticateWithOnetime(tokenHash, null);
+    }
+
+    @Override
+    public AuthResponse authenticateWithOnetime(String tokenHash, Calendar scheduledExecutionTime) throws KeyserverException {
+        return this.tokenLogic.authenticateWithOnetime(tokenHash, scheduledExecutionTime);
     }
 
     //=========================================================================

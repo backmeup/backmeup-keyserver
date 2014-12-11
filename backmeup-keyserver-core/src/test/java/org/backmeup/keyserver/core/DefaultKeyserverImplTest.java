@@ -2,9 +2,11 @@ package org.backmeup.keyserver.core;
 
 import static org.junit.Assert.*;
 
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 import org.backmeup.keyserver.core.DefaultKeyserverImpl;
 import org.backmeup.keyserver.core.KeyserverException;
@@ -12,6 +14,7 @@ import org.backmeup.keyserver.core.config.Configuration;
 import org.backmeup.keyserver.core.db.sql.SQLDatabaseImpl;
 import org.backmeup.keyserver.model.App;
 import org.backmeup.keyserver.model.AuthResponse;
+import org.backmeup.keyserver.model.JsonKeys;
 import org.backmeup.keyserver.model.Token;
 import org.backmeup.keyserver.model.TokenValue;
 import org.junit.AfterClass;
@@ -304,6 +307,99 @@ public class DefaultKeyserverImplTest {
         } catch(EntryNotFoundException e) {
             assertTrue(e.getMessage().equals(EntryNotFoundException.TOKEN));
         }
+    }
+    
+    private AuthResponse createUserWithPluginsAndOnetimeToken(Calendar time) throws KeyserverException {
+        String serviceUserId = ks.registerUser(USERNAME, PASSWORD);
+        AuthResponse u = ks.authenticateUserWithPassword(USERNAME, PASSWORD);
+        String userId = u.getUserId();
+        
+        String[] pluginIds = {"facebook1", "dropbox1"};
+        String data = "json with oauth-token";
+        ks.createPluginData(userId, pluginIds[0], u.getAccountKey(), data);
+        ks.createPluginData(userId, pluginIds[1], u.getAccountKey(), data);
+        
+        AuthResponse ot = ks.createOnetime(userId, serviceUserId, u.getUsername(), u.getAccountKey(), pluginIds, time);
+        assertEquals(serviceUserId, ot.getServiceUserId());
+        assertEquals(USERNAME, ot.getUsername());
+        assertTrue(ot.getRoles().contains(TokenValue.Role.BACKUP_JOB));
+        assertTrue(ot.getToken().getValue().getValueAsCalendar(JsonKeys.EARLIEST_START_TIME).before(time));
+        assertTrue(ot.getToken().getValue().getValueAsCalendar(JsonKeys.LATEST_START_TIME).after(time));
+        assertFalse(ot.hasNext());
+        
+        return ot;
+    }
+    
+    @Test
+    public void testOnetimeToken() throws KeyserverException {
+        AuthResponse ot = this.createUserWithPluginsAndOnetimeToken(KeyserverUtils.getActTime());
+        
+        AuthResponse it = ks.authenticateWithOnetime(ot.getB64Token());
+        assertEquals(ot.getServiceUserId(), it.getServiceUserId());
+        assertEquals(USERNAME, it.getUsername());
+        assertTrue(it.getRoles().contains(TokenValue.Role.BACKUP_JOB));
+        
+        String[] pluginIds = {"facebook1", "dropbox1"};
+        String data = "json with oauth-token";
+        Map<String, String> pluginKeys = (Map<String, String>) it.getToken().getValue().getValue(JsonKeys.PLUGIN_KEYS);
+        for(String pluginId : pluginIds) {
+            byte[] pluginKey = KeyserverUtils.fromBase64String(pluginKeys.get(pluginId));
+            String pluginData = ks.getPluginData(it.getUserId(), pluginId, pluginKey);
+            assertEquals(data, pluginData);
+        }
+    }
+    
+    @Test
+    public void testOnetimeTokenTooEarly() throws KeyserverException {
+        Calendar tomorrow = KeyserverUtils.getActTime();
+        tomorrow.add(Calendar.DAY_OF_YEAR, +1);
+        AuthResponse ot = this.createUserWithPluginsAndOnetimeToken(tomorrow);
+        
+        try {
+           ks.authenticateWithOnetime(ot.getB64Token());
+        } catch(EntryNotFoundException e) {
+            assertEquals(EntryNotFoundException.TOKEN_USED_TO_EARLY, e.getMessage());
+        }
+    }
+    
+    @Test
+    public void testOnetimeTokenTooLate() throws KeyserverException {
+        Calendar yesterday = KeyserverUtils.getActTime();
+        yesterday.add(Calendar.DAY_OF_YEAR, -1);
+        AuthResponse ot = this.createUserWithPluginsAndOnetimeToken(yesterday);
+        
+        try {
+           ks.authenticateWithOnetime(ot.getB64Token());
+        } catch(EntryNotFoundException e) {
+            assertEquals(EntryNotFoundException.TOKEN, e.getMessage());
+        }        
+    }
+    
+    @Test
+    public void testOnetimeTokenDoubleUsage() throws KeyserverException {
+        AuthResponse ot = this.createUserWithPluginsAndOnetimeToken(KeyserverUtils.getActTime());
+        
+        ks.authenticateWithOnetime(ot.getB64Token());
+        try {
+           ks.authenticateWithOnetime(ot.getB64Token());
+        } catch(EntryNotFoundException e) {
+            assertEquals(EntryNotFoundException.TOKEN, e.getMessage());
+        }
+    }
+    
+    @Test
+    public void testOnetimeTokenReschedule() throws KeyserverException {
+        Calendar tomorrow = KeyserverUtils.getActTime();
+        tomorrow.add(Calendar.DAY_OF_YEAR, +1);
+        AuthResponse ot = this.createUserWithPluginsAndOnetimeToken(KeyserverUtils.getActTime());
+        
+        AuthResponse it = ks.authenticateWithOnetime(ot.getB64Token(), tomorrow);
+        assertTrue(it.hasNext());
+        AuthResponse next = it.getNext();
+        assertEquals(ot.getServiceUserId(), next.getServiceUserId());
+        assertEquals(USERNAME, next.getUsername());
+        assertTrue(next.getRoles().contains(TokenValue.Role.BACKUP_JOB));
+        assertTrue(next.getTtl().after(tomorrow));
     }
     
     //=========================================================================

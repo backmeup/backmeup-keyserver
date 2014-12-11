@@ -1,5 +1,6 @@
 package org.backmeup.keyserver.model;
 
+import java.util.Arrays;
 import java.util.Calendar;
 
 import org.apache.commons.codec.binary.Base64;
@@ -46,6 +47,17 @@ public class Token {
         this.kind = kind;
         this.b64token = b64Token;
         this.token = Base64.decodeBase64(StringUtils.getBytesUtf8(b64Token));
+    }
+    
+    public Token(Token token) {
+        this.kind = token.kind;
+        this.b64token = token.b64token;
+        this.token = Arrays.copyOf(token.token, token.token.length);
+        this.annotation = token.annotation;
+        if (token.ttl != null) {
+            this.ttl = (Calendar) token.ttl.clone();
+        }
+        this.value = new TokenValue(token.value);
     }
 
     @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "only used internally")

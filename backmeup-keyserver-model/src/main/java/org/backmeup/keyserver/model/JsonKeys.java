@@ -9,6 +9,9 @@ public final class JsonKeys {
     public static final String ANNOTATION = "annotation";
     public static final String ROLES = "roles";
     public static final String VALUES_MAP = "valuesMap";
+    public static final String EARLIEST_START_TIME = "earliestStartTime";
+    public static final String LATEST_START_TIME = "latestStartTime";
+    public static final String PLUGIN_KEYS = "pluginKeys";
     
     private JsonKeys() {
     }
