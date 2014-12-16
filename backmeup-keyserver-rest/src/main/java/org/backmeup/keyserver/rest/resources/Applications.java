@@ -5,8 +5,10 @@ import java.util.List;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -14,8 +16,11 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response.Status;
 
+import org.backmeup.keyserver.core.KeyserverException;
 import org.backmeup.keyserver.model.App;
 import org.backmeup.keyserver.model.dto.AppDTO;
 
@@ -29,13 +34,29 @@ public class Applications extends SecureBase {
     @GET
     @Path("/")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<AppDTO> listApps(@QueryParam("offset") int offset, @QueryParam("limit") int limit) {
+    public List<AppDTO> listApps() {
         List<AppDTO> appList = new ArrayList<>();
-        
-        
-        appList.add(new AppDTO());
-
+        try {
+            List<App> apps = getKeyserverLogic().listApps(this.getApp().getPassword());
+            for (App a : apps) {
+                appList.add(getMapper().map(a, AppDTO.class));
+            }
+        } catch(KeyserverException e) {
+            throw new WebApplicationException(e, Status.INTERNAL_SERVER_ERROR);
+        }
         return appList;
+    }
+    
+    @RolesAllowed("CORE")
+    @POST
+    @Path("/")
+    @Produces(MediaType.APPLICATION_JSON)
+    public AppDTO register(@NotNull @FormParam("role") App.Approle role) {
+        try {
+            return getMapper().map(getKeyserverLogic().registerApp(role), AppDTO.class);
+        } catch(KeyserverException e) {
+            throw new WebApplicationException(e, Status.INTERNAL_SERVER_ERROR);
+        }
     }
 
     /*
