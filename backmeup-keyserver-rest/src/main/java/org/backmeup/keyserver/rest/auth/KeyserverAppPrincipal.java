@@ -4,29 +4,29 @@ import java.security.Principal;
 import org.backmeup.keyserver.model.App;
 
 public class KeyserverAppPrincipal implements Principal {
-	private String userId;
-	private final App user;
+	private String appId;
+	private final App app;
 
-	public KeyserverAppPrincipal(String userId, App user) {
+	public KeyserverAppPrincipal(String appId, App app) {
 		super();
-		this.userId = userId;
-		this.user = user;
+		this.appId = appId;
+		this.app = app;
 	}
 
 	public String getUserId() {
-		return userId;
+		return appId;
 	}
 
 	public void setUserId(String userId) {
-		this.userId = userId;
+		this.appId = userId;
 	}
 
-	public App getUser() {
-		return user;
+	public App getApp() {
+		return app;
 	}
 
 	@Override
 	public String getName() {
-		return userId;
+		return appId;
 	}
 }

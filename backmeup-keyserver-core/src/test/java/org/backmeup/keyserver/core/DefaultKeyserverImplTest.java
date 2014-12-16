@@ -412,8 +412,8 @@ public class DefaultKeyserverImplTest {
         App u2 = ks.authenticateApp(u.getAppId(), u.getPassword());
         assertEquals(u.getAppId(), u2.getAppId());
         assertEquals(u.getPassword(), u2.getPassword());
-        assertEquals(App.Approle.WORKER, u.getApprole());
-        assertEquals(App.Approle.WORKER, u2.getApprole());
+        assertEquals(App.Approle.WORKER, u.getAppRole());
+        assertEquals(App.Approle.WORKER, u2.getAppRole());
     }
 
     @Test
@@ -432,7 +432,7 @@ public class DefaultKeyserverImplTest {
         App u = ks.authenticateApp(appId, appKey);
         assertEquals(u.getAppId(), appId);
         assertEquals(u.getPassword(), appKey);
-        assertEquals(App.Approle.CORE, u.getApprole());
+        assertEquals(App.Approle.CORE, u.getAppRole());
     }
 
     @Test
@@ -463,7 +463,7 @@ public class DefaultKeyserverImplTest {
         Collections.sort(apps, new Comparator<App>() {
             @Override
             public int compare(App o1, App o2) {
-                int c = o1.getApprole().compareTo(o2.getApprole());
+                int c = o1.getAppRole().compareTo(o2.getAppRole());
                 if (c != 0) {
                     return c;
                 }
@@ -475,17 +475,17 @@ public class DefaultKeyserverImplTest {
         App a = apps.get(0);
         assertEquals(ks.serviceId, a.getAppId());
         assertNull(a.getPassword());
-        assertEquals(App.Approle.CORE, a.getApprole());
+        assertEquals(App.Approle.CORE, a.getAppRole());
         
         a = apps.get(1);
         assertEquals(u.getAppId(), a.getAppId());
         assertNull(a.getPassword());
-        assertEquals(App.Approle.WORKER, a.getApprole());
+        assertEquals(App.Approle.WORKER, a.getAppRole());
         
         a = apps.get(2);
         assertEquals(u2.getAppId(), a.getAppId());
         assertNull(a.getPassword());
-        assertEquals(App.Approle.INDEXER, a.getApprole());
+        assertEquals(App.Approle.INDEXER, a.getAppRole());
     }
 
     @Test

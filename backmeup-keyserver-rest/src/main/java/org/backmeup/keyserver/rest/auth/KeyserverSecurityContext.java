@@ -5,20 +5,20 @@ import javax.ws.rs.core.SecurityContext;
 import org.backmeup.keyserver.model.App;
 
 public class KeyserverSecurityContext implements SecurityContext{
-	private final KeyserverAppPrincipal user;
+	private final KeyserverAppPrincipal principal;
 	
 	public KeyserverSecurityContext(App user) {
-		this.user = new KeyserverAppPrincipal(user.getAppId(), user);
+		this.principal = new KeyserverAppPrincipal(user.getAppId(), user);
 	}
 
 	@Override
 	public Principal getUserPrincipal() {
-		return user;
+		return principal;
 	}
 
 	@Override
 	public boolean isUserInRole(String role) {
-		return true;
+		return principal.getApp().getAppRole().toString().equals(role);
 	}
 
 	@Override

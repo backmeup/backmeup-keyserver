@@ -14,10 +14,18 @@ public class SecureBase extends Base {
     private SecurityContext securityContext;
 
     protected void canOnlyWorkWithMyData(Long appId) {
-        App activeUser = ((KeyserverAppPrincipal) securityContext.getUserPrincipal()).getUser();
+        App activeUser = ((KeyserverAppPrincipal) securityContext.getUserPrincipal()).getApp();
         if (!activeUser.getAppId().equals(appId)) {
             throw new WebApplicationException(Status.FORBIDDEN);
         }
+    }
+    
+    protected SecurityContext getSecurityContext() {
+        return this.securityContext;
+    }
+    
+    protected App getApp() {
+        return ((KeyserverAppPrincipal) this.getSecurityContext().getUserPrincipal()).getApp();
     }
 
 }

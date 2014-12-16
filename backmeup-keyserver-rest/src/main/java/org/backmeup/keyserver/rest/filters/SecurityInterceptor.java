@@ -74,8 +74,8 @@ public class SecurityInterceptor implements ContainerRequestFilter {
             // Split appId and password tokens
             final StringTokenizer tokenizer = new StringTokenizer(accessToken, ";");
             if (tokenizer.countTokens() == 2) {
-                appId = this.decodeBase64String(tokenizer.nextToken());
-                password = this.decodeBase64String(tokenizer.nextToken());
+                appId = tokenizer.nextToken();
+                password = tokenizer.nextToken();
             } else {
                 appId = "";
                 password = "";
@@ -86,18 +86,18 @@ public class SecurityInterceptor implements ContainerRequestFilter {
                 RolesAllowed rolesAnnotation = method.getAnnotation(RolesAllowed.class);
                 Set<String> rolesSet = new HashSet<>(Arrays.asList(rolesAnnotation.value()));
 
-                App user = resolveApp(appId, password);
-                if (user == null) {
+                App app = resolveApp(appId, password);
+                if (app == null) {
                     requestContext.abortWith(ACCESS_DENIED);
                     return;
                 }
 
-                if (!isAppAllowed(user, rolesSet)) {
+                if (!isAppAllowed(app, rolesSet)) {
                     requestContext.abortWith(ACCESS_DENIED);
                     return;
                 }
 
-                requestContext.setSecurityContext(new KeyserverSecurityContext(user));
+                requestContext.setSecurityContext(new KeyserverSecurityContext(app));
             }
         }
     }
@@ -112,28 +112,13 @@ public class SecurityInterceptor implements ContainerRequestFilter {
     }
 
     private boolean isAppAllowed(final App app, final Set<String> rolesSet) {        
-        if (rolesSet.contains(app.getApprole().name())) {
+        if (rolesSet.contains(app.getAppRole().name())) {
             return true;
         }
         
         return false;
     }
     
-    /**
-     * Decodes a given base64 String
-     * 
-     * @param s
-     * @return decoded UTF-8 String
-     */
-    private String decodeBase64String(final String s) {
-        try {
-            return new String(Base64.decodeBase64(StringUtils.getBytesUtf8(s)), "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            LOGGER.error("Base64 decoding failed", e);
-            return "";
-        }
-    }
-
     /*
     private <T> T fetchInstanceFromJndi(Class<T> classType) {
         try {

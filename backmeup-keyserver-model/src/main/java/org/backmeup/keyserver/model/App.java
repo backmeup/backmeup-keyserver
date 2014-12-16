@@ -15,12 +15,12 @@ public class App {
 
     private String appId;
     private String password;
-    private Approle approle;
+    private Approle appRole;
 
-    public App(String appId, String password, Approle approle) {
+    public App(String appId, String password, Approle appRole) {
         this.appId = appId;
         this.password = password;
-        this.approle = approle;
+        this.appRole = appRole;
     }
 
     public String getAppId() {
@@ -39,12 +39,12 @@ public class App {
         this.password = password;
     }
 
-    public Approle getApprole() {
-        return approle;
+    public Approle getAppRole() {
+        return appRole;
     }
 
-    public void setApprole(Approle approle) {
-        this.approle = approle;
+    public void setAppRole(Approle appRole) {
+        this.appRole = appRole;
     }
 
 }

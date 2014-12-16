@@ -29,7 +29,7 @@
 		<version.javax.servlet>3.0.1</version.javax.servlet>
 		<version.javax.enterprise.cdi-api>1.1</version.javax.enterprise.cdi-api>
 		<version.org.apache.tomcat.maven>2.2</version.org.apache.tomcat.maven>
-		<version.org.jboss.resteasy>3.0.7.Final</version.org.jboss.resteasy>
+		<version.org.jboss.resteasy>3.0.10.Final</version.org.jboss.resteasy>
 		<version.org.jboss.weld.servlet>2.1.0.Final</version.org.jboss.weld.servlet>
 		<version.org.slf4j>1.7.6</version.org.slf4j>
 		<version.net.sf.dozer>5.4.0</version.net.sf.dozer>

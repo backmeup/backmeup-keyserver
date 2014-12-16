@@ -7,6 +7,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class AppDTO {
     private String appId;
     private String password;
+    private String appRole;
 
     public AppDTO() {
 
@@ -26,5 +27,13 @@ public class AppDTO {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getAppRole() {
+        return appRole;
+    }
+
+    public void setAppRole(String appRole) {
+        this.appRole = appRole;
     }
 }
