@@ -13,7 +13,6 @@ import org.dozer.Mapper;
 public class MapperProducer {
     private static final String DOZER_APP_MAPPING = "dozer-App-mapping.xml";
 
-
     private Mapper mapper;
 
     @Produces

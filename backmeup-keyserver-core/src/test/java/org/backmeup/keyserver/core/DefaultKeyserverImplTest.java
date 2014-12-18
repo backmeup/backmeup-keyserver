@@ -341,6 +341,7 @@ public class DefaultKeyserverImplTest {
         
         String[] pluginIds = {"facebook1", "dropbox1"};
         String data = "json with oauth-token";
+        @SuppressWarnings("unchecked")
         Map<String, String> pluginKeys = (Map<String, String>) it.getToken().getValue().getValue(JsonKeys.PLUGIN_KEYS);
         for(String pluginId : pluginIds) {
             byte[] pluginKey = KeyserverUtils.fromBase64String(pluginKeys.get(pluginId));

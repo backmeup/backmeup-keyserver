@@ -1,6 +1,5 @@
 package org.backmeup.keyserver.rest.filters;
 
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -19,8 +18,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.Provider;
 
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.codec.binary.StringUtils;
 import org.backmeup.keyserver.core.Keyserver;
 import org.backmeup.keyserver.core.KeyserverException;
 import org.backmeup.keyserver.model.App;
@@ -39,8 +36,8 @@ public class SecurityInterceptor implements ContainerRequestFilter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SecurityInterceptor.class);
 
-    @Context
-    private ServletContext context;
+    //@Context
+    //private ServletContext context;
 
     @Inject
     private Keyserver keyserverLogic;
@@ -118,16 +115,4 @@ public class SecurityInterceptor implements ContainerRequestFilter {
         
         return false;
     }
-    
-    /*
-    private <T> T fetchInstanceFromJndi(Class<T> classType) {
-        try {
-            JNDIBeanManager jndiManager = JNDIBeanManager.getInstance();
-            return jndiManager.getBean(classType);
-        } catch (Exception e) {
-            LOGGER.error("", e);
-            return null;
-        }
-    }
-    */
 }

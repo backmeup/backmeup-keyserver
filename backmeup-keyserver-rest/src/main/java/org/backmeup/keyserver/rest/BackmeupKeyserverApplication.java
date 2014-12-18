@@ -9,39 +9,19 @@ import org.backmeup.keyserver.rest.filters.SecurityInterceptor;
 import org.backmeup.keyserver.rest.filters.TimingResourceFilter;
 import org.backmeup.keyserver.rest.provider.JacksonJsonConfiguration;
 import org.backmeup.keyserver.rest.resources.Applications;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-/*
-import org.backmeup.rest.filters.SecurityInterceptor;
-import org.backmeup.rest.filters.TimingResourceFilter;
-import org.backmeup.rest.provider.JacksonJsonConfiguration;
-import org.backmeup.rest.resources.Authentication;
-import org.backmeup.rest.resources.BackupJobs;
-import org.backmeup.rest.resources.Plugins;
-import org.backmeup.rest.resources.Users;
-import org.backmeup.rest.resources.Backups;
-*/
 
 public class BackmeupKeyserverApplication extends Application {
     private final Set<Class<?>> set = new HashSet<>();
     private final Set<Object> singletons = new HashSet<>();
 
     public BackmeupKeyserverApplication() {
-        // The default life-cycle for resource class instances is per-request. 
-    	set.add(Applications.class);
-        /*
-        set.add(Users.class);
-        set.add(Authentication.class);
-        set.add(Plugins.class);
-        set.add(BackupJobs.class);
-        set.add(Backups.class);
-        */
+        // The default life-cycle for resource class instances is per-request.
+        set.add(Applications.class);
 
         // The default life-cycle for providers (registered directly or via a feature) is singleton.
-        set.add(JacksonJsonConfiguration.class); // provider
-        set.add(TimingResourceFilter.class); // filter = provider
-        set.add(SecurityInterceptor.class); // filter = provider
+        set.add(JacksonJsonConfiguration.class);
+        set.add(TimingResourceFilter.class);
+        set.add(SecurityInterceptor.class);
     }
 
     @Override
