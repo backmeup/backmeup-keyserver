@@ -25,12 +25,12 @@ import org.backmeup.keyserver.model.dto.AppDTO;
  * All app specific operations will be handled within this class.
  */
 @Path("/applications")
+@Produces(MediaType.APPLICATION_JSON)
 public class Applications extends SecureBase {
 
     @RolesAllowed("CORE")
     @GET
     @Path("/")
-    @Produces(MediaType.APPLICATION_JSON)
     public List<AppDTO> listApps() {
         List<AppDTO> appList = new ArrayList<>();
         try {
@@ -47,7 +47,6 @@ public class Applications extends SecureBase {
     @RolesAllowed("CORE")
     @POST
     @Path("/")
-    @Produces(MediaType.APPLICATION_JSON)
     public AppDTO register(@NotNull @FormParam("role") App.Approle role) {
         try {
             return getMapper().map(getKeyserverLogic().registerApp(role), AppDTO.class);
@@ -59,7 +58,6 @@ public class Applications extends SecureBase {
     @RolesAllowed("CORE")
     @DELETE
     @Path("/{appId}/")
-    @Produces(MediaType.APPLICATION_JSON)
     public void remove(@PathParam("appId") String appId) {
         try {
             this.getKeyserverLogic().removeApp(appId);
@@ -73,7 +71,6 @@ public class Applications extends SecureBase {
     @RolesAllowed({"CORE", "WORKER", "STORAGE", "INDEXER"})
     @POST
     @Path("/{appId}/")
-    @Produces(MediaType.APPLICATION_JSON)
     public void authenticate(@PathParam("appId") String appId, @NotNull @FormParam("key") String appKey) {
         try {
             this.getKeyserverLogic().authenticateApp(appId, appKey);
