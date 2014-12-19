@@ -3,23 +3,20 @@ package org.backmeup.keyserver.rest.resources;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
+import org.backmeup.keyserver.core.EntryNotFoundException;
 import org.backmeup.keyserver.core.KeyserverException;
 import org.backmeup.keyserver.model.App;
 import org.backmeup.keyserver.model.dto.AppDTO;
@@ -58,66 +55,32 @@ public class Applications extends SecureBase {
             throw new WebApplicationException(e, Status.INTERNAL_SERVER_ERROR);
         }
     }
-
-    /*
-     * @PermitAll
-     * 
-     * @POST
-     * 
-     * @Path("/")
-     * 
-     * @Consumes(MediaType.APPLICATION_JSON)
-     * 
-     * @Produces(MediaType.APPLICATION_JSON) public AppDTO addUser(AppDTO user)
-     * { AppUser userModel = getMapper().map(user, BackMeUpUser.class);
-     * userModel = getLogic().addUser(userModel); return
-     * getMapper().map(userModel, UserDTO.class); }
-     */
-
-    /*
-     * @RolesAllowed("user")
-     * 
-     * @GET
-     * 
-     * @Path("/{userId}")
-     * 
-     * @Produces(MediaType.APPLICATION_JSON) public UserDTO
-     * getUser(@PathParam("userId") Long userId) {
-     * canOnlyWorkWithMyData(userId);
-     * 
-     * BackMeUpUser userModel = getLogic().getUserByUserId(userId); return
-     * getMapper().map(userModel, UserDTO.class); }
-     * 
-     * @RolesAllowed("user")
-     * 
-     * @PUT
-     * 
-     * @Path("/{userId}")
-     * 
-     * @Consumes(MediaType.APPLICATION_JSON)
-     * 
-     * @Produces(MediaType.APPLICATION_JSON) public UserDTO
-     * updateUser(@PathParam("userId") Long userId, UserDTO user) {
-     * canOnlyWorkWithMyData(userId);
-     * 
-     * BackMeUpUser userModel = getLogic().getUserByUserId(userId);
-     * userModel.setFirstname(user.getFirstname());
-     * userModel.setLastname(user.getLastname());
-     * userModel.setEmail(user.getEmail());
-     * 
-     * BackMeUpUser newUser = getLogic().updateUser(userModel); return
-     * getMapper().map(newUser, UserDTO.class); }
-     * 
-     * @RolesAllowed("user")
-     * 
-     * @DELETE
-     * 
-     * @Path("/{userId}")
-     * 
-     * @Produces(MediaType.APPLICATION_JSON) public void
-     * deleteUser(@PathParam("userId") Long userId) {
-     * canOnlyWorkWithMyData(userId);
-     * 
-     * getLogic().deleteUser(userId); }
-     */
+    
+    @RolesAllowed("CORE")
+    @DELETE
+    @Path("/{appId}/")
+    @Produces(MediaType.APPLICATION_JSON)
+    public void remove(@PathParam("appId") String appId) {
+        try {
+            this.getKeyserverLogic().removeApp(appId);
+        } catch(EntryNotFoundException e) {
+            throw new WebApplicationException(e, Status.NOT_FOUND);
+        } catch(KeyserverException e) {
+            throw new WebApplicationException(e, Status.INTERNAL_SERVER_ERROR);
+        }
+    }
+    
+    @RolesAllowed({"CORE", "WORKER", "STORAGE", "INDEXER"})
+    @POST
+    @Path("/{appId}/")
+    @Produces(MediaType.APPLICATION_JSON)
+    public void authenticate(@PathParam("appId") String appId, @NotNull @FormParam("key") String appKey) {
+        try {
+            this.getKeyserverLogic().authenticateApp(appId, appKey);
+        } catch(EntryNotFoundException e) {
+            throw new WebApplicationException(e, Status.NOT_FOUND);
+        } catch(KeyserverException e) {
+            throw new WebApplicationException(e, Status.UNAUTHORIZED);
+        }
+    }
 }

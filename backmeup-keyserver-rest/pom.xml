@@ -37,6 +37,16 @@
 			<artifactId>resteasy-validator-provider-11</artifactId>
 			<version>${version.org.jboss.resteasy}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.jboss.resteasy</groupId>
+			<artifactId>resteasy-jaxrs</artifactId>
+			<version>${version.org.jboss.resteasy}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.resteasy</groupId>
+			<artifactId>resteasy-jaxb-provider</artifactId>
+			<version>${version.org.jboss.resteasy}</version>
+		</dependency>
 
 		<dependency>
 			<groupId>org.backmeup</groupId>
