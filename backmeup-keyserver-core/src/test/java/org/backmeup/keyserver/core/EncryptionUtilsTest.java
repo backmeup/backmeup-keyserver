@@ -2,10 +2,7 @@ package org.backmeup.keyserver.core;
 
 import static org.backmeup.keyserver.core.EncryptionUtils.concat;
 import static org.backmeup.keyserver.core.EncryptionUtils.split;
-import static org.backmeup.keyserver.model.KeyserverUtils.fromBase64String;
-import static org.backmeup.keyserver.model.KeyserverUtils.toBase64String;
 import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
