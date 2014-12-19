@@ -36,9 +36,6 @@ public class SecurityInterceptor implements ContainerRequestFilter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SecurityInterceptor.class);
 
-    //@Context
-    //private ServletContext context;
-
     @Inject
     private Keyserver keyserverLogic;
 
@@ -53,49 +50,44 @@ public class SecurityInterceptor implements ContainerRequestFilter {
                 return;
             }
 
-            // Get authorization header
-            final MultivaluedMap<String, String> headers = requestContext.getHeaders();
-            final List<String> authorization = headers.get(AUTHORIZATION_PROPERTY);
-
-            // If no authorization header, deny access
-            if (authorization == null || authorization.isEmpty()) {
+            App app = this.parseAuthorizationHeader(requestContext);
+            if (app == null) {
                 requestContext.abortWith(ACCESS_DENIED);
                 return;
             }
 
-            // Get token from header
-            final String accessToken = authorization.get(0);
-
-            String appId;
-            String password;
-            // Split appId and password tokens
-            final StringTokenizer tokenizer = new StringTokenizer(accessToken, ";");
-            if (tokenizer.countTokens() == 2) {
-                appId = tokenizer.nextToken();
-                password = tokenizer.nextToken();
-            } else {
-                appId = "";
-                password = "";
-            }
-
             // Verify token
             if (method.isAnnotationPresent(RolesAllowed.class)) {
-                RolesAllowed rolesAnnotation = method.getAnnotation(RolesAllowed.class);
-                Set<String> rolesSet = new HashSet<>(Arrays.asList(rolesAnnotation.value()));
-
-                App app = resolveApp(appId, password);
-                if (app == null) {
-                    requestContext.abortWith(ACCESS_DENIED);
-                    return;
-                }
-
+                Set<String> rolesSet = new HashSet<>(Arrays.asList(method.getAnnotation(RolesAllowed.class).value()));
+                
                 if (!isAppAllowed(app, rolesSet)) {
                     requestContext.abortWith(ACCESS_DENIED);
                     return;
-                }
-
-                requestContext.setSecurityContext(new KeyserverSecurityContext(app));
+                }                
             }
+            
+            requestContext.setSecurityContext(new KeyserverSecurityContext(app));
+        }
+    }
+    
+    private App parseAuthorizationHeader(ContainerRequestContext requestContext) {
+     // Get authorization header
+        final MultivaluedMap<String, String> headers = requestContext.getHeaders();
+        final List<String> authorization = headers.get(AUTHORIZATION_PROPERTY);
+
+        // If no authorization header, deny access
+        if (authorization == null || authorization.isEmpty()) {
+            return null;
+        }
+
+        // Split appId and password tokens
+        final StringTokenizer tokenizer = new StringTokenizer(authorization.get(0), ";");
+        if (tokenizer.countTokens() == 2) {
+            String appId = tokenizer.nextToken();
+            String password = tokenizer.nextToken();
+            return resolveApp(appId, password);
+        } else {
+            return null;
         }
     }
 
