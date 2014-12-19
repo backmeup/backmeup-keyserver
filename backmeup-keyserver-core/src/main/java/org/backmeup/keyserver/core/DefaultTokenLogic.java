@@ -1,9 +1,9 @@
 package org.backmeup.keyserver.core;
 
-import static org.backmeup.keyserver.core.KeyserverUtils.fmtKey;
-import static org.backmeup.keyserver.core.KeyserverUtils.generateKey;
-import static org.backmeup.keyserver.core.KeyserverUtils.hashByteArrayWithPepper;
-import static org.backmeup.keyserver.core.KeyserverUtils.toBase64String;
+import static org.backmeup.keyserver.core.EncryptionUtils.fmtKey;
+import static org.backmeup.keyserver.core.EncryptionUtils.generateKey;
+import static org.backmeup.keyserver.core.EncryptionUtils.hashByteArrayWithPepper;
+import static org.backmeup.keyserver.model.KeyserverUtils.*;
 
 import java.io.IOException;
 import java.text.MessageFormat;
@@ -279,7 +279,7 @@ public class DefaultTokenLogic {
         tokenValue.putValue(JsonKeys.ACCOUNT_KEY, accountKey);
         token.setValue(tokenValue);
         
-        token.setTTL(KeyserverUtils.getActTimePlusMinuteOffset(this.keyserver.uiTokenTimeout));
+        token.setTTL(getActTimePlusMinuteOffset(this.keyserver.uiTokenTimeout));
         
         this.create(token, accountKey);
         return token;
@@ -293,7 +293,7 @@ public class DefaultTokenLogic {
         
         Map<String, String> pluginKeys = new HashMap<>();
         for (String pluginId : pluginIds) {
-            pluginKeys.put(pluginId, KeyserverUtils.toBase64String(this.keyserver.pluglinDataLogic.getPluginKey(userId, pluginId, accountKey)));
+            pluginKeys.put(pluginId, toBase64String(this.keyserver.pluglinDataLogic.getPluginKey(userId, pluginId, accountKey)));
         }
         tokenValue.putValue(JsonKeys.PLUGIN_KEYS, pluginKeys);
         
@@ -333,7 +333,7 @@ public class DefaultTokenLogic {
                 throw new EntryNotFoundException(EntryNotFoundException.TOKEN_USER_REMOVED);
             }
             
-            token.setTTL(KeyserverUtils.getActTimePlusMinuteOffset(this.keyserver.uiTokenTimeout));
+            token.setTTL(getActTimePlusMinuteOffset(this.keyserver.uiTokenTimeout));
             this.keyserver.expireEntry(tokenEntry);
         } catch (CryptoException | DatabaseException e) {
             throw new KeyserverException(e);
@@ -361,7 +361,7 @@ public class DefaultTokenLogic {
                 throw new EntryNotFoundException(EntryNotFoundException.TOKEN_USER_REMOVED);
             }
             
-            if(KeyserverUtils.getActTime().before(value.getValueAsCalendar(JsonKeys.EARLIEST_START_TIME))) {
+            if(getActTime().before(value.getValueAsCalendar(JsonKeys.EARLIEST_START_TIME))) {
                 this.revoke(onetimeToken);
                 throw new EntryNotFoundException(EntryNotFoundException.TOKEN_USED_TO_EARLY);
             }

@@ -1,6 +1,7 @@
 package org.backmeup.keyserver.core;
 
-import static org.backmeup.keyserver.core.KeyserverUtils.*;
+import static org.backmeup.keyserver.core.EncryptionUtils.*;
+import static org.backmeup.keyserver.model.KeyserverUtils.toBase64String;
 
 import java.io.IOException;
 import java.text.MessageFormat;

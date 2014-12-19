@@ -1,7 +1,7 @@
 package org.backmeup.keyserver.core;
 
-import static org.backmeup.keyserver.core.KeyserverUtils.fmtKey;
-import static org.backmeup.keyserver.core.KeyserverUtils.generateKey;
+import static org.backmeup.keyserver.core.EncryptionUtils.fmtKey;
+import static org.backmeup.keyserver.core.EncryptionUtils.generateKey;
 
 import java.text.MessageFormat;
 

@@ -16,12 +16,12 @@ import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
-import java.util.TimeZone;
 
 import org.backmeup.keyserver.core.config.Configuration;
 import org.backmeup.keyserver.core.db.Database;
 import org.backmeup.keyserver.core.db.DatabaseException;
 import org.backmeup.keyserver.model.KeyserverEntry;
+import org.backmeup.keyserver.model.KeyserverUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -189,15 +189,15 @@ public class SQLDatabaseImpl implements Database {
     }
 
     protected KeyserverEntry createEntryFromResultSet(ResultSet rs) throws SQLException {
-        Calendar createdAt = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+        Calendar createdAt = KeyserverUtils.getActTime();
         createdAt.setTime(rs.getTimestamp("created_at"));
-        Calendar lastModified = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+        Calendar lastModified = KeyserverUtils.getActTime();
         lastModified.setTime(rs.getTimestamp("last_modified"));
 
         Timestamp ttl = rs.getTimestamp("ttl");
         Calendar cttl = null;
         if (ttl != null) {
-            cttl = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+            cttl = KeyserverUtils.getActTime();
             cttl.setTime(ttl);
         }
 

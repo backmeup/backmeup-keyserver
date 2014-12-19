@@ -1,7 +1,8 @@
 package org.backmeup.keyserver.core;
 
-import static org.backmeup.keyserver.core.KeyserverUtils.hashByteArrayWithPepper;
-import static org.backmeup.keyserver.core.KeyserverUtils.toBase64String;
+import static org.backmeup.keyserver.core.EncryptionUtils.hashByteArrayWithPepper;
+import static org.backmeup.keyserver.core.EncryptionUtils.hashStringWithPepper;
+import static org.backmeup.keyserver.model.KeyserverUtils.toBase64String;
 
 import java.security.SecureRandom;
 import java.text.MessageFormat;
@@ -101,7 +102,7 @@ public class DefaultKeyserverImpl implements Keyserver {
         for (Keyring k : this.keyrings.values()) {
             String[] hashes = new String[hashInputs.length];
             for (int i = 0; i < hashInputs.length; i++) {
-                hashes[i] = KeyserverUtils.hashStringWithPepper(k, hashInputs[i], pepperApplications[i]);
+                hashes[i] = hashStringWithPepper(k, hashInputs[i], pepperApplications[i]);
             }
 
             KeyserverEntry entry = this.db.getEntry(key.format(hashes));
@@ -123,7 +124,7 @@ public class DefaultKeyserverImpl implements Keyserver {
         for (Keyring k : this.keyrings.values()) {
             String[] hashes = new String[hashInputs.length];
             for (int i = 0; i < hashInputs.length; i++) {
-                hashes[i] = toBase64String(KeyserverUtils.hashByteArrayWithPepper(k, hashInputs[i], pepperApplications[i]));
+                hashes[i] = toBase64String(hashByteArrayWithPepper(k, hashInputs[i], pepperApplications[i]));
             }
 
             KeyserverEntry entry = this.db.getEntry(key.format(hashes));
@@ -193,19 +194,19 @@ public class DefaultKeyserverImpl implements Keyserver {
     }
     
     protected String decryptString(byte[] key, String pepperApplication, byte[] value) throws CryptoException {
-        return KeyserverUtils.decryptString(this.activeKeyring, hashByteArrayWithPepper(this.activeKeyring, key, pepperApplication), value);
+        return EncryptionUtils.decryptString(this.activeKeyring, hashByteArrayWithPepper(this.activeKeyring, key, pepperApplication), value);
     }
     
     protected byte[] encryptString(byte[] key, String pepperApplication, String value) throws CryptoException { 
-        return KeyserverUtils.encryptString(this.activeKeyring, hashByteArrayWithPepper(this.activeKeyring, key, pepperApplication), value);
+        return EncryptionUtils.encryptString(this.activeKeyring, hashByteArrayWithPepper(this.activeKeyring, key, pepperApplication), value);
     }
     
     protected byte[] decryptByteArray(byte[] key, String pepperApplication, byte[] value) throws CryptoException {
-        return KeyserverUtils.decryptByteArray(this.activeKeyring, hashByteArrayWithPepper(this.activeKeyring, key, pepperApplication), value);
+        return EncryptionUtils.decryptByteArray(this.activeKeyring, hashByteArrayWithPepper(this.activeKeyring, key, pepperApplication), value);
     }
     
     protected byte[] encryptByteArray(byte[] key, String pepperApplication, byte[] value) throws CryptoException {
-        return KeyserverUtils.encryptByteArray(this.activeKeyring, hashByteArrayWithPepper(this.activeKeyring, key, pepperApplication), value);
+        return EncryptionUtils.encryptByteArray(this.activeKeyring, hashByteArrayWithPepper(this.activeKeyring, key, pepperApplication), value);
     }
 
     //=========================================================================

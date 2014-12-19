@@ -1,10 +1,10 @@
 package org.backmeup.keyserver.model;
 
+import static org.backmeup.keyserver.model.KeyserverUtils.toBase64String;
+import static org.backmeup.keyserver.model.KeyserverUtils.fromBase64String;
+
 import java.util.Arrays;
 import java.util.Calendar;
-
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.codec.binary.StringUtils;
 
 public class Token {
     public static enum Kind {
@@ -40,13 +40,13 @@ public class Token {
     public Token(Kind kind, byte[] token) {
         this.kind = kind;
         this.token = token;
-        this.b64token = StringUtils.newStringUtf8(Base64.encodeBase64(token));
+        this.b64token = toBase64String(token);
     }
 
     public Token(Kind kind, String b64Token) {
         this.kind = kind;
         this.b64token = b64Token;
-        this.token = Base64.decodeBase64(StringUtils.getBytesUtf8(b64Token));
+        this.token = fromBase64String(b64Token);
     }
     
     public Token(Token token) {
@@ -69,7 +69,7 @@ public class Token {
     @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "only used internally")
     public void setToken(byte[] token) {
         this.token = token;
-        this.b64token = StringUtils.newStringUtf8(Base64.encodeBase64(token));
+        this.b64token = toBase64String(token);
     }
 
     public String getB64Token() {
@@ -78,7 +78,7 @@ public class Token {
 
     public void setB64Token(String b64Token) {
         this.b64token = b64Token;
-        this.token = Base64.decodeBase64(StringUtils.getBytesUtf8(b64Token));
+        this.token = fromBase64String(b64Token);
     }
 
     public String getAnnotation() {

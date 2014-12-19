@@ -1,7 +1,6 @@
 package org.backmeup.keyserver.model;
 
 import java.util.Calendar;
-import java.util.TimeZone;
 
 public class KeyserverEntry {
     protected String key;
@@ -15,7 +14,7 @@ public class KeyserverEntry {
     public KeyserverEntry(String key) {
         this.key = key;
         this.value = new byte[0];
-        this.createdAt = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+        this.createdAt = KeyserverUtils.getActTime();
         this.lastModified = this.createdAt;
     }
 
@@ -44,7 +43,7 @@ public class KeyserverEntry {
     @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "only used internally")
     public void setValue(byte[] value, boolean preserveTTL) {
         this.value = value;
-        this.lastModified = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+        this.lastModified = KeyserverUtils.getActTime();
         this.version++;
         if (!preserveTTL) {
             this.ttl = null;
@@ -76,7 +75,7 @@ public class KeyserverEntry {
     }
 
     public void expire() {
-        this.setTTL(Calendar.getInstance(TimeZone.getTimeZone("UTC")));
+        this.setTTL(KeyserverUtils.getActTime());
     }
 
     public String getKey() {

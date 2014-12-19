@@ -1,11 +1,11 @@
 package org.backmeup.keyserver.core;
 
-import static org.backmeup.keyserver.core.KeyserverUtils.fmtKey;
-import static org.backmeup.keyserver.core.KeyserverUtils.generateKey;
-import static org.backmeup.keyserver.core.KeyserverUtils.hashByteArrayWithPepper;
-import static org.backmeup.keyserver.core.KeyserverUtils.toBase64String;
-import static org.backmeup.keyserver.core.KeyserverUtils.fromBase64String;
-import static org.backmeup.keyserver.core.KeyserverUtils.stretchStringWithPepper;
+import static org.backmeup.keyserver.core.EncryptionUtils.fmtKey;
+import static org.backmeup.keyserver.core.EncryptionUtils.generateKey;
+import static org.backmeup.keyserver.core.EncryptionUtils.hashByteArrayWithPepper;
+import static org.backmeup.keyserver.core.EncryptionUtils.stretchStringWithPepper;
+import static org.backmeup.keyserver.model.KeyserverUtils.fromBase64String;
+import static org.backmeup.keyserver.model.KeyserverUtils.toBase64String;
 
 import java.text.MessageFormat;
 import java.util.LinkedList;

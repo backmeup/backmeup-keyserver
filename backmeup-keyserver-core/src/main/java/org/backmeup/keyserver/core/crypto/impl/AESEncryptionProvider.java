@@ -14,7 +14,7 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
-import org.backmeup.keyserver.core.KeyserverUtils;
+import org.backmeup.keyserver.core.EncryptionUtils;
 import org.backmeup.keyserver.core.crypto.CryptoException;
 import org.backmeup.keyserver.core.crypto.EncryptionProvider;
 
@@ -53,7 +53,7 @@ public class AESEncryptionProvider implements EncryptionProvider {
             this.cipher.init(Cipher.ENCRYPT_MODE, keySpec);
             AlgorithmParameters params = cipher.getParameters();
             byte[] ivBytes = params.getParameterSpec(IvParameterSpec.class).getIV();
-            return KeyserverUtils.concat(ivBytes, cipher.doFinal(message));
+            return EncryptionUtils.concat(ivBytes, cipher.doFinal(message));
         } catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException | InvalidParameterSpecException e) {
             throw new CryptoException(e);
         }
@@ -62,7 +62,7 @@ public class AESEncryptionProvider implements EncryptionProvider {
     @Override
     public byte[] decrypt(byte[] key, byte[] enrcypted) throws CryptoException {
         SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
-        byte[][] ivAndEncrypted = KeyserverUtils.split(enrcypted, IV_LENGTH);
+        byte[][] ivAndEncrypted = EncryptionUtils.split(enrcypted, IV_LENGTH);
         try {
             this.cipher.init(Cipher.DECRYPT_MODE, keySpec, new IvParameterSpec(ivAndEncrypted[0]));
             return cipher.doFinal(ivAndEncrypted[1]);
