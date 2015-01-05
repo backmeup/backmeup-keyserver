@@ -91,7 +91,15 @@ public class TokenValue {
     }
     
     public byte[] getValueAsByteArray(String key) {
-        return (byte[]) this.values.get(key);
+        Object value = this.values.get(key);
+        if (value instanceof byte[]) {
+            return (byte[]) value;
+        } else if (value instanceof String) {
+            return KeyserverUtils.fromBase64String((String) value);
+        } else {
+            return null;
+        }
+        
     }
     
     public Calendar getValueAsCalendar(String key) {
