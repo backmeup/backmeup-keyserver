@@ -334,7 +334,7 @@ public class DefaultTokenLogic {
             }
             
             token.setTTL(getActTimePlusMinuteOffset(this.keyserver.uiTokenTimeout));
-            this.keyserver.expireEntry(tokenEntry);
+            this.keyserver.updateEntryTTL(tokenEntry);
         } catch (CryptoException | DatabaseException e) {
             throw new KeyserverException(e);
         }

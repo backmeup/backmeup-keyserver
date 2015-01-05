@@ -187,6 +187,10 @@ public class DefaultKeyserverImpl implements Keyserver {
         this.db.updateTTL(entry);
     }
     
+    protected void updateEntryTTL(KeyserverEntry entry) throws DatabaseException {
+        this.db.updateTTL(entry);
+    }
+    
     protected void updateEntry(KeyserverEntry entry, byte[] value) throws DatabaseException {
         this.expireEntry(entry);
         entry.setValue(value);
