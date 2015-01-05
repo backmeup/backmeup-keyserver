@@ -33,29 +33,15 @@ public class Users extends SecureBase {
     @RolesAllowed("CORE")
     @POST
     @Path("/")
-    public String register(@NotNull @FormParam("username") String username, @NotNull @FormParam("password") String password) {
-        try {
-            return getKeyserverLogic().registerUser(username, password);
-        } catch(KeyserverException e) {
-            throw new WebApplicationException(e);
-        }
+    public String register(@NotNull @FormParam("username") String username, @NotNull @FormParam("password") String password) throws KeyserverException {
+        return getKeyserverLogic().registerUser(username, password);
     }
 
     @RolesAllowed("CORE")
     @POST
     @Path("/authenticate/")
-    public AuthResponseDTO authenticate(@NotNull @FormParam("username") String username, @NotNull @FormParam("password") String password) {
-        try {
-            return getMapper().map(this.getKeyserverLogic().authenticateUserWithPassword(username, password), AuthResponseDTO.class);
-        } catch(EntryNotFoundException e) {
-            throw new WebApplicationException(e, Status.NOT_FOUND);
-        } catch(KeyserverException e) {
-            if (e.isCausedByCryptoException()) {
-                throw new WebApplicationException(e, Status.UNAUTHORIZED);
-            } else {
-                throw new WebApplicationException(e);
-            }
-        }
+    public AuthResponseDTO authenticate(@NotNull @FormParam("username") String username, @NotNull @FormParam("password") String password) throws KeyserverException {
+        return getMapper().map(this.getKeyserverLogic().authenticateUserWithPassword(username, password), AuthResponseDTO.class);
     }
     
     @RolesAllowed({"CORE", "INDEXER"})

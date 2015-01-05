@@ -69,6 +69,7 @@ public class SecurityInterceptor implements ContainerRequestFilter {
                 }
             }
 
+            // parse and verify token
             AuthResponse auth = null;
             try {
                 Token token = this.parseTokenHeader(requestContext);
@@ -82,17 +83,17 @@ public class SecurityInterceptor implements ContainerRequestFilter {
                             break;
                     }
                 }
+                
+                if (method.isAnnotationPresent(TokenRequired.class)) {
+                    if (auth == null) {
+                        requestContext.abortWith(ACCESS_DENIED);
+                    }
+                }
             } catch (IllegalArgumentException e) {
                 requestContext.abortWith(new ServerResponse("Unkown token kind", 400, new Headers<>()));
                 return;
             } catch (KeyserverException e) {
                 requestContext.abortWith(ACCESS_DENIED);
-            }
-            
-            if (method.isAnnotationPresent(TokenRequired.class)) {
-                if (auth == null) {
-                    requestContext.abortWith(ACCESS_DENIED);
-                }
             }
 
             requestContext.setSecurityContext(new KeyserverSecurityContext(app, auth));

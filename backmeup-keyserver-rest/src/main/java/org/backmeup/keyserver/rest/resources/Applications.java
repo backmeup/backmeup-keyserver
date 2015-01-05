@@ -31,53 +31,35 @@ public class Applications extends SecureBase {
     @RolesAllowed("CORE")
     @GET
     @Path("/")
-    public List<AppDTO> listApps() {
+    public List<AppDTO> listApps() throws KeyserverException {
         List<AppDTO> appList = new ArrayList<>();
-        try {
-            List<App> apps = getKeyserverLogic().listApps(this.getApp().getPassword());
-            for (App a : apps) {
-                appList.add(getMapper().map(a, AppDTO.class));
-            }
-        } catch(KeyserverException e) {
-            throw new WebApplicationException(e, Status.INTERNAL_SERVER_ERROR);
+        
+        List<App> apps = getKeyserverLogic().listApps(this.getApp().getPassword());
+        for (App a : apps) {
+            appList.add(getMapper().map(a, AppDTO.class));
         }
+        
         return appList;
     }
     
     @RolesAllowed("CORE")
     @POST
     @Path("/")
-    public AppDTO register(@NotNull @FormParam("role") App.Approle role) {
-        try {
-            return getMapper().map(getKeyserverLogic().registerApp(role), AppDTO.class);
-        } catch(KeyserverException e) {
-            throw new WebApplicationException(e, Status.INTERNAL_SERVER_ERROR);
-        }
+    public AppDTO register(@NotNull @FormParam("role") App.Approle role) throws KeyserverException {
+        return getMapper().map(getKeyserverLogic().registerApp(role), AppDTO.class);
     }
     
     @RolesAllowed("CORE")
     @DELETE
     @Path("/{appId}/")
-    public void remove(@PathParam("appId") String appId) {
-        try {
-            this.getKeyserverLogic().removeApp(appId);
-        } catch(EntryNotFoundException e) {
-            throw new WebApplicationException(e, Status.NOT_FOUND);
-        } catch(KeyserverException e) {
-            throw new WebApplicationException(e, Status.INTERNAL_SERVER_ERROR);
-        }
+    public void remove(@PathParam("appId") String appId) throws KeyserverException {
+        this.getKeyserverLogic().removeApp(appId);
     }
     
     @RolesAllowed({"CORE", "WORKER", "STORAGE", "INDEXER"})
     @POST
     @Path("/{appId}/")
-    public void authenticate(@PathParam("appId") String appId, @NotNull @FormParam("key") String appKey) {
-        try {
-            this.getKeyserverLogic().authenticateApp(appId, appKey);
-        } catch(EntryNotFoundException e) {
-            throw new WebApplicationException(e, Status.NOT_FOUND);
-        } catch(KeyserverException e) {
-            throw new WebApplicationException(e, Status.UNAUTHORIZED);
-        }
+    public void authenticate(@PathParam("appId") String appId, @NotNull @FormParam("key") String appKey) throws KeyserverException {
+        this.getKeyserverLogic().authenticateApp(appId, appKey);
     }
 }
