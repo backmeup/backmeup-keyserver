@@ -9,6 +9,7 @@ import org.backmeup.keyserver.rest.filters.SecurityInterceptor;
 import org.backmeup.keyserver.rest.filters.TimingResourceFilter;
 import org.backmeup.keyserver.rest.provider.JacksonJsonConfiguration;
 import org.backmeup.keyserver.rest.resources.Applications;
+import org.backmeup.keyserver.rest.resources.Users;
 
 public class BackmeupKeyserverApplication extends Application {
     private final Set<Class<?>> set = new HashSet<>();
@@ -17,6 +18,7 @@ public class BackmeupKeyserverApplication extends Application {
     public BackmeupKeyserverApplication() {
         // The default life-cycle for resource class instances is per-request.
         set.add(Applications.class);
+        set.add(Users.class);
 
         // The default life-cycle for providers (registered directly or via a feature) is singleton.
         set.add(JacksonJsonConfiguration.class);

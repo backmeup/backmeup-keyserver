@@ -1,14 +1,18 @@
 package org.backmeup.keyserver.rest.auth;
 
 import java.security.Principal;
+
 import javax.ws.rs.core.SecurityContext;
+
 import org.backmeup.keyserver.model.App;
+import org.backmeup.keyserver.model.AuthResponse;
+import org.backmeup.keyserver.model.Token;
 
 public class KeyserverSecurityContext implements SecurityContext {
-    private final KeyserverAppPrincipal principal;
+    private final KeyserverPrincipal principal;
 
-    public KeyserverSecurityContext(App app) {
-        this.principal = new KeyserverAppPrincipal(app);
+    public KeyserverSecurityContext(App app, AuthResponse auth) {
+        this.principal = new KeyserverPrincipal(app, auth);
     }
 
     @Override
