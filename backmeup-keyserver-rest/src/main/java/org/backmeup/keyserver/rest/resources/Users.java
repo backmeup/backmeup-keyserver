@@ -2,18 +2,13 @@ package org.backmeup.keyserver.rest.resources;
 
 import javax.annotation.security.RolesAllowed;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
 
-import org.backmeup.keyserver.core.EntryNotFoundException;
 import org.backmeup.keyserver.core.KeyserverException;
 import org.backmeup.keyserver.model.AuthResponse;
 import org.backmeup.keyserver.model.dto.AuthResponseDTO;
@@ -26,25 +21,23 @@ import org.backmeup.keyserver.rest.auth.TokenRequired;
 @Produces(MediaType.APPLICATION_JSON)
 public class Users extends SecureBase {
 
-    public Users() {
-        // TODO Auto-generated constructor stub
-    }
-
     @RolesAllowed("CORE")
     @POST
     @Path("/")
-    public String register(@NotNull @FormParam("username") String username, @NotNull @FormParam("password") String password) throws KeyserverException {
+    public String register(@NotNull @FormParam("username") String username, @NotNull @FormParam("password") String password)
+            throws KeyserverException {
         return getKeyserverLogic().registerUser(username, password);
     }
 
     @RolesAllowed("CORE")
     @POST
     @Path("/authenticate/")
-    public AuthResponseDTO authenticate(@NotNull @FormParam("username") String username, @NotNull @FormParam("password") String password) throws KeyserverException {
+    public AuthResponseDTO authenticate(@NotNull @FormParam("username") String username, @NotNull @FormParam("password") String password)
+            throws KeyserverException {
         return getMapper().map(this.getKeyserverLogic().authenticateUserWithPassword(username, password), AuthResponseDTO.class);
     }
-    
-    @RolesAllowed({"CORE", "INDEXER"})
+
+    @RolesAllowed({ "CORE", "INDEXER" })
     @TokenRequired
     @GET
     @Path("/index_key/")
@@ -53,7 +46,8 @@ public class Users extends SecureBase {
         return this.getKeyserverLogic().getIndexKey(auth.getUserId(), auth.getAccountKey());
     }
     
-/*    @RolesAllowed("CORE")
+/*
+    @RolesAllowed("CORE")
     @GET
     @Path("/")
     public List<AppDTO> listApps() {
@@ -96,6 +90,6 @@ public class Users extends SecureBase {
             throw new WebApplicationException(e, Status.UNAUTHORIZED);
         }
     }
-}*/
+*/
 
 }

@@ -32,10 +32,10 @@ public class TokenValue {
     }
 
     public TokenValue(TokenValue value) {
-       this.userId = value.userId;
-       this.serviceUserId = value.serviceUserId;
-       this.roles.addAll(value.getRoles());
-       this.values.putAll(value.getValues());
+        this.userId = value.userId;
+        this.serviceUserId = value.serviceUserId;
+        this.roles.addAll(value.getRoles());
+        this.values.putAll(value.getValues());
     }
 
     public String getUserId() {
@@ -65,11 +65,11 @@ public class TokenValue {
     public boolean hasRole(Role role) {
         return this.roles.contains(role);
     }
-    
+
     public Map<String, Object> getValues() {
         return values;
     }
-    
+
     public void setValues(Map<String, Object> values) {
         this.values.putAll(values);
     }
@@ -77,19 +77,19 @@ public class TokenValue {
     public void putValue(String key, Object value) {
         this.values.put(key, value);
     }
-    
+
     public boolean hasValue(String key) {
         return this.values.containsKey(key);
     }
-    
+
     public Object getValue(String key) {
         return this.values.get(key);
     }
-    
+
     public String getValueAsString(String key) {
         return (String) this.values.get(key);
     }
-    
+
     public byte[] getValueAsByteArray(String key) {
         Object value = this.values.get(key);
         if (value instanceof byte[]) {
@@ -97,16 +97,16 @@ public class TokenValue {
         } else if (value instanceof String) {
             return KeyserverUtils.fromBase64String((String) value);
         } else {
-            return null;
+            return new byte[0];
         }
-        
+
     }
-    
+
     public Calendar getValueAsCalendar(String key) {
         Object time = this.values.get(key);
         if (time instanceof Calendar) {
             return (Calendar) time;
-        } else {        
+        } else {
             Calendar c = Calendar.getInstance();
             c.setTimeInMillis((Long) time);
             return c;

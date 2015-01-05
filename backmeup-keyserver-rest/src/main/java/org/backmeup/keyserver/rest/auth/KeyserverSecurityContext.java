@@ -6,7 +6,6 @@ import javax.ws.rs.core.SecurityContext;
 
 import org.backmeup.keyserver.model.App;
 import org.backmeup.keyserver.model.AuthResponse;
-import org.backmeup.keyserver.model.Token;
 
 public class KeyserverSecurityContext implements SecurityContext {
     private final KeyserverPrincipal principal;

@@ -20,9 +20,8 @@ public class KeyserverExceptionMapper implements ExceptionMapper<KeyserverExcept
         StringWriter sw = new StringWriter();
         
         if (PRINT_STACKTRACE) {
-            exception.printStackTrace(new PrintWriter(sw));
-        }
-        else {
+            exception.printStackTrace(new PrintWriter(sw)); //NOSONAR
+        } else {
             sw.write(exception.toString());
         }
         

@@ -4,20 +4,20 @@ import java.util.Calendar;
 import java.util.Set;
 
 import javax.xml.bind.annotation.XmlRootElement;
+
 import org.backmeup.keyserver.model.TokenValue.Role;
 
 @XmlRootElement
+@SuppressWarnings("unused")
 public class AuthResponseDTO {
     private String serviceUserId;
     private String username;
     private Set<Role> roles;
     private String b64Token;    
     private Calendar ttl;
-    
     private AuthResponseDTO next;
-
-    @SuppressWarnings("unused")
-    private AuthResponseDTO() {
+   
+    public AuthResponseDTO() {
         
     }
 

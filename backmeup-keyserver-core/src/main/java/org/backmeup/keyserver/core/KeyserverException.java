@@ -20,6 +20,6 @@ public class KeyserverException extends Exception {
     
     public boolean isCausedByCryptoException() {
         Throwable cause = this.getCause();
-        return (cause != null && cause instanceof CryptoException);
+        return cause instanceof CryptoException;
     }
 }

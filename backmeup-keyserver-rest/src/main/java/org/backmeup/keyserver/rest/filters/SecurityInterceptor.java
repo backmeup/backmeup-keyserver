@@ -13,7 +13,6 @@ import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.Provider;
 
 import org.backmeup.keyserver.core.Keyserver;
@@ -46,58 +45,53 @@ public class SecurityInterceptor implements ContainerRequestFilter {
         ResourceMethodInvoker methodInvoker = (ResourceMethodInvoker) requestContext.getProperty("org.jboss.resteasy.core.ResourceMethodInvoker");
         Method method = methodInvoker.getMethod();
 
-        if (!method.isAnnotationPresent(PermitAll.class)) {
-            if (method.isAnnotationPresent(DenyAll.class)) {
-                requestContext.abortWith(ACCESS_FORBIDDEN);
-                return;
-            }
-
-            // parse and verify app
-            App app = this.parseAuthorizationHeader(requestContext);
-            if (app == null) {
-                requestContext.abortWith(ACCESS_DENIED);
-                return;
-            }
-
-            // verify app roles
-            if (method.isAnnotationPresent(RolesAllowed.class)) {
-                Set<String> rolesSet = new HashSet<>(Arrays.asList(method.getAnnotation(RolesAllowed.class).value()));
-
-                if (!isAppAllowed(app, rolesSet)) {
-                    requestContext.abortWith(ACCESS_DENIED);
-                    return;
-                }
-            }
-
-            // parse and verify token
-            AuthResponse auth = null;
-            try {
-                Token token = this.parseTokenHeader(requestContext);
-                if (token != null) {
-                    switch (token.getKind()) {
-                        case INTERNAL:
-                            auth = this.keyserverLogic.authenticateWithInternalToken(token.getB64Token());
-                            break;
-                        case EXTERNAL:
-                        case ONETIME:
-                            break;
-                    }
-                }
-                
-                if (method.isAnnotationPresent(TokenRequired.class)) {
-                    if (auth == null) {
-                        requestContext.abortWith(ACCESS_DENIED);
-                    }
-                }
-            } catch (IllegalArgumentException e) {
-                requestContext.abortWith(new ServerResponse("Unkown token kind", 400, new Headers<>()));
-                return;
-            } catch (KeyserverException e) {
-                requestContext.abortWith(ACCESS_DENIED);
-            }
-
-            requestContext.setSecurityContext(new KeyserverSecurityContext(app, auth));
+        if (method.isAnnotationPresent(PermitAll.class)) {
+            return;
         }
+        
+        if (method.isAnnotationPresent(DenyAll.class)) {
+            requestContext.abortWith(ACCESS_FORBIDDEN);
+            return;
+        }
+
+        // parse and verify app
+        App app = this.parseAuthorizationHeader(requestContext);
+        if (app == null) {
+            requestContext.abortWith(ACCESS_DENIED);
+            return;
+        }
+
+        // verify app roles
+        if (method.isAnnotationPresent(RolesAllowed.class)) {
+            Set<String> rolesSet = new HashSet<>(Arrays.asList(method.getAnnotation(RolesAllowed.class).value()));
+
+            if (!isAppAllowed(app, rolesSet)) {
+                requestContext.abortWith(ACCESS_DENIED);
+                return;
+            }
+        }
+
+        // parse and verify token
+        AuthResponse auth = null;
+        try {
+            Token token = this.parseTokenHeader(requestContext);
+            auth = this.authenticateToken(token);
+            
+            if (method.isAnnotationPresent(TokenRequired.class) && auth == null) {
+                requestContext.abortWith(ACCESS_DENIED);
+                return;
+            }
+        } catch (IllegalArgumentException e) {
+            requestContext.abortWith(new ServerResponse("Unkown token kind", 400, new Headers<>()));
+            LOGGER.info("Unkown token kind", e);
+            return;
+        } catch (KeyserverException e) {
+            requestContext.abortWith(ACCESS_DENIED);
+            LOGGER.info("Exception in SecurityInterceptor:", e);
+            return;
+        }
+
+        requestContext.setSecurityContext(new KeyserverSecurityContext(app, auth));
     }
 
     private App parseAuthorizationHeader(ContainerRequestContext requestContext) {
@@ -137,6 +131,21 @@ public class SecurityInterceptor implements ContainerRequestFilter {
         } else {
             return null;
         }
+    }
+    
+    private AuthResponse authenticateToken(Token token) throws KeyserverException {
+        if (token != null) {
+            switch (token.getKind()) {
+                case INTERNAL:
+                    return this.keyserverLogic.authenticateWithInternalToken(token.getB64Token());
+                case EXTERNAL:
+                case ONETIME:
+                default:
+                    break;
+            }
+        }
+        
+        return null;
     }
 
     private App resolveApp(final String appId, final String password) {
