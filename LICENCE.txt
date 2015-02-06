@@ -1,8 +1,9 @@
 BackMeUp Keyserver
+
 The BackMeUp Keyserver is part of the BackMeUp suite and ensures a secure
 storage of user and authentication data for BackMeUp Core and various
 BackMeUp Plugins.
-Copyright (C) 2010-2012 X-Net Services GmbH
+Copyright (C) 2010-2015 X-Net Services GmbH
 
 Limitation: The licence terms stated below only apply to the BackMeUp
 Keyserver module, neither to other parts of the BackMeUp suite (Core,
