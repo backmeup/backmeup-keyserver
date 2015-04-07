@@ -48,14 +48,14 @@ public class Applications extends SecureBase {
 
     @RolesAllowed("CORE")
     @DELETE
-    @Path("/{appId}/")
+    @Path("/{appId}")
     public void remove(@PathParam("appId") String appId) throws KeyserverException {
         this.getKeyserverLogic().removeApp(appId);
     }
 
     @RolesAllowed({ "CORE", "WORKER", "STORAGE", "INDEXER" })
     @POST
-    @Path("/{appId}/")
+    @Path("/{appId}")
     public void authenticate(@PathParam("appId") String appId, @NotNull @FormParam("key") String appKey) throws KeyserverException {
         this.getKeyserverLogic().authenticateApp(appId, appKey);
     }
