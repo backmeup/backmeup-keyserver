@@ -33,6 +33,7 @@ public class DefaultKeyserverImpl implements Keyserver {
 
     protected String serviceId = null;
     protected String servicePassword = null;
+    protected String defaultProfile = null;
     protected int uiTokenTimeout;
     protected int backupTokenFromTimout;
     protected int backupTokenToTimout;
@@ -51,6 +52,7 @@ public class DefaultKeyserverImpl implements Keyserver {
     private void loadConfig() {
         this.serviceId = Configuration.getProperty("backmeup.service.id");
         this.servicePassword = Configuration.getProperty("backmeup.service.password");
+        this.defaultProfile = Configuration.getProperty("backmeup.keyserver.defaultProfile");
         this.uiTokenTimeout = Integer.parseInt(Configuration.getProperty("backmeup.keyserver.uiTokenTimeout"));
         this.backupTokenFromTimout = Integer.parseInt(Configuration.getProperty("backmeup.keyserver.backupTokenFromTimout"));
         this.backupTokenToTimout = Integer.parseInt(Configuration.getProperty("backmeup.keyserver.backupTokenToTimout"));
@@ -79,9 +81,9 @@ public class DefaultKeyserverImpl implements Keyserver {
         this.tokenLogic = new DefaultTokenLogic(this);
         this.pluglinDataLogic = new DefaultPluginDataLogic(this);
     }
-
-    protected KeyserverEntry createEntry(String key, byte[] payload, Calendar ttl) throws DatabaseException {
-        KeyserverEntry entry = new KeyserverEntry(key);
+    
+    protected KeyserverEntry createEntry(String key, byte[] payload, Calendar ttl, long precedingVersion) throws DatabaseException {
+        KeyserverEntry entry = new KeyserverEntry(key, precedingVersion);
         if (payload != null) {
             entry.setValue(payload);
         }
@@ -91,9 +93,13 @@ public class DefaultKeyserverImpl implements Keyserver {
         this.db.putEntry(entry);
         return entry;
     }
+
+    protected KeyserverEntry createEntry(String key, byte[] payload, Calendar ttl) throws DatabaseException {
+        return this.createEntry(key, payload, ttl, 0);
+    }
     
     protected KeyserverEntry createEntry(String key, byte[] payload) throws DatabaseException {
-        return this.createEntry(key, payload, null);
+        return this.createEntry(key, payload, null, 0);
     }
     
     protected KeyserverEntry searchForEntry(String[] hashInputs, String[] pepperApplications, String keyPattern) throws CryptoException, DatabaseException {

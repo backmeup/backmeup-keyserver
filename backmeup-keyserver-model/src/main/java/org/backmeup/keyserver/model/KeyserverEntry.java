@@ -6,16 +6,21 @@ public class KeyserverEntry {
     protected String key;
     protected byte[] value;
     protected int keyringId;
-    protected long version = 0;
+    protected long version;
     protected Calendar createdAt;
     protected Calendar lastModified;
     protected Calendar ttl;
 
     public KeyserverEntry(String key) {
+        this(key, 0L);
+    }
+    
+    public KeyserverEntry(String key, long precedingVersion) {
         this.key = key;
         this.value = new byte[0];
         this.createdAt = KeyserverUtils.getActTime();
         this.lastModified = this.createdAt;
+        this.version = precedingVersion;
     }
 
     @SuppressWarnings("PMD.ArrayIsStoredDirectly")

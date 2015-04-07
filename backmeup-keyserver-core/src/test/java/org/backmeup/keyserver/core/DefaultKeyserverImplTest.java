@@ -104,10 +104,10 @@ public class DefaultKeyserverImplTest {
         AuthResponse u = ks.authenticateUserWithPassword(USERNAME, PASSWORD);
 
         String profile = ks.getProfile(u.getUserId(), u.getAccountKey());
-        assertEquals("", profile);
-        ks.setProfile(u.getUserId(), u.getAccountKey(), "Test");
+        assertEquals(ks.defaultProfile, profile);
+        ks.setProfile(u.getUserId(), u.getAccountKey(), "{\"key\": \"Test\"}");
         profile = ks.getProfile(u.getUserId(), u.getAccountKey());
-        assertEquals("Test", profile);
+        assertEquals("{\"key\": \"Test\"}", profile);
     }
     
     @Test
@@ -168,6 +168,25 @@ public class DefaultKeyserverImplTest {
             assertEquals(EntryNotFoundException.TOKEN, e.getMessage());
             
         }
+    }
+    
+    @Test
+    public void testQuickReRegistration() throws KeyserverException {
+        ks.registerUser(USERNAME, PASSWORD);
+        AuthResponse u = ks.authenticateUserWithPassword(USERNAME, PASSWORD);    
+        ks.removeUser(u.getServiceUserId(), u.getUsername(), u.getAccountKey());
+        
+        try {
+            ks.authenticateUserWithPassword(USERNAME, PASSWORD);
+        } catch(EntryNotFoundException e) {
+            assertEquals(EntryNotFoundException.USERNAME, e.getMessage());
+        }
+        
+        ks.registerUser(USERNAME, PASSWORD);
+        AuthResponse u2 = ks.authenticateUserWithPassword(USERNAME, PASSWORD);
+        
+        assertNotEquals(u.getServiceUserId(), u2.getServiceUserId());
+        assertNotEquals(u.getUserId(), u2.getUserId());
     }
     
     @Test

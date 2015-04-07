@@ -98,8 +98,17 @@ public class DefaultUserLogic {
             byte[] key = stretchStringWithPepper(this.keyring, username, PepperApps.USERNAME);
             
             payload = this.keyserver.encryptString(key, PepperApps.USERNAME, userId);
-            this.keyserver.createEntry(fmtKey(USERNAME_ENTRY_FMT, usernameHash), payload);
-
+            // handle quick re-register problem: User registers again and expired entry was not yet deleted,
+            // create new entry with version old+1, all other entries are random number based and thus okay.
+            long usernameVersion = 0;
+            List<KeyserverEntry> usernameEntries = this.keyserver.db.searchByKey(fmtKey(USERNAME_ENTRY_FMT, usernameHash), true, true);
+            for (KeyserverEntry e : usernameEntries) {
+                if (e.getVersion() > usernameVersion) {
+                    usernameVersion = e.getVersion();
+                }
+            }
+            this.keyserver.createEntry(fmtKey(USERNAME_ENTRY_FMT, usernameHash), payload, null, usernameVersion);
+                
             // [UserId].Account
             key = stretchStringWithPepper(this.keyring, username + ";" + password, PepperApps.ACCOUNT);
 
@@ -111,8 +120,7 @@ public class DefaultUserLogic {
             this.keyserver.createEntry(fmtKey(ACCOUNT_ENTRY_FMT, userId), payload);
             
             //[UserId].Profile
-            //TODO: default profile structure?
-            String profile = "";
+            String profile = this.keyserver.defaultProfile;
             payload = this.keyserver.encryptString(accountKey, PepperApps.PROFILE, profile);
             this.keyserver.createEntry(fmtKey(PROFILE_ENTRY_FMT, userId), payload);
             
