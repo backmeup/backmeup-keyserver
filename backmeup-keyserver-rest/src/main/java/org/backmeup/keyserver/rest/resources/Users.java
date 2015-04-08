@@ -18,7 +18,8 @@ import org.backmeup.keyserver.model.dto.AuthResponseDTO;
 import org.backmeup.keyserver.rest.auth.TokenRequired;
 
 /**
- * All user specific operations will be handled within this class.
+ * All user and plugin data specific operations will be handled within this
+ * class.
  */
 @Path("/users")
 @Produces(MediaType.APPLICATION_JSON)
@@ -97,5 +98,49 @@ public class Users extends SecureBase {
         this.checkServiceUserId(serviceUserId);
         AuthResponse auth = this.getAuthResponse();
         this.getKeyserverLogic().changeUserPassword(auth.getUserId(), auth.getUsername(), oldPassword, newPassword);
+    }
+
+    @RolesAllowed({ "CORE" })
+    @TokenRequired
+    @POST
+    @Path("/{serviceUserId}/plugins/")
+    public void createPluginData(@PathParam("serviceUserId") String serviceUserId, @FormParam("pluginId") String pluginId,
+            @NotNull @FormParam("data") String data) throws KeyserverException {
+        this.checkServiceUserId(serviceUserId);
+        AuthResponse auth = this.getAuthResponse();
+        this.getKeyserverLogic().createPluginData(auth.getUserId(), pluginId, auth.getAccountKey(), data);
+    }
+
+    @RolesAllowed({ "CORE", "WORKER" })
+    @TokenRequired
+    @GET
+    @Path("/{serviceUserId}/plugins/{pluginId}")
+    public String getPluginData(@PathParam("serviceUserId") String serviceUserId, @PathParam("pluginId") String pluginId) throws KeyserverException {
+        this.checkServiceUserId(serviceUserId);
+        AuthResponse auth = this.getAuthResponse();
+        byte[] pluginKey = this.getKeyserverLogic().getPluginDataKey(auth.getUserId(), pluginId, auth.getAccountKey());
+        return this.getKeyserverLogic().getPluginData(auth.getUserId(), pluginId, pluginKey);
+    }
+
+    @RolesAllowed({ "CORE", "WORKER" })
+    @TokenRequired
+    @POST
+    @Path("/{serviceUserId}/plugins/{pluginId}")
+    public void updatePluginData(@PathParam("serviceUserId") String serviceUserId, @PathParam("pluginId") String pluginId,
+            @NotNull @FormParam("data") String data) throws KeyserverException {
+        this.checkServiceUserId(serviceUserId);
+        AuthResponse auth = this.getAuthResponse();
+        byte[] pluginKey = this.getKeyserverLogic().getPluginDataKey(auth.getUserId(), pluginId, auth.getAccountKey());
+        this.getKeyserverLogic().updatePluginData(auth.getUserId(), pluginId, pluginKey, data);
+    }
+
+    @RolesAllowed({ "CORE" })
+    @TokenRequired
+    @DELETE
+    @Path("/{serviceUserId}/plugins/{pluginId}")
+    public void removePluginData(@PathParam("serviceUserId") String serviceUserId, @PathParam("pluginId") String pluginId) throws KeyserverException {
+        this.checkServiceUserId(serviceUserId);
+        AuthResponse auth = this.getAuthResponse();
+        this.getKeyserverLogic().removePluginData(auth.getUserId(), pluginId);
     }
 }
