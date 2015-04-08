@@ -45,6 +45,7 @@ public class Users extends SecureBase {
     @DELETE
     @Path("/{serviceUserId}")
     public void remove(@PathParam("serviceUserId") String serviceUserId) throws KeyserverException {
+        this.checkServiceUserId(serviceUserId);
         AuthResponse auth = this.getAuthResponse();
         getKeyserverLogic().removeUser(auth.getServiceUserId(), auth.getUsername(), auth.getAccountKey());
     }
@@ -62,6 +63,7 @@ public class Users extends SecureBase {
     @GET
     @Path("/{serviceUserId}/index_key")
     public String getIndexKey(@PathParam("serviceUserId") String serviceUserId) throws KeyserverException {
+        this.checkServiceUserId(serviceUserId);
         AuthResponse auth = this.getAuthResponse();
         return this.getKeyserverLogic().getIndexKey(auth.getUserId(), auth.getAccountKey());
     }
@@ -71,6 +73,7 @@ public class Users extends SecureBase {
     @GET
     @Path("/{serviceUserId}/profile")
     public String getProfile(@PathParam("serviceUserId") String serviceUserId) throws KeyserverException {
+        this.checkServiceUserId(serviceUserId);
         AuthResponse auth = this.getAuthResponse();
         return this.getKeyserverLogic().getProfile(auth.getUserId(), auth.getAccountKey());
     }
@@ -80,6 +83,7 @@ public class Users extends SecureBase {
     @POST
     @Path("/{serviceUserId}/profile")
     public void setProfile(@PathParam("serviceUserId") String serviceUserId, @NotNull @FormParam("profile") String profile) throws KeyserverException {
+        this.checkServiceUserId(serviceUserId);
         AuthResponse auth = this.getAuthResponse();
         this.getKeyserverLogic().setProfile(auth.getUserId(), auth.getAccountKey(), profile);
     }
@@ -90,6 +94,7 @@ public class Users extends SecureBase {
     @Path("/{serviceUserId}/changePassword")
     public void changePassword(@PathParam("serviceUserId") String serviceUserId, @NotNull @FormParam("oldPassword") String oldPassword,
             @NotNull @FormParam("newPassword") String newPassword) throws KeyserverException {
+        this.checkServiceUserId(serviceUserId);
         AuthResponse auth = this.getAuthResponse();
         this.getKeyserverLogic().changeUserPassword(auth.getUserId(), auth.getUsername(), oldPassword, newPassword);
     }
