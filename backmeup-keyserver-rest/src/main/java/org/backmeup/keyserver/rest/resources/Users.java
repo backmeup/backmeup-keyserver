@@ -38,7 +38,7 @@ public class Users extends SecureBase {
     @Path("/authenticate")
     public AuthResponseDTO authenticate(@NotNull @FormParam("username") String username, @NotNull @FormParam("password") String password)
             throws KeyserverException {
-        return getMapper().map(this.getKeyserverLogic().authenticateUserWithPassword(username, password), AuthResponseDTO.class);
+        return this.map(this.getKeyserverLogic().authenticateUserWithPassword(username, password), AuthResponseDTO.class);
     }
 
     @RolesAllowed("CORE")

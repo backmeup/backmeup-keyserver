@@ -1,6 +1,5 @@
 package org.backmeup.keyserver.rest.resources;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.security.RolesAllowed;
@@ -29,21 +28,15 @@ public class Applications extends SecureBase {
     @GET
     @Path("/")
     public List<AppDTO> listApps() throws KeyserverException {
-        List<AppDTO> appList = new ArrayList<>();
-
         List<App> apps = getKeyserverLogic().listApps(this.getApp().getPassword());
-        for (App a : apps) {
-            appList.add(getMapper().map(a, AppDTO.class));
-        }
-
-        return appList;
+        return this.map(apps, AppDTO.class);
     }
 
     @RolesAllowed("CORE")
     @POST
     @Path("/")
     public AppDTO register(@NotNull @FormParam("role") App.Approle role) throws KeyserverException {
-        return getMapper().map(getKeyserverLogic().registerApp(role), AppDTO.class);
+        return this.map(getKeyserverLogic().registerApp(role), AppDTO.class);
     }
 
     @RolesAllowed("CORE")

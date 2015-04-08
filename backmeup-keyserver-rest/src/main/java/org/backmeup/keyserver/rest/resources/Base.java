@@ -1,6 +1,10 @@
 package org.backmeup.keyserver.rest.resources;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.inject.Inject;
+
 import org.backmeup.keyserver.core.Keyserver;
 import org.backmeup.keyserver.rest.cdi.JNDIBeanManager;
 import org.dozer.Mapper;
@@ -24,11 +28,25 @@ public class Base {
         return keyserverLogic;
     }
 
-    protected Mapper getMapper() {
+    protected synchronized Mapper getMapper() {
         if (mapper == null) {
             mapper = fetchInstanceFromJndi(Mapper.class);
         }
         return mapper;
+    }
+    
+    protected <T, U> U map(final T source, final Class<U> destType) {
+        return this.getMapper().map(source, destType);
+    }
+    
+    protected <T, U> List<U> map(final List<T> source, final Class<U> destType) {
+        final List<U> dest = new ArrayList<>();
+
+        for (T element : source) {
+            dest.add(this.getMapper().map(element, destType));
+        }
+
+        return dest;
     }
 
     private <T> T fetchInstanceFromJndi(Class<T> classType) {
