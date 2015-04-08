@@ -23,6 +23,10 @@
   			<b is-accessible="true">b64Token</b>
 		</field> 
 		<field>
+  			<a>tokenKind</a>
+  			<b is-accessible="true">tokenKind</b>
+		</field> 
+		<field>
   			<a>ttl</a>
   			<b is-accessible="true">ttl</b>
 		</field> 

@@ -31,6 +31,10 @@ public class AuthResponse {
     public String getB64Token() {
         return this.token.getB64Token();
     }
+    
+    public Token.Kind getTokenKind() {
+        return this.token.getKind();
+    }
 
     public Set<Role> getRoles() {
         return this.token.getValue().getRoles();

@@ -5,6 +5,7 @@ import java.util.Set;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.backmeup.keyserver.model.Token;
 import org.backmeup.keyserver.model.TokenValue.Role;
 
 @XmlRootElement
@@ -13,7 +14,8 @@ public class AuthResponseDTO {
     private String serviceUserId;
     private String username;
     private Set<Role> roles;
-    private String b64Token;    
+    private String b64Token;
+    private Token.Kind tokenKind;
     private Calendar ttl;
     private AuthResponseDTO next;
    
@@ -51,6 +53,14 @@ public class AuthResponseDTO {
 
     public void setB64Token(String b64Token) {
         this.b64Token = b64Token;
+    }
+
+    public Token.Kind getTokenKind() {
+        return tokenKind;
+    }
+
+    public void setTokenKind(Token.Kind tokenKind) {
+        this.tokenKind = tokenKind;
     }
 
     public Calendar getTtl() {
