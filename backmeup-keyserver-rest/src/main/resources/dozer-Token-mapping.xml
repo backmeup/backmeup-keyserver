@@ -1,0 +1,26 @@
+<mappings xmlns="http://dozer.sourceforge.net" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://dozer.sourceforge.net
+          http://dozer.sourceforge.net/schema/beanmapping.xsd">
+
+	<mapping>
+		<class-a>org.backmeup.keyserver.model.Token</class-a>
+		<class-b>org.backmeup.keyserver.model.dto.TokenDTO</class-b>
+		
+		<field>
+  			<a>kind</a>
+  			<b is-accessible="true">kind</b>
+		</field> 
+		<field>
+  			<a>b64Token</a>
+  			<b is-accessible="true">b64Token</b>
+		</field> 
+		<field>
+  			<a>annotation</a>
+  			<b is-accessible="true">annotation</b>
+		</field> 
+		<field>
+  			<a>ttl</a>
+  			<b is-accessible="true">ttl</b>
+		</field> 
+	</mapping>
+</mappings> 

@@ -25,7 +25,7 @@ public class Token {
     }
 
     private Kind kind;
-    private String b64token;
+    private String b64Token;
     private byte[] token;
     private String annotation;
     private Calendar ttl;
@@ -40,18 +40,18 @@ public class Token {
     public Token(Kind kind, byte[] token) {
         this.kind = kind;
         this.token = token;
-        this.b64token = toBase64String(token);
+        this.b64Token = toBase64String(token);
     }
 
     public Token(Kind kind, String b64Token) {
         this.kind = kind;
-        this.b64token = b64Token;
+        this.b64Token = b64Token;
         this.token = fromBase64String(b64Token);
     }
     
     public Token(Token token) {
         this.kind = token.kind;
-        this.b64token = token.b64token;
+        this.b64Token = token.b64Token;
         this.token = Arrays.copyOf(token.token, token.token.length);
         this.annotation = token.annotation;
         if (token.ttl != null) {
@@ -69,15 +69,15 @@ public class Token {
     @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "only used internally")
     public void setToken(byte[] token) {
         this.token = token;
-        this.b64token = toBase64String(token);
+        this.b64Token = toBase64String(token);
     }
 
     public String getB64Token() {
-        return b64token;
+        return b64Token;
     }
 
     public void setB64Token(String b64Token) {
-        this.b64token = b64Token;
+        this.b64Token = b64Token;
         this.token = fromBase64String(b64Token);
     }
 
