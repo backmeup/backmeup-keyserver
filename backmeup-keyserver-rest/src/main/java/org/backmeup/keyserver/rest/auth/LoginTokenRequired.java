@@ -7,6 +7,6 @@ import static java.lang.annotation.RetentionPolicy.*;
 @Documented
 @Retention (RUNTIME)
 @Target({TYPE, METHOD})
-public @interface TokenRequired {
+public @interface LoginTokenRequired {
 
 }

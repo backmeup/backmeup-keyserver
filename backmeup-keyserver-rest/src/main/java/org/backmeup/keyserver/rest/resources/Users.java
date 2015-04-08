@@ -21,7 +21,7 @@ import org.backmeup.keyserver.model.AuthResponse;
 import org.backmeup.keyserver.model.Token;
 import org.backmeup.keyserver.model.dto.AuthResponseDTO;
 import org.backmeup.keyserver.model.dto.TokenDTO;
-import org.backmeup.keyserver.rest.auth.TokenRequired;
+import org.backmeup.keyserver.rest.auth.LoginTokenRequired;
 
 /**
  * All user and plugin data specific operations will be handled within this
@@ -48,7 +48,7 @@ public class Users extends SecureBase {
     }
 
     @RolesAllowed("CORE")
-    @TokenRequired
+    @LoginTokenRequired
     @DELETE
     @Path("/{serviceUserId}")
     public void remove(@PathParam("serviceUserId") String serviceUserId) throws KeyserverException {
@@ -66,7 +66,7 @@ public class Users extends SecureBase {
     }
 
     @RolesAllowed({ "CORE", "INDEXER" })
-    @TokenRequired
+    @LoginTokenRequired
     @GET
     @Path("/{serviceUserId}/index_key")
     public String getIndexKey(@PathParam("serviceUserId") String serviceUserId) throws KeyserverException {
@@ -76,7 +76,7 @@ public class Users extends SecureBase {
     }
 
     @RolesAllowed({ "CORE", "INDEXER", "WORKER" })
-    @TokenRequired
+    @LoginTokenRequired
     @GET
     @Path("/{serviceUserId}/profile")
     public String getProfile(@PathParam("serviceUserId") String serviceUserId) throws KeyserverException {
@@ -86,7 +86,7 @@ public class Users extends SecureBase {
     }
 
     @RolesAllowed({ "CORE" })
-    @TokenRequired
+    @LoginTokenRequired
     @POST
     @Path("/{serviceUserId}/profile")
     public void setProfile(@PathParam("serviceUserId") String serviceUserId, @NotNull @FormParam("profile") String profile) throws KeyserverException {
@@ -96,7 +96,7 @@ public class Users extends SecureBase {
     }
 
     @RolesAllowed({ "CORE" })
-    @TokenRequired
+    @LoginTokenRequired
     @POST
     @Path("/{serviceUserId}/changePassword")
     public void changePassword(@PathParam("serviceUserId") String serviceUserId, @NotNull @FormParam("oldPassword") String oldPassword,
@@ -107,7 +107,7 @@ public class Users extends SecureBase {
     }
 
     @RolesAllowed({ "CORE" })
-    @TokenRequired
+    @LoginTokenRequired
     @POST
     @Path("/{serviceUserId}/plugins/")
     public void createPluginData(@PathParam("serviceUserId") String serviceUserId, @FormParam("pluginId") String pluginId,
@@ -118,7 +118,7 @@ public class Users extends SecureBase {
     }
 
     @RolesAllowed({ "CORE", "WORKER" })
-    @TokenRequired
+    @LoginTokenRequired
     @GET
     @Path("/{serviceUserId}/plugins/{pluginId}")
     public String getPluginData(@PathParam("serviceUserId") String serviceUserId, @PathParam("pluginId") String pluginId) throws KeyserverException {
@@ -129,7 +129,7 @@ public class Users extends SecureBase {
     }
 
     @RolesAllowed({ "CORE", "WORKER" })
-    @TokenRequired
+    @LoginTokenRequired
     @POST
     @Path("/{serviceUserId}/plugins/{pluginId}")
     public void updatePluginData(@PathParam("serviceUserId") String serviceUserId, @PathParam("pluginId") String pluginId,
@@ -141,7 +141,7 @@ public class Users extends SecureBase {
     }
 
     @RolesAllowed({ "CORE" })
-    @TokenRequired
+    @LoginTokenRequired
     @DELETE
     @Path("/{serviceUserId}/plugins/{pluginId}")
     public void removePluginData(@PathParam("serviceUserId") String serviceUserId, @PathParam("pluginId") String pluginId) throws KeyserverException {
@@ -151,7 +151,7 @@ public class Users extends SecureBase {
     }
     
     @RolesAllowed("CORE")
-    @TokenRequired
+    @LoginTokenRequired
     @POST
     @Path("/{serviceUserId}/tokens/onetime")
     public AuthResponseDTO createOnetimeToken(@PathParam("serviceUserId") String serviceUserId, @NotNull @FormParam("pluginId") String[] pluginIds, @NotNull @FormParam("scheduledExecutionTime") Long scheduledExecutionTime)
@@ -165,7 +165,7 @@ public class Users extends SecureBase {
     }
     
     @RolesAllowed("CORE")
-    @TokenRequired
+    @LoginTokenRequired
     @GET
     @Path("/{serviceUserId}/tokens")
     public List<TokenDTO> listTokens(@PathParam("serviceUserId") String serviceUserId, @QueryParam("kind") Token.Kind kind)

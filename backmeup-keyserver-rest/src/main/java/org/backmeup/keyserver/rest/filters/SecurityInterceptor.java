@@ -21,7 +21,7 @@ import org.backmeup.keyserver.model.App;
 import org.backmeup.keyserver.model.AuthResponse;
 import org.backmeup.keyserver.model.Token;
 import org.backmeup.keyserver.rest.auth.KeyserverSecurityContext;
-import org.backmeup.keyserver.rest.auth.TokenRequired;
+import org.backmeup.keyserver.rest.auth.LoginTokenRequired;
 import org.jboss.resteasy.core.Headers;
 import org.jboss.resteasy.core.ResourceMethodInvoker;
 import org.jboss.resteasy.core.ServerResponse;
@@ -77,7 +77,7 @@ public class SecurityInterceptor implements ContainerRequestFilter {
             Token token = this.parseTokenHeader(requestContext);
             auth = this.authenticateToken(token);
             
-            if (method.isAnnotationPresent(TokenRequired.class) && auth == null) {
+            if (method.isAnnotationPresent(LoginTokenRequired.class) && auth == null) {
                 requestContext.abortWith(ACCESS_DENIED);
                 return;
             }
