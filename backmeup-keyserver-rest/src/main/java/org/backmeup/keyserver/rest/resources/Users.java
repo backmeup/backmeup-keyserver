@@ -1,5 +1,9 @@
 package org.backmeup.keyserver.rest.resources;
 
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
+
 import javax.annotation.security.RolesAllowed;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.FormParam;
@@ -14,7 +18,9 @@ import javax.ws.rs.core.MediaType;
 
 import org.backmeup.keyserver.core.KeyserverException;
 import org.backmeup.keyserver.model.AuthResponse;
+import org.backmeup.keyserver.model.Token;
 import org.backmeup.keyserver.model.dto.AuthResponseDTO;
+import org.backmeup.keyserver.model.dto.TokenDTO;
 import org.backmeup.keyserver.rest.auth.TokenRequired;
 
 /**
@@ -142,5 +148,41 @@ public class Users extends SecureBase {
         this.checkServiceUserId(serviceUserId);
         AuthResponse auth = this.getAuthResponse();
         this.getKeyserverLogic().removePluginData(auth.getUserId(), pluginId);
+    }
+    
+    @RolesAllowed("CORE")
+    @TokenRequired
+    @POST
+    @Path("/{serviceUserId}/tokens/onetime")
+    public AuthResponseDTO createOnetimeToken(@PathParam("serviceUserId") String serviceUserId, @NotNull @FormParam("pluginId") String[] pluginIds, @NotNull @FormParam("scheduledExecutionTime") Long scheduledExecutionTime)
+            throws KeyserverException {
+        this.checkServiceUserId(serviceUserId);
+        AuthResponse auth = this.getAuthResponse();
+        
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis((Long) scheduledExecutionTime);
+        return this.map(this.getKeyserverLogic().createOnetime(auth.getUserId(), auth.getServiceUserId(), auth.getUsername(), auth.getAccountKey(), pluginIds, cal), AuthResponseDTO.class);
+    }
+    
+    @RolesAllowed("CORE")
+    @TokenRequired
+    @GET
+    @Path("/{serviceUserId}/tokens")
+    public List<TokenDTO> listTokens(@PathParam("serviceUserId") String serviceUserId, @QueryParam("kind") Token.Kind kind)
+            throws KeyserverException {
+        this.checkServiceUserId(serviceUserId);
+        AuthResponse auth = this.getAuthResponse();
+        List<Token> tokens = null;
+        
+        if (kind != null) {
+            tokens = this.getKeyserverLogic().listTokens(auth.getUserId(), auth.getAccountKey(), kind);
+        } else {
+            tokens = new ArrayList<Token>();
+            for (Token.Kind k: Token.Kind.values()) {
+                tokens.addAll(this.getKeyserverLogic().listTokens(auth.getUserId(), auth.getAccountKey(), k));
+            }
+        }
+        
+        return this.map(tokens, TokenDTO.class);
     }
 }

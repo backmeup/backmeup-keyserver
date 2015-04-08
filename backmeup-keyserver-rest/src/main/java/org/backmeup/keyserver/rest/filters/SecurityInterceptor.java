@@ -139,7 +139,9 @@ public class SecurityInterceptor implements ContainerRequestFilter {
                 case INTERNAL:
                     return this.keyserverLogic.authenticateWithInternalToken(token.getB64Token());
                 case EXTERNAL:
+                    // at this time we only accept internal tokens
                 case ONETIME:
+                    // we will never support onetime tokens here
                 default:
                     break;
             }
