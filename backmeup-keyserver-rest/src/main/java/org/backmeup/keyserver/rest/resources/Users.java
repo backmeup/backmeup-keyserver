@@ -6,10 +6,11 @@ import java.util.List;
 
 import javax.annotation.security.RolesAllowed;
 import javax.validation.constraints.NotNull;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.ForbiddenException;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
-import javax.ws.rs.DELETE;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -19,6 +20,7 @@ import javax.ws.rs.core.MediaType;
 import org.backmeup.keyserver.core.KeyserverException;
 import org.backmeup.keyserver.model.AuthResponse;
 import org.backmeup.keyserver.model.Token;
+import org.backmeup.keyserver.model.TokenValue.Role;
 import org.backmeup.keyserver.model.dto.AuthResponseDTO;
 import org.backmeup.keyserver.model.dto.TokenDTO;
 import org.backmeup.keyserver.rest.auth.LoginTokenRequired;
@@ -30,6 +32,22 @@ import org.backmeup.keyserver.rest.auth.LoginTokenRequired;
 @Path("/users")
 @Produces(MediaType.APPLICATION_JSON)
 public class Users extends SecureBase {
+
+    protected byte[] getPluginKey(String pluginId) throws KeyserverException {
+        AuthResponse auth = this.getAuthResponse();
+        byte[] pluginKey = new byte[0];
+
+        if (auth.getRoles().contains(Role.USER)) {
+            pluginKey = this.getKeyserverLogic().getPluginDataKey(auth.getUserId(), pluginId, auth.getAccountKey());
+        } else if (auth.getRoles().contains(Role.BACKUP_JOB)) {
+            pluginKey = auth.getPluginKey(pluginId);
+            if (pluginKey == null) {
+                throw new ForbiddenException("token has no access to plugin " + pluginId);
+            }
+        }
+
+        return pluginKey;
+    }
 
     @RolesAllowed("CORE")
     @POST
@@ -124,7 +142,7 @@ public class Users extends SecureBase {
     public String getPluginData(@PathParam("serviceUserId") String serviceUserId, @PathParam("pluginId") String pluginId) throws KeyserverException {
         this.checkServiceUserId(serviceUserId);
         AuthResponse auth = this.getAuthResponse();
-        byte[] pluginKey = this.getKeyserverLogic().getPluginDataKey(auth.getUserId(), pluginId, auth.getAccountKey());
+        byte[] pluginKey = this.getPluginKey(pluginId);
         return this.getKeyserverLogic().getPluginData(auth.getUserId(), pluginId, pluginKey);
     }
 
@@ -136,7 +154,7 @@ public class Users extends SecureBase {
             @NotNull @FormParam("data") String data) throws KeyserverException {
         this.checkServiceUserId(serviceUserId);
         AuthResponse auth = this.getAuthResponse();
-        byte[] pluginKey = this.getKeyserverLogic().getPluginDataKey(auth.getUserId(), pluginId, auth.getAccountKey());
+        byte[] pluginKey = this.getPluginKey(pluginId);
         this.getKeyserverLogic().updatePluginData(auth.getUserId(), pluginId, pluginKey, data);
     }
 
@@ -149,40 +167,39 @@ public class Users extends SecureBase {
         AuthResponse auth = this.getAuthResponse();
         this.getKeyserverLogic().removePluginData(auth.getUserId(), pluginId);
     }
-    
+
     @RolesAllowed("CORE")
     @LoginTokenRequired
     @POST
     @Path("/{serviceUserId}/tokens/onetime")
-    public AuthResponseDTO createOnetimeToken(@PathParam("serviceUserId") String serviceUserId, @NotNull @FormParam("pluginId") String[] pluginIds, @NotNull @FormParam("scheduledExecutionTime") Long scheduledExecutionTime)
-            throws KeyserverException {
+    public AuthResponseDTO createOnetimeToken(@PathParam("serviceUserId") String serviceUserId, @FormParam("pluginId") String[] pluginIds,
+            @NotNull @FormParam("scheduledExecutionTime") Long scheduledExecutionTime) throws KeyserverException {
         this.checkServiceUserId(serviceUserId);
         AuthResponse auth = this.getAuthResponse();
-        
+
         Calendar cal = Calendar.getInstance();
         cal.setTimeInMillis((Long) scheduledExecutionTime);
         return this.map(this.getKeyserverLogic().createOnetime(auth.getUserId(), auth.getServiceUserId(), auth.getUsername(), auth.getAccountKey(), pluginIds, cal), AuthResponseDTO.class);
     }
-    
+
     @RolesAllowed("CORE")
     @LoginTokenRequired
     @GET
     @Path("/{serviceUserId}/tokens")
-    public List<TokenDTO> listTokens(@PathParam("serviceUserId") String serviceUserId, @QueryParam("kind") Token.Kind kind)
-            throws KeyserverException {
+    public List<TokenDTO> listTokens(@PathParam("serviceUserId") String serviceUserId, @QueryParam("kind") Token.Kind kind) throws KeyserverException {
         this.checkServiceUserId(serviceUserId);
         AuthResponse auth = this.getAuthResponse();
         List<Token> tokens = null;
-        
+
         if (kind != null) {
             tokens = this.getKeyserverLogic().listTokens(auth.getUserId(), auth.getAccountKey(), kind);
         } else {
             tokens = new ArrayList<Token>();
-            for (Token.Kind k: Token.Kind.values()) {
+            for (Token.Kind k : Token.Kind.values()) {
                 tokens.addAll(this.getKeyserverLogic().listTokens(auth.getUserId(), auth.getAccountKey(), k));
             }
         }
-        
+
         return this.map(tokens, TokenDTO.class);
     }
 }
