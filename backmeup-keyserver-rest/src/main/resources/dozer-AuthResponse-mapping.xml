@@ -19,16 +19,12 @@
   			<b is-accessible="true">roles</b>
 		</field> 
 		<field>
-  			<a>b64Token</a>
-  			<b is-accessible="true">b64Token</b>
+  			<a>token</a>
+  			<b is-accessible="true">token</b>
 		</field> 
 		<field>
-  			<a>tokenKind</a>
-  			<b is-accessible="true">tokenKind</b>
-		</field> 
-		<field>
-  			<a>ttl</a>
-  			<b is-accessible="true">ttl</b>
+  			<a>next</a>
+  			<b is-accessible="true">next</b>
 		</field> 
 	</mapping>
 </mappings> 

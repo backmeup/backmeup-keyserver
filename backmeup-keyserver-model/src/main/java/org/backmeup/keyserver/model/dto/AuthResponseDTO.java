@@ -14,9 +14,7 @@ public class AuthResponseDTO {
     private String serviceUserId;
     private String username;
     private Set<Role> roles;
-    private String b64Token;
-    private Token.Kind tokenKind;
-    private Calendar ttl;
+    private TokenDTO token;
     private AuthResponseDTO next;
    
     public AuthResponseDTO() {
@@ -47,28 +45,12 @@ public class AuthResponseDTO {
         this.roles = roles;
     }
 
-    public String getB64Token() {
-        return b64Token;
+    public TokenDTO getToken() {
+        return token;
     }
 
-    public void setB64Token(String b64Token) {
-        this.b64Token = b64Token;
-    }
-
-    public Token.Kind getTokenKind() {
-        return tokenKind;
-    }
-
-    public void setTokenKind(Token.Kind tokenKind) {
-        this.tokenKind = tokenKind;
-    }
-
-    public Calendar getTtl() {
-        return ttl;
-    }
-
-    public void setTtl(Calendar ttl) {
-        this.ttl = ttl;
+    public void setToken(TokenDTO token) {
+        this.token = token;
     }
 
     public AuthResponseDTO getNext() {
