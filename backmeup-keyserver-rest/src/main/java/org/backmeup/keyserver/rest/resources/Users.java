@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
-import javax.annotation.security.RolesAllowed;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.ForbiddenException;
@@ -20,10 +19,13 @@ import javax.ws.rs.core.MediaType;
 import org.backmeup.keyserver.core.KeyserverException;
 import org.backmeup.keyserver.model.AuthResponse;
 import org.backmeup.keyserver.model.Token;
+import org.backmeup.keyserver.model.TokenValue;
+import org.backmeup.keyserver.model.App.Approle;
 import org.backmeup.keyserver.model.TokenValue.Role;
 import org.backmeup.keyserver.model.dto.AuthResponseDTO;
 import org.backmeup.keyserver.model.dto.TokenDTO;
-import org.backmeup.keyserver.rest.auth.LoginTokenRequired;
+import org.backmeup.keyserver.rest.auth.AppsAllowed;
+import org.backmeup.keyserver.rest.auth.TokenRequired;
 
 /**
  * All user and plugin data specific operations will be handled within this
@@ -49,7 +51,7 @@ public class Users extends SecureBase {
         return pluginKey;
     }
 
-    @RolesAllowed("CORE")
+    @AppsAllowed(Approle.CORE)
     @POST
     @Path("/")
     public String register(@NotNull @FormParam("username") String username, @NotNull @FormParam("password") String password)
@@ -57,7 +59,7 @@ public class Users extends SecureBase {
         return getKeyserverLogic().registerUser(username, password);
     }
 
-    @RolesAllowed("CORE")
+    @AppsAllowed(Approle.CORE)
     @POST
     @Path("/authenticate")
     public AuthResponseDTO authenticate(@NotNull @FormParam("username") String username, @NotNull @FormParam("password") String password)
@@ -65,8 +67,8 @@ public class Users extends SecureBase {
         return this.map(this.getKeyserverLogic().authenticateUserWithPassword(username, password), AuthResponseDTO.class);
     }
 
-    @RolesAllowed("CORE")
-    @LoginTokenRequired
+    @AppsAllowed(Approle.CORE)
+    @TokenRequired
     @DELETE
     @Path("/{serviceUserId}")
     public void remove(@PathParam("serviceUserId") String serviceUserId) throws KeyserverException {
@@ -75,7 +77,7 @@ public class Users extends SecureBase {
         getKeyserverLogic().removeUser(auth.getServiceUserId(), auth.getUsername(), auth.getAccountKey());
     }
 
-    @RolesAllowed("CORE")
+    @AppsAllowed(Approle.CORE)
     @DELETE
     @Path("/{serviceUserId}/adminRemove")
     public void adminRemove(@PathParam("serviceUserId") String serviceUserId, @NotNull @QueryParam("username") String username)
@@ -83,8 +85,8 @@ public class Users extends SecureBase {
         getKeyserverLogic().removeUser(serviceUserId, username);
     }
 
-    @RolesAllowed({ "CORE", "INDEXER" })
-    @LoginTokenRequired
+    @AppsAllowed({ Approle.CORE, Approle.INDEXER })
+    @TokenRequired
     @GET
     @Path("/{serviceUserId}/index_key")
     public String getIndexKey(@PathParam("serviceUserId") String serviceUserId) throws KeyserverException {
@@ -93,8 +95,8 @@ public class Users extends SecureBase {
         return this.getKeyserverLogic().getIndexKey(auth.getUserId(), auth.getAccountKey());
     }
 
-    @RolesAllowed({ "CORE", "INDEXER", "WORKER" })
-    @LoginTokenRequired
+    @AppsAllowed({ Approle.CORE, Approle.WORKER, Approle.STORAGE, Approle.INDEXER })
+    @TokenRequired
     @GET
     @Path("/{serviceUserId}/profile")
     public String getProfile(@PathParam("serviceUserId") String serviceUserId) throws KeyserverException {
@@ -103,8 +105,8 @@ public class Users extends SecureBase {
         return this.getKeyserverLogic().getProfile(auth.getUserId(), auth.getAccountKey());
     }
 
-    @RolesAllowed({ "CORE" })
-    @LoginTokenRequired
+    @AppsAllowed(Approle.CORE)
+    @TokenRequired
     @POST
     @Path("/{serviceUserId}/profile")
     public void setProfile(@PathParam("serviceUserId") String serviceUserId, @NotNull @FormParam("profile") String profile) throws KeyserverException {
@@ -113,8 +115,8 @@ public class Users extends SecureBase {
         this.getKeyserverLogic().setProfile(auth.getUserId(), auth.getAccountKey(), profile);
     }
 
-    @RolesAllowed({ "CORE" })
-    @LoginTokenRequired
+    @AppsAllowed(Approle.CORE)
+    @TokenRequired
     @POST
     @Path("/{serviceUserId}/changePassword")
     public void changePassword(@PathParam("serviceUserId") String serviceUserId, @NotNull @FormParam("oldPassword") String oldPassword,
@@ -124,8 +126,8 @@ public class Users extends SecureBase {
         this.getKeyserverLogic().changeUserPassword(auth.getUserId(), auth.getUsername(), oldPassword, newPassword);
     }
 
-    @RolesAllowed({ "CORE" })
-    @LoginTokenRequired
+    @AppsAllowed({ Approle.CORE, Approle.WORKER })
+    @TokenRequired({ TokenValue.Role.USER, TokenValue.Role.BACKUP_JOB })
     @POST
     @Path("/{serviceUserId}/plugins/")
     public void createPluginData(@PathParam("serviceUserId") String serviceUserId, @FormParam("pluginId") String pluginId,
@@ -135,8 +137,8 @@ public class Users extends SecureBase {
         this.getKeyserverLogic().createPluginData(auth.getUserId(), pluginId, auth.getAccountKey(), data);
     }
 
-    @RolesAllowed({ "CORE", "WORKER" })
-    @LoginTokenRequired
+    @AppsAllowed({ Approle.CORE, Approle.WORKER })
+    @TokenRequired({ TokenValue.Role.USER, TokenValue.Role.BACKUP_JOB })
     @GET
     @Path("/{serviceUserId}/plugins/{pluginId}")
     public String getPluginData(@PathParam("serviceUserId") String serviceUserId, @PathParam("pluginId") String pluginId) throws KeyserverException {
@@ -146,8 +148,8 @@ public class Users extends SecureBase {
         return this.getKeyserverLogic().getPluginData(auth.getUserId(), pluginId, pluginKey);
     }
 
-    @RolesAllowed({ "CORE", "WORKER" })
-    @LoginTokenRequired
+    @AppsAllowed({ Approle.CORE, Approle.WORKER })
+    @TokenRequired({ TokenValue.Role.USER, TokenValue.Role.BACKUP_JOB })
     @POST
     @Path("/{serviceUserId}/plugins/{pluginId}")
     public void updatePluginData(@PathParam("serviceUserId") String serviceUserId, @PathParam("pluginId") String pluginId,
@@ -158,8 +160,8 @@ public class Users extends SecureBase {
         this.getKeyserverLogic().updatePluginData(auth.getUserId(), pluginId, pluginKey, data);
     }
 
-    @RolesAllowed({ "CORE" })
-    @LoginTokenRequired
+    @AppsAllowed({ Approle.CORE, Approle.WORKER })
+    @TokenRequired({ TokenValue.Role.USER, TokenValue.Role.BACKUP_JOB })
     @DELETE
     @Path("/{serviceUserId}/plugins/{pluginId}")
     public void removePluginData(@PathParam("serviceUserId") String serviceUserId, @PathParam("pluginId") String pluginId) throws KeyserverException {
@@ -168,8 +170,8 @@ public class Users extends SecureBase {
         this.getKeyserverLogic().removePluginData(auth.getUserId(), pluginId);
     }
 
-    @RolesAllowed("CORE")
-    @LoginTokenRequired
+    @AppsAllowed(Approle.CORE)
+    @TokenRequired
     @POST
     @Path("/{serviceUserId}/tokens/onetime")
     public AuthResponseDTO createOnetimeToken(@PathParam("serviceUserId") String serviceUserId, @FormParam("pluginId") String[] pluginIds,
@@ -182,8 +184,8 @@ public class Users extends SecureBase {
         return this.map(this.getKeyserverLogic().createOnetime(auth.getUserId(), auth.getServiceUserId(), auth.getUsername(), auth.getAccountKey(), pluginIds, cal), AuthResponseDTO.class);
     }
 
-    @RolesAllowed("CORE")
-    @LoginTokenRequired
+    @AppsAllowed(Approle.CORE)
+    @TokenRequired
     @GET
     @Path("/{serviceUserId}/tokens")
     public List<TokenDTO> listTokens(@PathParam("serviceUserId") String serviceUserId, @QueryParam("kind") Token.Kind kind) throws KeyserverException {

@@ -2,6 +2,7 @@ package org.backmeup.keyserver.rest.filters;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -9,7 +10,6 @@ import java.util.StringTokenizer;
 
 import javax.annotation.security.DenyAll;
 import javax.annotation.security.PermitAll;
-import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
@@ -20,8 +20,10 @@ import org.backmeup.keyserver.core.KeyserverException;
 import org.backmeup.keyserver.model.App;
 import org.backmeup.keyserver.model.AuthResponse;
 import org.backmeup.keyserver.model.Token;
+import org.backmeup.keyserver.model.TokenValue;
+import org.backmeup.keyserver.rest.auth.AppsAllowed;
 import org.backmeup.keyserver.rest.auth.KeyserverSecurityContext;
-import org.backmeup.keyserver.rest.auth.LoginTokenRequired;
+import org.backmeup.keyserver.rest.auth.TokenRequired;
 import org.jboss.resteasy.core.Headers;
 import org.jboss.resteasy.core.ResourceMethodInvoker;
 import org.jboss.resteasy.core.ServerResponse;
@@ -62,10 +64,10 @@ public class SecurityInterceptor implements ContainerRequestFilter {
         }
 
         // verify app roles
-        if (method.isAnnotationPresent(RolesAllowed.class)) {
-            Set<String> rolesSet = new HashSet<>(Arrays.asList(method.getAnnotation(RolesAllowed.class).value()));
+        if (method.isAnnotationPresent(AppsAllowed.class)) {
+            Set<App.Approle> annotationRoles = new HashSet<>(Arrays.asList(method.getAnnotation(AppsAllowed.class).value()));
 
-            if (!isAppAllowed(app, rolesSet)) {
+            if (!annotationRoles.contains(app.getAppRole())) {
                 requestContext.abortWith(ACCESS_DENIED);
                 return;
             }
@@ -77,9 +79,12 @@ public class SecurityInterceptor implements ContainerRequestFilter {
             Token token = this.parseTokenHeader(requestContext);
             auth = this.authenticateToken(token);
             
-            if (method.isAnnotationPresent(LoginTokenRequired.class) && auth == null) {
-                requestContext.abortWith(ACCESS_DENIED);
-                return;
+            if (method.isAnnotationPresent(TokenRequired.class)) {
+                Set<TokenValue.Role> annotationRoles = new HashSet<>(Arrays.asList(method.getAnnotation(TokenRequired.class).value()));
+                if (auth == null || Collections.disjoint(annotationRoles, auth.getRoles())) {
+                    requestContext.abortWith(ACCESS_DENIED);
+                    return;
+                }
             }
         } catch (IllegalArgumentException e) {
             requestContext.abortWith(new ServerResponse("Unkown token kind", 400, new Headers<>()));
@@ -157,13 +162,5 @@ public class SecurityInterceptor implements ContainerRequestFilter {
             LOGGER.info("Login failed. Appid \"{}\" or password wrong.", appId, e);
             return null;
         }
-    }
-
-    private boolean isAppAllowed(final App app, final Set<String> rolesSet) {
-        if (rolesSet.contains(app.getAppRole().name())) {
-            return true;
-        }
-
-        return false;
     }
 }

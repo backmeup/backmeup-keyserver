@@ -2,7 +2,6 @@ package org.backmeup.keyserver.rest.resources;
 
 import java.util.Calendar;
 
-import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.POST;
@@ -13,7 +12,9 @@ import javax.ws.rs.core.MediaType;
 
 import org.backmeup.keyserver.core.KeyserverException;
 import org.backmeup.keyserver.model.Token;
+import org.backmeup.keyserver.model.App.Approle;
 import org.backmeup.keyserver.model.dto.AuthResponseDTO;
+import org.backmeup.keyserver.rest.auth.AppsAllowed;
 
 /**
  * All token specific operations (except onetime token creation and user token
@@ -23,14 +24,14 @@ import org.backmeup.keyserver.model.dto.AuthResponseDTO;
 @Produces(MediaType.APPLICATION_JSON)
 public class Tokens extends SecureBase {
 
-    @RolesAllowed("CORE")
+    @AppsAllowed(Approle.CORE)
     @POST
     @Path("/internal/{token}")
     public AuthResponseDTO authenticateWithInternalToken(@PathParam("token") String tokenHash) throws KeyserverException {
         return this.map(this.getKeyserverLogic().authenticateWithInternalToken(tokenHash), AuthResponseDTO.class);
     }
 
-    @RolesAllowed("WORKER")
+    @AppsAllowed(Approle.WORKER)
     @POST
     @Path("/onetime/{token}")
     public AuthResponseDTO authenticateWithOnetimeToken(@PathParam("token") String tokenHash,
@@ -44,7 +45,7 @@ public class Tokens extends SecureBase {
         return this.map(this.getKeyserverLogic().authenticateWithOnetime(tokenHash, cal), AuthResponseDTO.class);
     }
 
-    @RolesAllowed("CORE")
+    @AppsAllowed(Approle.CORE)
     @DELETE
     @Path("/{kind}/{token}")
     public void remove(@PathParam("kind") Token.Kind kind, @PathParam("token") String tokenHash) throws KeyserverException {
