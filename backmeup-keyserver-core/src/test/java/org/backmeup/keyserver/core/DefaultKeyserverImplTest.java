@@ -353,11 +353,15 @@ public class DefaultKeyserverImplTest {
     @Test
     public void testOnetimeToken() throws KeyserverException {
         AuthResponse ot = this.createUserWithPluginsAndOnetimeToken(KeyserverUtils.getActTime());
+        assertEquals(USERNAME, ot.getUsername());
+        assertTrue(ot.getRoles().contains(TokenValue.Role.BACKUP_JOB));
+        assertArrayEquals(new byte[0], ot.getAccountKey());
         
         AuthResponse it = ks.authenticateWithOnetime(ot.getB64Token());
         assertEquals(ot.getServiceUserId(), it.getServiceUserId());
         assertEquals(USERNAME, it.getUsername());
         assertTrue(it.getRoles().contains(TokenValue.Role.BACKUP_JOB));
+        assertArrayEquals(new byte[0], it.getAccountKey());
         
         String[] pluginIds = {"facebook1", "dropbox1"};
         String data = "json with oauth-token";

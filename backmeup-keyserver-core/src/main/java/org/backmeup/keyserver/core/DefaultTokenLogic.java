@@ -289,7 +289,6 @@ public class DefaultTokenLogic {
         Token token = new Token(Token.Kind.ONETIME);
         TokenValue tokenValue = new TokenValue(userId, serviceUserId, TokenValue.Role.BACKUP_JOB);
         tokenValue.putValue(JsonKeys.USERNAME, username);
-        tokenValue.putValue(JsonKeys.ACCOUNT_KEY, accountKey);
         
         Map<String, String> pluginKeys = new HashMap<>();
         for (String pluginId : pluginIds) {
