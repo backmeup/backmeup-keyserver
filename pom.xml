@@ -76,6 +76,7 @@
 		<module>backmeup-keyserver-core</module>
 		<module>backmeup-keyserver-rest</module>
 		<module>backmeup-keyserver-tests</module>
+		<module>backmeup-keyserver-client</module>
 	</modules>
 
 
