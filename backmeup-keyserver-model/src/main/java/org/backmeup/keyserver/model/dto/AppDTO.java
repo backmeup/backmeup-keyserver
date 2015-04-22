@@ -2,12 +2,14 @@ package org.backmeup.keyserver.model.dto;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.backmeup.keyserver.model.App.Approle;
+
 @XmlRootElement
 @SuppressWarnings("unused")
 public class AppDTO {
     private String appId;
     private String password;
-    private String appRole;
+    private Approle appRole;
 
     public AppDTO() {
 
@@ -29,11 +31,11 @@ public class AppDTO {
         this.password = password;
     }
 
-    public String getAppRole() {
+    public Approle getAppRole() {
         return appRole;
     }
 
-    public void setAppRole(String appRole) {
+    public void setAppRole(Approle appRole) {
         this.appRole = appRole;
     }
 }
