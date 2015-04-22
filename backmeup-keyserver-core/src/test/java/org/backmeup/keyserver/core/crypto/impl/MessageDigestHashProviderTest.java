@@ -3,9 +3,9 @@ package org.backmeup.keyserver.core.crypto.impl;
 import static org.junit.Assert.*;
 
 import org.apache.commons.codec.binary.StringUtils;
-import org.backmeup.keyserver.core.crypto.CryptoException;
 import org.backmeup.keyserver.core.crypto.HashProvider;
 import org.backmeup.keyserver.core.crypto.impl.MessageDigestHashProvider;
+import org.backmeup.keyserver.model.CryptoException;
 import org.backmeup.keyserver.model.KeyserverUtils;
 import org.junit.Test;
 

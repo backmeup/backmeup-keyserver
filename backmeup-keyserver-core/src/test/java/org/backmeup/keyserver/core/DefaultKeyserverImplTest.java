@@ -9,12 +9,13 @@ import java.util.List;
 import java.util.Map;
 
 import org.backmeup.keyserver.core.DefaultKeyserverImpl;
-import org.backmeup.keyserver.core.KeyserverException;
 import org.backmeup.keyserver.core.config.Configuration;
 import org.backmeup.keyserver.core.db.sql.SQLDatabaseImpl;
 import org.backmeup.keyserver.model.App;
 import org.backmeup.keyserver.model.AuthResponse;
+import org.backmeup.keyserver.model.EntryNotFoundException;
 import org.backmeup.keyserver.model.JsonKeys;
+import org.backmeup.keyserver.model.KeyserverException;
 import org.backmeup.keyserver.model.KeyserverUtils;
 import org.backmeup.keyserver.model.Token;
 import org.backmeup.keyserver.model.TokenValue;

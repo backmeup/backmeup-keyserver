@@ -11,12 +11,14 @@ import java.text.MessageFormat;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.backmeup.keyserver.core.crypto.CryptoException;
 import org.backmeup.keyserver.core.crypto.Keyring;
 import org.backmeup.keyserver.core.crypto.PepperApps;
 import org.backmeup.keyserver.core.db.DatabaseException;
 import org.backmeup.keyserver.model.App;
+import org.backmeup.keyserver.model.CryptoException;
+import org.backmeup.keyserver.model.EntryNotFoundException;
 import org.backmeup.keyserver.model.KeyserverEntry;
+import org.backmeup.keyserver.model.KeyserverException;
 
 public class DefaultAppLogic {
     

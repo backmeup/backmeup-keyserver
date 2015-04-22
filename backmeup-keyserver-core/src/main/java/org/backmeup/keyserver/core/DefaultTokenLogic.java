@@ -15,13 +15,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.backmeup.keyserver.core.crypto.CryptoException;
 import org.backmeup.keyserver.core.crypto.Keyring;
 import org.backmeup.keyserver.core.crypto.PepperApps;
 import org.backmeup.keyserver.core.db.DatabaseException;
 import org.backmeup.keyserver.model.AuthResponse;
+import org.backmeup.keyserver.model.CryptoException;
+import org.backmeup.keyserver.model.EntryNotFoundException;
 import org.backmeup.keyserver.model.JsonKeys;
 import org.backmeup.keyserver.model.KeyserverEntry;
+import org.backmeup.keyserver.model.KeyserverException;
 import org.backmeup.keyserver.model.Token;
 import org.backmeup.keyserver.model.TokenValue;
 import org.codehaus.jackson.JsonNode;

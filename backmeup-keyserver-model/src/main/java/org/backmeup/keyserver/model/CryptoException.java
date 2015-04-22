@@ -1,4 +1,4 @@
-package org.backmeup.keyserver.core.crypto;
+package org.backmeup.keyserver.model;
 
 public class CryptoException extends Exception {
 

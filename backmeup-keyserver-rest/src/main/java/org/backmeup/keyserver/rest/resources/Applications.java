@@ -12,8 +12,8 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import org.backmeup.keyserver.core.KeyserverException;
 import org.backmeup.keyserver.model.App;
+import org.backmeup.keyserver.model.KeyserverException;
 import org.backmeup.keyserver.model.App.Approle;
 import org.backmeup.keyserver.model.dto.AppDTO;
 import org.backmeup.keyserver.rest.auth.AppsAllowed;
@@ -50,7 +50,7 @@ public class Applications extends SecureBase {
     @AppsAllowed({ Approle.CORE, Approle.WORKER, Approle.STORAGE, Approle.INDEXER })
     @POST
     @Path("/{appId}")
-    public void authenticate(@PathParam("appId") String appId, @NotNull @FormParam("key") String appKey) throws KeyserverException {
-        this.getKeyserverLogic().authenticateApp(appId, appKey);
+    public AppDTO authenticate(@PathParam("appId") String appId, @NotNull @FormParam("key") String appKey) throws KeyserverException {
+        return this.map(this.getKeyserverLogic().authenticateApp(appId, appKey), AppDTO.class);
     }
 }

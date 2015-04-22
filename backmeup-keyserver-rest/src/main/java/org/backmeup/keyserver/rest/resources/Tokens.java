@@ -10,7 +10,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import org.backmeup.keyserver.core.KeyserverException;
+import org.backmeup.keyserver.model.KeyserverException;
 import org.backmeup.keyserver.model.Token;
 import org.backmeup.keyserver.model.App.Approle;
 import org.backmeup.keyserver.model.dto.AuthResponseDTO;

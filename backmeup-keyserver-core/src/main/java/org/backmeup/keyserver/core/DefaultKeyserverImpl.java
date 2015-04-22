@@ -14,13 +14,15 @@ import java.util.TreeMap;
 
 import org.backmeup.keyserver.core.config.Configuration;
 import org.backmeup.keyserver.core.config.KeyringConfiguration;
-import org.backmeup.keyserver.core.crypto.CryptoException;
 import org.backmeup.keyserver.core.crypto.Keyring;
 import org.backmeup.keyserver.core.db.Database;
 import org.backmeup.keyserver.core.db.DatabaseException;
 import org.backmeup.keyserver.model.App;
 import org.backmeup.keyserver.model.AuthResponse;
+import org.backmeup.keyserver.model.CryptoException;
+import org.backmeup.keyserver.model.EntryNotFoundException;
 import org.backmeup.keyserver.model.KeyserverEntry;
+import org.backmeup.keyserver.model.KeyserverException;
 import org.backmeup.keyserver.model.Token;
 import org.codehaus.jackson.map.ObjectMapper;
 

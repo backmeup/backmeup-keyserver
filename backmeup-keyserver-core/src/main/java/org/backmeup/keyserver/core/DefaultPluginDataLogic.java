@@ -5,11 +5,13 @@ import static org.backmeup.keyserver.core.EncryptionUtils.generateKey;
 
 import java.text.MessageFormat;
 
-import org.backmeup.keyserver.core.crypto.CryptoException;
 import org.backmeup.keyserver.core.crypto.Keyring;
 import org.backmeup.keyserver.core.crypto.PepperApps;
 import org.backmeup.keyserver.core.db.DatabaseException;
+import org.backmeup.keyserver.model.CryptoException;
+import org.backmeup.keyserver.model.EntryNotFoundException;
 import org.backmeup.keyserver.model.KeyserverEntry;
+import org.backmeup.keyserver.model.KeyserverException;
 
 public class DefaultPluginDataLogic {
     private static final MessageFormat PLUGIN_KEY_ENTRY_FMT = new MessageFormat("{0}."+PepperApps.PLUGIN+"{1}.Key");

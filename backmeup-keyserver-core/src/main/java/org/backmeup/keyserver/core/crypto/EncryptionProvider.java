@@ -1,5 +1,7 @@
 package org.backmeup.keyserver.core.crypto;
 
+import org.backmeup.keyserver.model.CryptoException;
+
 public interface EncryptionProvider {
     String getAlgorithm();
 

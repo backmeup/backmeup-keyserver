@@ -16,8 +16,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
-import org.backmeup.keyserver.core.KeyserverException;
 import org.backmeup.keyserver.model.AuthResponse;
+import org.backmeup.keyserver.model.KeyserverException;
 import org.backmeup.keyserver.model.Token;
 import org.backmeup.keyserver.model.TokenValue;
 import org.backmeup.keyserver.model.App.Approle;

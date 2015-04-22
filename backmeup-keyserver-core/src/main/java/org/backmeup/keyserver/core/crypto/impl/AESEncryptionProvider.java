@@ -15,8 +15,8 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.backmeup.keyserver.core.EncryptionUtils;
-import org.backmeup.keyserver.core.crypto.CryptoException;
 import org.backmeup.keyserver.core.crypto.EncryptionProvider;
+import org.backmeup.keyserver.model.CryptoException;
 
 public class AESEncryptionProvider implements EncryptionProvider {
     public static final int IV_LENGTH = 16;

@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.backmeup.keyserver.model.App;
 import org.backmeup.keyserver.model.AuthResponse;
+import org.backmeup.keyserver.model.KeyserverException;
 import org.backmeup.keyserver.model.Token;
 
 public interface Keyserver {
