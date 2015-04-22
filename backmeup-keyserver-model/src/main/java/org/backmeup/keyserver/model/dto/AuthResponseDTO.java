@@ -1,11 +1,7 @@
 package org.backmeup.keyserver.model.dto;
 
-import java.util.Calendar;
 import java.util.Set;
-
 import javax.xml.bind.annotation.XmlRootElement;
-
-import org.backmeup.keyserver.model.Token;
 import org.backmeup.keyserver.model.TokenValue.Role;
 
 @XmlRootElement

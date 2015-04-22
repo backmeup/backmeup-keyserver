@@ -20,8 +20,10 @@ import org.backmeup.keyserver.model.KeyserverException;
 import org.backmeup.keyserver.model.dto.AppDTO;
 
 public class KeyserverClient {
-    protected static GenericType<List<AppDTO>> APPDTO_LIST_TYPE = new GenericType<List<AppDTO>>() {
+    protected static final GenericType<List<AppDTO>> APPDTO_LIST_TYPE = new GenericType<List<AppDTO>>() {
     };
+    
+    @SuppressWarnings("PMD.SingularField")
     private Client client;
     private WebTarget apps;
     private WebTarget theApp;

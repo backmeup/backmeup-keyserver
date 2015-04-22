@@ -96,6 +96,6 @@ public class AuthResponse {
             return KeyserverUtils.fromBase64String(pluginKeys.get(pluginId));
         }
 
-        return null;
+        return new byte[0];
     }
 }

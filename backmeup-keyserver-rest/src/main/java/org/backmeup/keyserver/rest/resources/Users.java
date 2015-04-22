@@ -43,7 +43,7 @@ public class Users extends SecureBase {
             pluginKey = this.getKeyserverLogic().getPluginDataKey(auth.getUserId(), pluginId, auth.getAccountKey());
         } else if (auth.getRoles().contains(Role.BACKUP_JOB)) {
             pluginKey = auth.getPluginKey(pluginId);
-            if (pluginKey == null) {
+            if (pluginKey.length == 0) {
                 throw new ForbiddenException("token has no access to plugin " + pluginId);
             }
         }
