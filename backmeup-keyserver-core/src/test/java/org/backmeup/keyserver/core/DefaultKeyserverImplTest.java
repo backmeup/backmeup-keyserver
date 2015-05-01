@@ -27,7 +27,7 @@ import org.junit.Test;
 public class DefaultKeyserverImplTest {
 
     private static final String PASSWORD = "mypass";
-    private static final String USERNAME = "wolfgang";
+    private static final String USERNAME = "keyserver-test";
     
     private static DefaultKeyserverImpl ks;
 
