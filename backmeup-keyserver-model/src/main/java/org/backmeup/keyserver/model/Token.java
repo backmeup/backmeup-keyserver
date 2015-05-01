@@ -23,6 +23,8 @@ public class Token {
             }
         }
     }
+    
+    private static final String SEPARATOR = ";";
 
     private Kind kind;
     private String b64Token;
@@ -119,5 +121,23 @@ public class Token {
 
     public boolean hasValue() {
         return this.value != null;
+    }
+    
+    public String toTokenString() {
+        return this.kind + SEPARATOR + this.b64Token;
+    }
+    
+    @Override
+    public String toString() {
+        StringBuilder b = new StringBuilder();
+        b.append(this.toTokenString());
+        b.append(" (");
+        b.append(String.format("%tF %<tR %<tz", ttl));
+        if (this.annotation != null) {
+            b.append(", ");
+            b.append(this.annotation);
+        }
+        b.append(")");
+        return b.toString();
     }
 }

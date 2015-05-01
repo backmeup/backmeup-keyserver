@@ -112,4 +112,13 @@ public class TokenValue {
             return c;
         }
     }
+    
+    @Override
+    public String toString() {
+        StringBuilder b = new StringBuilder();
+        b.append(this.serviceUserId);
+        b.append(" ");
+        b.append(this.roles.toString());
+        return b.toString();
+    }
 }

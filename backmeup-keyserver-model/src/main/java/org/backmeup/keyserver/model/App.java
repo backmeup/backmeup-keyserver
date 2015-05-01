@@ -46,5 +46,9 @@ public class App {
     public void setAppRole(Approle appRole) {
         this.appRole = appRole;
     }
-
+    
+    @Override
+    public String toString() {
+        return this.appId + " (" + this.appRole.toString() + ")";
+    }
 }

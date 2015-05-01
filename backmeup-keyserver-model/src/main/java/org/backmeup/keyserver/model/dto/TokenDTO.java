@@ -7,6 +7,8 @@ import org.backmeup.keyserver.model.Token.Kind;
 @XmlRootElement
 @SuppressWarnings("unused")
 public class TokenDTO {
+    private static final String SEPARATOR = ";";
+    
     private Kind kind;
     private String b64Token;
     private String annotation;
@@ -14,6 +16,11 @@ public class TokenDTO {
 
     public TokenDTO() {
 
+    }
+    
+    public TokenDTO(Kind kind, String b64token) {
+        this.kind = kind;
+        this.b64Token = b64token;
     }
 
     public Kind getKind() {
@@ -46,5 +53,32 @@ public class TokenDTO {
 
     public void setTtl(Calendar ttl) {
         this.ttl = ttl;
+    }
+    
+    public String toTokenString() {
+        return this.kind + SEPARATOR + this.b64Token;
+    }
+    
+    public static TokenDTO fromTokenString(String tokenString) {
+        String[] parts = tokenString.split(SEPARATOR);
+        if (parts.length != 2) {
+            throw new IllegalArgumentException("token string must consist of <kind>"+SEPARATOR+"<token>");
+        }
+        
+        return new TokenDTO(Kind.valueOf(parts[0]), parts[1]);
+    }
+    
+    @Override
+    public String toString() {
+        StringBuilder b = new StringBuilder();
+        b.append(this.toTokenString());
+        b.append(" (");
+        b.append(String.format("%tF %<tR %<tz", ttl));
+        if (this.annotation != null) {
+            b.append(", ");
+            b.append(this.annotation);
+        }
+        b.append(")");
+        return b.toString();
     }
 }

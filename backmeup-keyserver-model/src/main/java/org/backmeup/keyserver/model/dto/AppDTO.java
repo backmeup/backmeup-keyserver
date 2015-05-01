@@ -38,4 +38,9 @@ public class AppDTO {
     public void setAppRole(Approle appRole) {
         this.appRole = appRole;
     }
+    
+    @Override
+    public String toString() {
+        return this.appId + " (" + this.appRole.toString() + ")";
+    }
 }

@@ -98,4 +98,14 @@ public class AuthResponse {
 
         return new byte[0];
     }
+    
+    @Override
+    public String toString() {
+        StringBuilder b = new StringBuilder();
+        b.append("token: ");
+        b.append(this.token.toString());
+        b.append("\nvalue: ");
+        b.append(this.token.getValue().toString());
+        return b.toString();
+    }
 }

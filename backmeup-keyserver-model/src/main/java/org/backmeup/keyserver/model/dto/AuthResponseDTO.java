@@ -56,4 +56,18 @@ public class AuthResponseDTO {
     public void setNext(AuthResponseDTO next) {
         this.next = next;
     }
+    
+    @Override
+    public String toString() {
+        StringBuilder b = new StringBuilder();
+        b.append("token: ");
+        b.append(this.token.toString());
+        b.append("\nvalue: ");
+        b.append(this.serviceUserId);
+        b.append(" - ");
+        b.append(this.username);
+        b.append(" ");
+        b.append(this.roles.toString());
+        return b.toString();
+    }
 }
