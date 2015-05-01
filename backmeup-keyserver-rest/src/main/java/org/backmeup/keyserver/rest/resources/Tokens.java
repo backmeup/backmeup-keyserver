@@ -26,14 +26,14 @@ public class Tokens extends SecureBase {
 
     @AppsAllowed(Approle.CORE)
     @POST
-    @Path("/internal/{token}")
+    @Path("/INTERNAL/{token}")
     public AuthResponseDTO authenticateWithInternalToken(@PathParam("token") String tokenHash) throws KeyserverException {
         return this.map(this.getKeyserverLogic().authenticateWithInternalToken(tokenHash), AuthResponseDTO.class);
     }
 
     @AppsAllowed(Approle.WORKER)
     @POST
-    @Path("/onetime/{token}")
+    @Path("/ONETIME/{token}")
     public AuthResponseDTO authenticateWithOnetimeToken(@PathParam("token") String tokenHash,
             @FormParam("nextScheduledExecutionTime") Long nextScheduledExecutionTime) throws KeyserverException {
         Calendar cal = null;
