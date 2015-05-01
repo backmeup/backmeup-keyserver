@@ -61,7 +61,7 @@ public class Users extends SecureBase {
 
     @AppsAllowed(Approle.CORE)
     @POST
-    @Path("/authenticate")
+    @Path("/tokenUser")
     public AuthResponseDTO authenticate(@NotNull @FormParam("username") String username, @NotNull @FormParam("password") String password)
             throws KeyserverException {
         return this.map(this.getKeyserverLogic().authenticateUserWithPassword(username, password), AuthResponseDTO.class);
@@ -70,17 +70,16 @@ public class Users extends SecureBase {
     @AppsAllowed(Approle.CORE)
     @TokenRequired
     @DELETE
-    @Path("/{serviceUserId}")
-    public void remove(@PathParam("serviceUserId") String serviceUserId) throws KeyserverException {
-        this.checkServiceUserId(serviceUserId);
+    @Path("/tokenUser")
+    public void remove() throws KeyserverException {
         AuthResponse auth = this.getAuthResponse();
         getKeyserverLogic().removeUser(auth.getServiceUserId(), auth.getUsername(), auth.getAccountKey());
     }
 
     @AppsAllowed(Approle.CORE)
     @DELETE
-    @Path("/{serviceUserId}/adminRemove")
-    public void adminRemove(@PathParam("serviceUserId") String serviceUserId, @NotNull @QueryParam("username") String username)
+    @Path("/adminRemove")
+    public void adminRemove(@NotNull @QueryParam("serviceUserId") String serviceUserId, @NotNull @QueryParam("username") String username)
             throws KeyserverException {
         getKeyserverLogic().removeUser(serviceUserId, username);
     }
@@ -88,9 +87,8 @@ public class Users extends SecureBase {
     @AppsAllowed({ Approle.CORE, Approle.INDEXER })
     @TokenRequired
     @GET
-    @Path("/{serviceUserId}/index_key")
-    public String getIndexKey(@PathParam("serviceUserId") String serviceUserId) throws KeyserverException {
-        this.checkServiceUserId(serviceUserId);
+    @Path("/tokenUser/index_key")
+    public String getIndexKey() throws KeyserverException {
         AuthResponse auth = this.getAuthResponse();
         return this.getKeyserverLogic().getIndexKey(auth.getUserId(), auth.getAccountKey());
     }
@@ -98,9 +96,8 @@ public class Users extends SecureBase {
     @AppsAllowed({ Approle.CORE, Approle.WORKER, Approle.STORAGE, Approle.INDEXER })
     @TokenRequired
     @GET
-    @Path("/{serviceUserId}/profile")
-    public String getProfile(@PathParam("serviceUserId") String serviceUserId) throws KeyserverException {
-        this.checkServiceUserId(serviceUserId);
+    @Path("/tokenUser/profile")
+    public String getProfile() throws KeyserverException {
         AuthResponse auth = this.getAuthResponse();
         return this.getKeyserverLogic().getProfile(auth.getUserId(), auth.getAccountKey());
     }
@@ -108,9 +105,8 @@ public class Users extends SecureBase {
     @AppsAllowed(Approle.CORE)
     @TokenRequired
     @POST
-    @Path("/{serviceUserId}/profile")
-    public void setProfile(@PathParam("serviceUserId") String serviceUserId, @NotNull @FormParam("profile") String profile) throws KeyserverException {
-        this.checkServiceUserId(serviceUserId);
+    @Path("/tokenUser/profile")
+    public void setProfile(@NotNull @FormParam("profile") String profile) throws KeyserverException {
         AuthResponse auth = this.getAuthResponse();
         this.getKeyserverLogic().setProfile(auth.getUserId(), auth.getAccountKey(), profile);
     }
@@ -118,10 +114,9 @@ public class Users extends SecureBase {
     @AppsAllowed(Approle.CORE)
     @TokenRequired
     @POST
-    @Path("/{serviceUserId}/changePassword")
-    public void changePassword(@PathParam("serviceUserId") String serviceUserId, @NotNull @FormParam("oldPassword") String oldPassword,
-            @NotNull @FormParam("newPassword") String newPassword) throws KeyserverException {
-        this.checkServiceUserId(serviceUserId);
+    @Path("/tokenUser/changePassword")
+    public void changePassword(@NotNull @FormParam("oldPassword") String oldPassword, @NotNull @FormParam("newPassword") String newPassword)
+            throws KeyserverException {
         AuthResponse auth = this.getAuthResponse();
         this.getKeyserverLogic().changeUserPassword(auth.getUserId(), auth.getUsername(), oldPassword, newPassword);
     }
@@ -129,10 +124,8 @@ public class Users extends SecureBase {
     @AppsAllowed({ Approle.CORE, Approle.WORKER })
     @TokenRequired({ TokenValue.Role.USER, TokenValue.Role.BACKUP_JOB })
     @POST
-    @Path("/{serviceUserId}/plugins/")
-    public void createPluginData(@PathParam("serviceUserId") String serviceUserId, @FormParam("pluginId") String pluginId,
-            @NotNull @FormParam("data") String data) throws KeyserverException {
-        this.checkServiceUserId(serviceUserId);
+    @Path("/tokenUser/plugins/")
+    public void createPluginData(@FormParam("pluginId") String pluginId, @NotNull @FormParam("data") String data) throws KeyserverException {
         AuthResponse auth = this.getAuthResponse();
         this.getKeyserverLogic().createPluginData(auth.getUserId(), pluginId, auth.getAccountKey(), data);
     }
@@ -140,9 +133,8 @@ public class Users extends SecureBase {
     @AppsAllowed({ Approle.CORE, Approle.WORKER })
     @TokenRequired({ TokenValue.Role.USER, TokenValue.Role.BACKUP_JOB })
     @GET
-    @Path("/{serviceUserId}/plugins/{pluginId}")
-    public String getPluginData(@PathParam("serviceUserId") String serviceUserId, @PathParam("pluginId") String pluginId) throws KeyserverException {
-        this.checkServiceUserId(serviceUserId);
+    @Path("/tokenUser/plugins/{pluginId}")
+    public String getPluginData(@PathParam("pluginId") String pluginId) throws KeyserverException {
         AuthResponse auth = this.getAuthResponse();
         byte[] pluginKey = this.getPluginKey(pluginId);
         return this.getKeyserverLogic().getPluginData(auth.getUserId(), pluginId, pluginKey);
@@ -151,10 +143,8 @@ public class Users extends SecureBase {
     @AppsAllowed({ Approle.CORE, Approle.WORKER })
     @TokenRequired({ TokenValue.Role.USER, TokenValue.Role.BACKUP_JOB })
     @POST
-    @Path("/{serviceUserId}/plugins/{pluginId}")
-    public void updatePluginData(@PathParam("serviceUserId") String serviceUserId, @PathParam("pluginId") String pluginId,
-            @NotNull @FormParam("data") String data) throws KeyserverException {
-        this.checkServiceUserId(serviceUserId);
+    @Path("/tokenUser/plugins/{pluginId}")
+    public void updatePluginData(@PathParam("pluginId") String pluginId, @NotNull @FormParam("data") String data) throws KeyserverException {
         AuthResponse auth = this.getAuthResponse();
         byte[] pluginKey = this.getPluginKey(pluginId);
         this.getKeyserverLogic().updatePluginData(auth.getUserId(), pluginId, pluginKey, data);
@@ -163,9 +153,8 @@ public class Users extends SecureBase {
     @AppsAllowed({ Approle.CORE, Approle.WORKER })
     @TokenRequired({ TokenValue.Role.USER, TokenValue.Role.BACKUP_JOB })
     @DELETE
-    @Path("/{serviceUserId}/plugins/{pluginId}")
-    public void removePluginData(@PathParam("serviceUserId") String serviceUserId, @PathParam("pluginId") String pluginId) throws KeyserverException {
-        this.checkServiceUserId(serviceUserId);
+    @Path("/tokenUser/plugins/{pluginId}")
+    public void removePluginData(@PathParam("pluginId") String pluginId) throws KeyserverException {
         AuthResponse auth = this.getAuthResponse();
         this.getKeyserverLogic().removePluginData(auth.getUserId(), pluginId);
     }
@@ -173,23 +162,23 @@ public class Users extends SecureBase {
     @AppsAllowed(Approle.CORE)
     @TokenRequired
     @POST
-    @Path("/{serviceUserId}/tokens/onetime")
-    public AuthResponseDTO createOnetimeToken(@PathParam("serviceUserId") String serviceUserId, @FormParam("pluginId") String[] pluginIds,
+    @Path("/tokenUser/tokens/onetime")
+    public AuthResponseDTO createOnetimeToken(@FormParam("pluginId") String[] pluginIds,
             @NotNull @FormParam("scheduledExecutionTime") Long scheduledExecutionTime) throws KeyserverException {
-        this.checkServiceUserId(serviceUserId);
         AuthResponse auth = this.getAuthResponse();
 
         Calendar cal = Calendar.getInstance();
         cal.setTimeInMillis((Long) scheduledExecutionTime);
-        return this.map(this.getKeyserverLogic().createOnetime(auth.getUserId(), auth.getServiceUserId(), auth.getUsername(), auth.getAccountKey(), pluginIds, cal), AuthResponseDTO.class);
+        return this.map(
+                this.getKeyserverLogic().createOnetime(auth.getUserId(), auth.getServiceUserId(), auth.getUsername(), auth.getAccountKey(),
+                        pluginIds, cal), AuthResponseDTO.class);
     }
 
     @AppsAllowed(Approle.CORE)
     @TokenRequired
     @GET
-    @Path("/{serviceUserId}/tokens")
-    public List<TokenDTO> listTokens(@PathParam("serviceUserId") String serviceUserId, @QueryParam("kind") Token.Kind kind) throws KeyserverException {
-        this.checkServiceUserId(serviceUserId);
+    @Path("/tokenUser/tokens")
+    public List<TokenDTO> listTokens(@QueryParam("kind") Token.Kind kind) throws KeyserverException {
         AuthResponse auth = this.getAuthResponse();
         List<Token> tokens = null;
 

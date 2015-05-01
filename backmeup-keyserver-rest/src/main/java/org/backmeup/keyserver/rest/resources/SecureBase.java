@@ -1,8 +1,6 @@
 package org.backmeup.keyserver.rest.resources;
 
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
 import org.backmeup.keyserver.model.App;
 import org.backmeup.keyserver.model.AuthResponse;
@@ -28,12 +26,4 @@ public class SecureBase extends Base {
     protected AuthResponse getAuthResponse() {
         return ((KeyserverPrincipal) this.getSecurityContext().getUserPrincipal()).getAuthResponse();
     }
-    
-    protected void checkServiceUserId(String serviceUserId) {
-        AuthResponse auth = ((KeyserverPrincipal) this.getSecurityContext().getUserPrincipal()).getAuthResponse();
-        if (!auth.getServiceUserId().equals(serviceUserId)) {
-            throw new WebApplicationException(Status.FORBIDDEN);
-        }
-    }
-
 }
