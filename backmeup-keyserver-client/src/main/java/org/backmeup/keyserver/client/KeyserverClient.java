@@ -18,23 +18,33 @@ import org.backmeup.keyserver.model.App.Approle;
 import org.backmeup.keyserver.model.EntryNotFoundException;
 import org.backmeup.keyserver.model.KeyserverException;
 import org.backmeup.keyserver.model.dto.AppDTO;
+import org.backmeup.keyserver.model.dto.AuthResponseDTO;
+import org.backmeup.keyserver.model.dto.TokenDTO;
 
 public class KeyserverClient {
     protected static final GenericType<List<AppDTO>> APPDTO_LIST_TYPE = new GenericType<List<AppDTO>>() {
     };
-    
+
     @SuppressWarnings("PMD.SingularField")
     private Client client;
     private WebTarget apps;
     private WebTarget theApp;
+    private WebTarget users;
+    private WebTarget theUser;
+    private WebTarget theToken;
     private String appId;
     private String authorizationHeader;
 
     public KeyserverClient(String baseUrl, String appId, String appSecret) {
         this.client = ClientBuilder.newClient();
+
         UriBuilder base = UriBuilder.fromUri(baseUrl);
-        this.apps = this.client.target(base.path("/applications/"));
+        this.apps = this.client.target(base).path("/applications/");
         this.theApp = this.apps.path("/{appId}");
+        this.users = this.client.target(base).path("/users/");
+        this.theUser = this.users.path("/tokenUser");
+        this.theToken = this.client.target(base).path("/tokens/{kind}/{token}");
+
         this.appId = appId;
         this.authorizationHeader = appId + ";" + appSecret;
     }
@@ -94,6 +104,10 @@ public class KeyserverClient {
         }
     }
 
+    // =========================================================================
+    // App logic
+    // =========================================================================
+
     public List<AppDTO> listApps() throws KeyserverException {
         try {
             return this.createRequest(this.apps).get(APPDTO_LIST_TYPE);
@@ -121,6 +135,110 @@ public class KeyserverClient {
     public AppDTO authenticateApp(String appId, String appKey) throws KeyserverException {
         try {
             return this.createRequest(this.theApp.resolveTemplate("appId", appId)).post(Entity.form(new Form("key", appKey)), AppDTO.class);
+        } catch (WebApplicationException | ProcessingException exception) {
+            throw this.parseException(exception);
+        }
+    }
+
+    // =========================================================================
+    // User logic
+    // =========================================================================
+
+    private Builder createUserSpecificRequest(TokenDTO t) {
+        return this.createUserSpecificRequest(null, t);
+    }
+
+    private Builder createUserSpecificRequest(String path, TokenDTO t) {
+        WebTarget target = this.theUser;
+        if (path != null) {
+            target = target.path(path);
+        }
+
+        return target.request().header("Authorization", authorizationHeader).header("Token", t.getKind().toString() + ";" + t.getB64Token());
+    }
+
+    public String registerUser(String username, String password) throws KeyserverException {
+        try {
+            Form f = new Form().param("username", username).param("password", password);
+
+            return this.createRequest(this.users).post(Entity.form(f), String.class);
+        } catch (WebApplicationException | ProcessingException exception) {
+            throw this.parseException(exception);
+        }
+    }
+
+    public AuthResponseDTO authenticateUserWithPassword(String username, String password) throws KeyserverException {
+        try {
+            Form f = new Form().param("username", username).param("password", password);
+
+            return this.createRequest(this.theUser).post(Entity.form(f), AuthResponseDTO.class);
+        } catch (WebApplicationException | ProcessingException exception) {
+            throw this.parseException(exception);
+        }
+    }
+
+    public String getProfile(TokenDTO token) throws KeyserverException {
+        try {
+            return this.createUserSpecificRequest("/profile", token).get(String.class);
+        } catch (WebApplicationException | ProcessingException exception) {
+            throw this.parseException(exception);
+        }
+    }
+
+    public void setProfile(TokenDTO token, String profile) throws KeyserverException {
+        try {
+            this.createUserSpecificRequest("/profile", token).post(Entity.form(new Form("profile", profile)));
+        } catch (WebApplicationException | ProcessingException exception) {
+            throw this.parseException(exception);
+        }
+    }
+
+    public String getIndexKey(TokenDTO token) throws KeyserverException {
+        try {
+            return this.createUserSpecificRequest("/index_key", token).get(String.class);
+        } catch (WebApplicationException | ProcessingException exception) {
+            throw this.parseException(exception);
+        }
+    }
+
+    public void removeUser(TokenDTO token) throws KeyserverException {
+        try {
+            this.createUserSpecificRequest(token).delete();
+        } catch (WebApplicationException | ProcessingException exception) {
+            throw this.parseException(exception);
+        }
+    }
+
+    public void removeUserByAdmin(String serviceUserId, String username) throws KeyserverException {
+        try {
+            this.createRequest(this.users.path("/adminRemove").queryParam("serviceUserId", serviceUserId).queryParam("username", username)).delete();
+        } catch (WebApplicationException | ProcessingException exception) {
+            throw this.parseException(exception);
+        }
+    }
+
+    public void changeUserPassword(TokenDTO token, String oldPassword, String newPassword) throws KeyserverException {
+        Form f = new Form().param("oldPassword", oldPassword).param("newPassword", newPassword);
+
+        try {
+            this.createUserSpecificRequest("/changePassword", token).post(Entity.form(f));
+        } catch (WebApplicationException | ProcessingException exception) {
+            throw this.parseException(exception);
+        }
+    }
+
+    // =========================================================================
+    // Token logic
+    // =========================================================================
+
+    private Builder createTokenSpecificRequest(TokenDTO token) {
+        return this.theToken.resolveTemplate("kind", token.getKind()).resolveTemplate("token", token.getB64Token()).request()
+                .header("Authorization", authorizationHeader);
+    }
+
+    public AuthResponseDTO authenticateWithInternalToken(TokenDTO token) throws KeyserverException {
+        try {
+            return this.createTokenSpecificRequest(token).post(Entity.form(new Form()), AuthResponseDTO.class);
         } catch (WebApplicationException | ProcessingException exception) {
             throw this.parseException(exception);
         }
