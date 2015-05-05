@@ -31,7 +31,7 @@ public class Tokens extends SecureBase {
         return this.map(this.getKeyserverLogic().authenticateWithInternalToken(tokenHash), AuthResponseDTO.class);
     }
 
-    @AppsAllowed(Approle.WORKER)
+    @AppsAllowed({Approle.CORE, Approle.WORKER})
     @POST
     @Path("/ONETIME/{token}")
     public AuthResponseDTO authenticateWithOnetimeToken(@PathParam("token") String tokenHash,
