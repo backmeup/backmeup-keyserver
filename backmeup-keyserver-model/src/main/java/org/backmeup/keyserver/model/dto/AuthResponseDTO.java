@@ -57,6 +57,10 @@ public class AuthResponseDTO {
         this.next = next;
     }
     
+    public boolean hasNext() {
+        return this.next != null;
+    }
+    
     @Override
     public String toString() {
         StringBuilder b = new StringBuilder();

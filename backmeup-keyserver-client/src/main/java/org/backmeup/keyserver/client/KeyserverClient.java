@@ -1,5 +1,6 @@
 package org.backmeup.keyserver.client;
 
+import java.util.Calendar;
 import java.util.List;
 
 import javax.ws.rs.ProcessingException;
@@ -24,6 +25,8 @@ import org.backmeup.keyserver.model.dto.TokenDTO;
 public class KeyserverClient {
     protected static final GenericType<List<AppDTO>> APPDTO_LIST_TYPE = new GenericType<List<AppDTO>>() {
     };
+    protected static final GenericType<List<TokenDTO>> TOKENDTO_LIST_TYPE = new GenericType<List<TokenDTO>>() {
+    };
 
     @SuppressWarnings("PMD.SingularField")
     private Client client;
@@ -31,6 +34,7 @@ public class KeyserverClient {
     private WebTarget theApp;
     private WebTarget users;
     private WebTarget theUser;
+    private WebTarget thePlugin;
     private WebTarget theToken;
     private String appId;
     private String authorizationHeader;
@@ -43,6 +47,7 @@ public class KeyserverClient {
         this.theApp = this.apps.path("/{appId}");
         this.users = this.client.target(base).path("/users/");
         this.theUser = this.users.path("/tokenUser");
+        this.thePlugin = this.users.path("/tokenUser/plugins/{pluginId}");
         this.theToken = this.client.target(base).path("/tokens/{kind}/{token}");
 
         this.appId = appId;
@@ -108,6 +113,10 @@ public class KeyserverClient {
     // App logic
     // =========================================================================
 
+    private Builder createAppSpecificRequest(String appId) {
+        return this.theApp.resolveTemplate("appId", appId).request().header("Authorization", authorizationHeader);
+    }
+
     public List<AppDTO> listApps() throws KeyserverException {
         try {
             return this.createRequest(this.apps).get(APPDTO_LIST_TYPE);
@@ -126,7 +135,7 @@ public class KeyserverClient {
 
     public void removeApp(String appId) throws KeyserverException {
         try {
-            this.createRequest(this.theApp.resolveTemplate("appId", appId)).delete();
+            this.createAppSpecificRequest(appId).delete();
         } catch (WebApplicationException | ProcessingException exception) {
             throw this.parseException(exception);
         }
@@ -134,7 +143,7 @@ public class KeyserverClient {
 
     public AppDTO authenticateApp(String appId, String appKey) throws KeyserverException {
         try {
-            return this.createRequest(this.theApp.resolveTemplate("appId", appId)).post(Entity.form(new Form("key", appKey)), AppDTO.class);
+            return this.createAppSpecificRequest(appId).post(Entity.form(new Form("key", appKey)), AppDTO.class);
         } catch (WebApplicationException | ProcessingException exception) {
             throw this.parseException(exception);
         }
@@ -154,7 +163,7 @@ public class KeyserverClient {
             target = target.path(path);
         }
 
-        return target.request().header("Authorization", authorizationHeader).header("Token", t.getKind().toString() + ";" + t.getB64Token());
+        return target.request().header("Authorization", authorizationHeader).header("Token", t.toTokenString());
     }
 
     public String registerUser(String username, String password) throws KeyserverException {
@@ -228,6 +237,49 @@ public class KeyserverClient {
     }
 
     // =========================================================================
+    // PluginData logic
+    // =========================================================================
+
+    private Builder createPluginSpecificRequest(String pluginId, TokenDTO t) {
+        return this.thePlugin.resolveTemplate("pluginId", pluginId).request().header("Authorization", authorizationHeader)
+                .header("Token", t.toTokenString());
+    }
+
+    public void createPluginData(TokenDTO token, String pluginId, String data) throws KeyserverException {
+        Form f = new Form().param("pluginId", pluginId).param("data", data);
+
+        try {
+            this.createUserSpecificRequest("/plugins/", token).post(Entity.form(f));
+        } catch (WebApplicationException | ProcessingException exception) {
+            throw this.parseException(exception);
+        }
+    }
+
+    public String getPluginData(TokenDTO token, String pluginId) throws KeyserverException {
+        try {
+            return this.createPluginSpecificRequest(pluginId, token).get(String.class);
+        } catch (WebApplicationException | ProcessingException exception) {
+            throw this.parseException(exception);
+        }
+    }
+
+    public void updatePluginData(TokenDTO token, String pluginId, String data) throws KeyserverException {
+        try {
+            this.createPluginSpecificRequest(pluginId, token).post(Entity.form(new Form("data", data)));
+        } catch (WebApplicationException | ProcessingException exception) {
+            throw this.parseException(exception);
+        }
+    }
+
+    public void removePluginData(TokenDTO token, String pluginId) throws KeyserverException {
+        try {
+            this.createPluginSpecificRequest(pluginId, token).delete();
+        } catch (WebApplicationException | ProcessingException exception) {
+            throw this.parseException(exception);
+        }
+    }
+
+    // =========================================================================
     // Token logic
     // =========================================================================
 
@@ -239,6 +291,55 @@ public class KeyserverClient {
     public AuthResponseDTO authenticateWithInternalToken(TokenDTO token) throws KeyserverException {
         try {
             return this.createTokenSpecificRequest(token).post(Entity.form(new Form()), AuthResponseDTO.class);
+        } catch (WebApplicationException | ProcessingException exception) {
+            throw this.parseException(exception);
+        }
+    }
+
+    public void revokeToken(TokenDTO token) throws KeyserverException {
+        try {
+            this.createTokenSpecificRequest(token).delete();
+        } catch (WebApplicationException | ProcessingException exception) {
+            throw this.parseException(exception);
+        }
+
+    }
+
+    public AuthResponseDTO createOnetime(TokenDTO token, String[] pluginIds, Calendar scheduledExecutionTime) throws KeyserverException {
+        Form f = new Form().param("scheduledExecutionTime", "" + scheduledExecutionTime.getTime().getTime());
+        for (String pluginId : pluginIds) {
+            f.param("pluginId", pluginId);
+        }
+
+        try {
+            return this.createUserSpecificRequest("/tokens/onetime", token).post(Entity.form(f), AuthResponseDTO.class);
+        } catch (WebApplicationException | ProcessingException exception) {
+            throw this.parseException(exception);
+        }
+    }
+
+    public AuthResponseDTO authenticateWithOnetime(TokenDTO token) throws KeyserverException {
+        return this.authenticateWithOnetime(token, null);
+    }
+
+    public AuthResponseDTO authenticateWithOnetime(TokenDTO token, Calendar nextScheduledExecutionTime) throws KeyserverException {
+        try {
+            Form f = new Form();
+
+            if (nextScheduledExecutionTime == null) {
+                f.param("nextScheduledExecutionTime", null);
+            } else {
+                f.param("nextScheduledExecutionTime", "" + nextScheduledExecutionTime.getTime().getTime());
+            }
+            return this.createTokenSpecificRequest(token).post(Entity.form(f), AuthResponseDTO.class);
+        } catch (WebApplicationException | ProcessingException exception) {
+            throw this.parseException(exception);
+        }
+    }
+
+    public List<TokenDTO> listTokens(TokenDTO token) throws KeyserverException {
+        try {
+            return this.createUserSpecificRequest("/tokens/", token).get(TOKENDTO_LIST_TYPE);
         } catch (WebApplicationException | ProcessingException exception) {
             throw this.parseException(exception);
         }

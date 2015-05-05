@@ -1,7 +1,13 @@
 package org.backmeup.keyserver.client;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
+import java.util.Calendar;
 import java.util.List;
 
 import javax.ws.rs.core.Response;
@@ -9,6 +15,8 @@ import javax.ws.rs.core.Response;
 import org.backmeup.keyserver.model.App.Approle;
 import org.backmeup.keyserver.model.EntryNotFoundException;
 import org.backmeup.keyserver.model.KeyserverException;
+import org.backmeup.keyserver.model.KeyserverUtils;
+import org.backmeup.keyserver.model.TokenValue;
 import org.backmeup.keyserver.model.TokenValue.Role;
 import org.backmeup.keyserver.model.dto.AppDTO;
 import org.backmeup.keyserver.model.dto.AuthResponseDTO;
@@ -20,7 +28,7 @@ import org.junit.Test;
 public class KeyserverClientTest {
 
     private KeyserverClient client;
-    
+
     private static final String SERVICE_ID = "backmeup-service";
     private static final String SERVICE_SECRET = "REPLACE-ME";
     private static final String PASSWORD = "mypass";
@@ -33,7 +41,7 @@ public class KeyserverClientTest {
         try {
             AuthResponseDTO u = client.authenticateUserWithPassword(USERNAME, PASSWORD);
             client.removeUser(u.getToken());
-        } catch(KeyserverException e) {
+        } catch (KeyserverException e) {
             ;
         }
     }
@@ -41,7 +49,11 @@ public class KeyserverClientTest {
     @After
     public void tearDown() throws Exception {
     }
-    
+
+    // =========================================================================
+    // App logic
+    // =========================================================================
+
     @Test
     public void testAuthenticateApp() throws KeyserverException {
         AppDTO u = client.registerApp(Approle.WORKER);
@@ -127,16 +139,18 @@ public class KeyserverClientTest {
         }
     }
 
-    
+    // =========================================================================
+    // User logic
+    // =========================================================================
+
     @Test
     public void testRegisterUser() throws KeyserverException {
         String serviceUserId = client.registerUser(USERNAME, PASSWORD);
         assertNotNull(serviceUserId);
-        
-        AuthResponseDTO u = client.authenticateUserWithPassword(USERNAME, PASSWORD);
-        client.removeUser(u.getToken());
+
+        client.authenticateUserWithPassword(USERNAME, PASSWORD);
     }
-    
+
     @Test
     public void testAuthenticateUserWithPassword() throws KeyserverException {
         String serviceUserId = client.registerUser(USERNAME, PASSWORD);
@@ -145,24 +159,19 @@ public class KeyserverClientTest {
         assertEquals(USERNAME, u.getUsername());
         assertTrue(u.getRoles().contains(Role.USER));
         assertNotNull(u.getToken());
-        
-        client.removeUser(u.getToken());
     }
-    
+
     @Test
     public void testAuthenticateUserWithPasswordFail() throws KeyserverException {
         client.registerUser(USERNAME, PASSWORD);
-        
+
         try {
             client.authenticateUserWithPassword(USERNAME, "xxx");
-        } catch(KeyserverException e) {
+        } catch (KeyserverException e) {
             assertTrue(e.isCausedByCryptoException());
         }
-        
-        AuthResponseDTO u = client.authenticateUserWithPassword(USERNAME, PASSWORD);
-        client.removeUser(u.getToken());
     }
-    
+
     @Test
     public void testAuthenticateUserWithInternalToken() throws KeyserverException {
         String serviceUserId = client.registerUser(USERNAME, PASSWORD);
@@ -172,10 +181,8 @@ public class KeyserverClientTest {
         assertEquals(serviceUserId, u2.getServiceUserId());
         assertEquals(u.getServiceUserId(), u2.getServiceUserId());
         assertEquals(u.getRoles(), u2.getRoles());
-        
-        client.removeUser(u.getToken());
     }
-    
+
     @Test
     public void testProfile() throws KeyserverException {
         client.registerUser(USERNAME, PASSWORD);
@@ -186,10 +193,8 @@ public class KeyserverClientTest {
         client.setProfile(u.getToken(), "{\"key\": \"Test\"}");
         profile = client.getProfile(u.getToken());
         assertEquals("{\"key\": \"Test\"}", profile);
-        
-        client.removeUser(u.getToken());
     }
-    
+
     @Test
     public void testIndexKey() throws KeyserverException {
         client.registerUser(USERNAME, PASSWORD);
@@ -197,110 +202,271 @@ public class KeyserverClientTest {
 
         String indexKey = client.getIndexKey(u.getToken());
         assertNotNull(indexKey);
-        
-        client.removeUser(u.getToken());
     }
-    
+
     @Test
     public void testIndexKey2() throws KeyserverException {
         client.registerUser(USERNAME, PASSWORD);
         AuthResponseDTO u = client.authenticateUserWithPassword(USERNAME, PASSWORD);
-        
+
         // simulate UI call
         String tokenHeader = u.getToken().toTokenString();
         String indexKey = client.getIndexKey(TokenDTO.fromTokenString(tokenHeader));
         assertNotNull(indexKey);
-        
-        client.removeUser(u.getToken());
     }
- 
+
     @Test
     public void testRemoveUserWithLogin() throws KeyserverException {
         client.registerUser(USERNAME, PASSWORD);
         AuthResponseDTO u = client.authenticateUserWithPassword(USERNAME, PASSWORD);
-              
+
         client.removeUser(u.getToken());
-        
+
         try {
             client.authenticateUserWithPassword(USERNAME, PASSWORD);
-        } catch(EntryNotFoundException e) {
+        } catch (EntryNotFoundException e) {
             assertEquals(EntryNotFoundException.USERNAME, e.getMessage());
         }
-        
+
         try {
             client.authenticateWithInternalToken(u.getToken());
-        } catch(EntryNotFoundException e) {
+        } catch (EntryNotFoundException e) {
             assertEquals(EntryNotFoundException.TOKEN_USER_REMOVED, e.getMessage());
-            
         }
     }
-    
+
     @Test
     public void testQuickReRegistration() throws KeyserverException {
         client.registerUser(USERNAME, PASSWORD);
-        AuthResponseDTO u = client.authenticateUserWithPassword(USERNAME, PASSWORD);    
+        AuthResponseDTO u = client.authenticateUserWithPassword(USERNAME, PASSWORD);
         client.removeUser(u.getToken());
-        
+
         try {
             client.authenticateUserWithPassword(USERNAME, PASSWORD);
-        } catch(EntryNotFoundException e) {
+        } catch (EntryNotFoundException e) {
             assertEquals(EntryNotFoundException.USERNAME, e.getMessage());
         }
-        
+
         client.registerUser(USERNAME, PASSWORD);
         AuthResponseDTO u2 = client.authenticateUserWithPassword(USERNAME, PASSWORD);
-        
+
         assertNotEquals(u.getServiceUserId(), u2.getServiceUserId());
-        
-        client.removeUser(u2.getToken());
     }
-    
+
     @Test
     public void testRemoveUserByAdmin() throws KeyserverException {
         client.registerUser(USERNAME, PASSWORD);
         AuthResponseDTO u = client.authenticateUserWithPassword(USERNAME, PASSWORD);
 
         client.removeUserByAdmin(u.getServiceUserId(), u.getUsername());
-        
+
         try {
             client.authenticateUserWithPassword(USERNAME, PASSWORD);
-        } catch(EntryNotFoundException e) {
+        } catch (EntryNotFoundException e) {
             assertEquals(EntryNotFoundException.USERNAME, e.getMessage());
         }
-        
+
         try {
             client.authenticateWithInternalToken(u.getToken());
-        } catch(EntryNotFoundException e) {
-            //token still exists, but user not
+        } catch (EntryNotFoundException e) {
+            // token still exists, but user not
             assertEquals(EntryNotFoundException.TOKEN_USER_REMOVED, e.getMessage());
         }
-        
-        //but now it should be gone
+
+        // but now it should be gone
         try {
             client.authenticateWithInternalToken(u.getToken());
-        } catch(EntryNotFoundException e) {
+        } catch (EntryNotFoundException e) {
             assertEquals(EntryNotFoundException.TOKEN, e.getMessage());
-            
         }
     }
-    
+
     @Test
     public void testChangeUserPassword() throws KeyserverException {
         client.registerUser(USERNAME, PASSWORD);
         AuthResponseDTO u = client.authenticateUserWithPassword(USERNAME, PASSWORD);
 
         client.changeUserPassword(u.getToken(), PASSWORD, "test");
-            
+
         try {
             client.authenticateUserWithPassword(USERNAME, PASSWORD);
-        } catch(KeyserverException e) {
+        } catch (KeyserverException e) {
             assertTrue(e.isCausedByCryptoException());
         } finally {
             AuthResponseDTO u2 = client.authenticateUserWithPassword(USERNAME, "test");
             assertEquals(u.getUsername(), u2.getUsername());
             assertEquals(u.getServiceUserId(), u2.getServiceUserId());
-            
+
             client.removeUser(u2.getToken());
         }
+    }
+
+    // =========================================================================
+    // PluginData logic
+    // =========================================================================
+
+    @Test
+    public void testCreatePluginData() throws KeyserverException {
+        client.registerUser(USERNAME, PASSWORD);
+        AuthResponseDTO u = client.authenticateUserWithPassword(USERNAME, PASSWORD);
+
+        String pluginId = "facebook1";
+        String data = "json with oauth-token";
+
+        client.createPluginData(u.getToken(), pluginId, data);
+
+        String data2 = client.getPluginData(u.getToken(), pluginId);
+        assertEquals(data, data2);
+    }
+
+    @Test
+    public void testUpdatePluginData() throws KeyserverException {
+        client.registerUser(USERNAME, PASSWORD);
+        AuthResponseDTO u = client.authenticateUserWithPassword(USERNAME, PASSWORD);
+
+        String pluginId = "facebook1";
+        String data = "json with oauth-token";
+
+        client.createPluginData(u.getToken(), pluginId, data);
+        client.updatePluginData(u.getToken(), pluginId, "xxx");
+
+        String savedData = client.getPluginData(u.getToken(), pluginId);
+        assertEquals("xxx", savedData);
+    }
+
+    @Test
+    public void testRemovePluginData() throws KeyserverException {
+        client.registerUser(USERNAME, PASSWORD);
+        AuthResponseDTO u = client.authenticateUserWithPassword(USERNAME, PASSWORD);
+
+        String pluginId = "facebook1";
+        String data = "json with oauth-token";
+
+        client.createPluginData(u.getToken(), pluginId, data);
+
+        client.removePluginData(u.getToken(), pluginId);
+
+        try {
+            client.getPluginData(u.getToken(), pluginId);
+        } catch (EntryNotFoundException e) {
+            assertEquals(EntryNotFoundException.PLUGIN_KEY, e.getMessage());
+        }
+    }
+
+    // =========================================================================
+    // Token logic
+    // =========================================================================
+
+    @Test
+    public void testRevokeToken() throws KeyserverException {
+        client.registerUser(USERNAME, PASSWORD);
+        AuthResponseDTO u = client.authenticateUserWithPassword(USERNAME, PASSWORD);
+
+        client.revokeToken(u.getToken());
+
+        try {
+            client.authenticateWithInternalToken(u.getToken());
+        } catch (EntryNotFoundException e) {
+            assertTrue(e.getMessage().equals(EntryNotFoundException.TOKEN));
+        }
+    }
+
+    private AuthResponseDTO createUserWithPluginsAndOnetimeToken(Calendar time) throws KeyserverException {
+        client.registerUser(USERNAME, PASSWORD);
+        AuthResponseDTO u = client.authenticateUserWithPassword(USERNAME, PASSWORD);
+
+        String[] pluginIds = { "facebook1", "dropbox1" };
+        String data = "json with oauth-token";
+        client.createPluginData(u.getToken(), pluginIds[0], data);
+        client.createPluginData(u.getToken(), pluginIds[1], data);
+
+        AuthResponseDTO ot = client.createOnetime(u.getToken(), pluginIds, time);
+        assertEquals(u.getServiceUserId(), ot.getServiceUserId());
+        assertEquals(USERNAME, ot.getUsername());
+        assertTrue(ot.getRoles().contains(TokenValue.Role.BACKUP_JOB));
+        assertFalse(ot.hasNext());
+
+        return ot;
+    }
+
+    @Test
+    public void testOnetimeToken() throws KeyserverException {
+        AuthResponseDTO ot = this.createUserWithPluginsAndOnetimeToken(KeyserverUtils.getActTime());
+        assertEquals(USERNAME, ot.getUsername());
+        assertTrue(ot.getRoles().contains(TokenValue.Role.BACKUP_JOB));
+
+        AuthResponseDTO it = client.authenticateWithOnetime(ot.getToken());
+        assertEquals(ot.getServiceUserId(), it.getServiceUserId());
+        assertEquals(USERNAME, it.getUsername());
+        assertTrue(it.getRoles().contains(TokenValue.Role.BACKUP_JOB));
+
+        String[] pluginIds = { "facebook1", "dropbox1" };
+        String data = "json with oauth-token";
+        for (String pluginId : pluginIds) {
+            String pluginData = client.getPluginData(it.getToken(), pluginId);
+            assertEquals(data, pluginData);
+        }
+    }
+
+    @Test
+    public void testOnetimeTokenTooEarly() throws KeyserverException {
+        Calendar tomorrow = KeyserverUtils.getActTime();
+        tomorrow.add(Calendar.DAY_OF_YEAR, +1);
+        AuthResponseDTO ot = this.createUserWithPluginsAndOnetimeToken(tomorrow);
+
+        try {
+            client.authenticateWithOnetime(ot.getToken());
+        } catch (EntryNotFoundException e) {
+            assertEquals(EntryNotFoundException.TOKEN_USED_TO_EARLY, e.getMessage());
+        }
+    }
+
+    @Test
+    public void testOnetimeTokenTooLate() throws KeyserverException {
+        Calendar yesterday = KeyserverUtils.getActTime();
+        yesterday.add(Calendar.DAY_OF_YEAR, -1);
+        AuthResponseDTO ot = this.createUserWithPluginsAndOnetimeToken(yesterday);
+
+        try {
+            client.authenticateWithOnetime(ot.getToken());
+        } catch (EntryNotFoundException e) {
+            assertEquals(EntryNotFoundException.TOKEN, e.getMessage());
+        }
+    }
+
+    @Test
+    public void testOnetimeTokenDoubleUsage() throws KeyserverException {
+        AuthResponseDTO ot = this.createUserWithPluginsAndOnetimeToken(KeyserverUtils.getActTime());
+
+        client.authenticateWithOnetime(ot.getToken());
+        try {
+            client.authenticateWithOnetime(ot.getToken());
+        } catch (EntryNotFoundException e) {
+            assertEquals(EntryNotFoundException.TOKEN, e.getMessage());
+        }
+    }
+
+    @Test
+    public void testOnetimeTokenReschedule() throws KeyserverException {
+        Calendar tomorrow = KeyserverUtils.getActTime();
+        tomorrow.add(Calendar.DAY_OF_YEAR, +1);
+        AuthResponseDTO ot = this.createUserWithPluginsAndOnetimeToken(KeyserverUtils.getActTime());
+
+        AuthResponseDTO it = client.authenticateWithOnetime(ot.getToken(), tomorrow);
+        assertTrue(it.hasNext());
+        AuthResponseDTO next = it.getNext();
+        assertEquals(ot.getServiceUserId(), next.getServiceUserId());
+        assertEquals(USERNAME, next.getUsername());
+        assertTrue(next.getRoles().contains(TokenValue.Role.BACKUP_JOB));
+        assertTrue(next.getToken().getTtl().after(tomorrow));
+    }
+
+    @Test
+    public void testListTokens() throws KeyserverException {
+        client.registerUser(USERNAME, PASSWORD);
+        AuthResponseDTO u = client.authenticateUserWithPassword(USERNAME, PASSWORD);
+
+        List<TokenDTO> tokens = client.listTokens(u.getToken());
+        assertEquals(0, tokens.size());
     }
 }
