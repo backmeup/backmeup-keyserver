@@ -69,7 +69,12 @@ public class DefaultKeyserverImpl implements Keyserver {
     }
     
     private void connectDB() throws KeyserverException {
-        this.db = new org.backmeup.keyserver.core.db.derby.DerbyDatabaseImpl();
+        try {
+            Class<?> clazz = Class.forName(Configuration.getProperty("backmeup.keyserver.db.connector"));
+            this.db = (Database) clazz.newInstance();
+        } catch (java.lang.ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+            throw new KeyserverException("could not load database connector class", e);
+        }
         try {
             this.db.connect();
         } catch (DatabaseException e) {
