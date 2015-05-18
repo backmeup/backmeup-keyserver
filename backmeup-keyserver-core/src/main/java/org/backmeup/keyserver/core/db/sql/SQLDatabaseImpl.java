@@ -100,9 +100,11 @@ public class SQLDatabaseImpl implements Database {
     }
 
     protected void prepareTable() throws SQLException, DatabaseException {
-        try (Statement s = conn.createStatement()) {
+        try (Statement s = this.conn.createStatement()) {
             s.execute(getSQLStatement("backmeup.keyserver.db.sql.create"));
-            conn.commit();
+            this.conn.commit();
+        } catch (SQLException e) {
+            conn.rollback();
         }
     }
 
@@ -121,6 +123,7 @@ public class SQLDatabaseImpl implements Database {
                 if (this.psGetWithVersion != null) {
                     this.psGetWithVersion.close();
                 }
+                this.conn.commit();
                 this.conn.close();
             }
         } catch (SQLException e) {
