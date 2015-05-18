@@ -130,8 +130,7 @@ public class DatabaseImplTest {
         try {
             db.putEntry(e);
         } catch (DatabaseException de) {
-            assertTrue(de.getCause() instanceof java.sql.SQLIntegrityConstraintViolationException);
-            assertTrue(de.getMessage().contains("ENTRY_EKEY"));
+            assertTrue(de.getMessage().contains("ENTRY_EKEY") || de.getMessage().contains("entry_ekey"));
         }
     }
     

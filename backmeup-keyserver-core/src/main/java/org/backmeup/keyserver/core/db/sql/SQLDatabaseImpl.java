@@ -74,6 +74,7 @@ public class SQLDatabaseImpl implements Database {
     public void connect() throws DatabaseException {
         try {
             this.conn = DriverManager.getConnection(Configuration.getProperty("backmeup.keyserver.db.connection_string"));
+            this.conn.setAutoCommit(false);
             if (!this.checkForTable()) {
                 this.prepareTable();
             }
@@ -101,6 +102,7 @@ public class SQLDatabaseImpl implements Database {
     protected void prepareTable() throws SQLException, DatabaseException {
         try (Statement s = conn.createStatement()) {
             s.execute(getSQLStatement("backmeup.keyserver.db.sql.create"));
+            conn.commit();
         }
     }
 
@@ -132,8 +134,14 @@ public class SQLDatabaseImpl implements Database {
     public void cleanup() throws DatabaseException {
         try (Statement s = conn.createStatement()) {
             s.execute("DROP TABLE " + DB_TABLE);
+            conn.commit();
             this.prepareTable();
         } catch (SQLException e) {
+            try {
+                conn.rollback();
+            } catch (SQLException e1) {
+                throw new DatabaseException(e1);
+            }
             throw new DatabaseException(e);
         }
     }
@@ -209,7 +217,7 @@ public class SQLDatabaseImpl implements Database {
         try {
             this.psPut.clearParameters();
             this.psPut.setString(1, entry.getKey());
-            this.psPut.setBlob(2, new ByteArrayInputStream(entry.getValue()));
+            this.psPut.setBytes(2, entry.getValue());
             this.psPut.setInt(3, entry.getKeyringId());
             this.psPut.setLong(4, entry.getVersion());
             this.psPut.setTimestamp(5, new Timestamp(entry.getCreatedAt().getTimeInMillis()));
@@ -222,7 +230,13 @@ public class SQLDatabaseImpl implements Database {
             }
 
             this.psPut.executeUpdate();
+            conn.commit();
         } catch (SQLException e) {
+            try {
+                conn.rollback();
+            } catch (SQLException e1) {
+                throw new DatabaseException(e1);
+            }
             throw new DatabaseException(e);
         }
     }
@@ -243,7 +257,13 @@ public class SQLDatabaseImpl implements Database {
             this.psUpdateTTL.setLong(3, entry.getVersion());
 
             this.psUpdateTTL.executeUpdate();
+            conn.commit();
         } catch (SQLException e) {
+            try {
+                conn.rollback();
+            } catch (SQLException e1) {
+                throw new DatabaseException(e1);
+            }
             throw new DatabaseException(e);
         }
     }
