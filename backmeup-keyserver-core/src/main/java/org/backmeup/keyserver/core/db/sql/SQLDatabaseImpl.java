@@ -2,6 +2,7 @@ package org.backmeup.keyserver.core.db.sql;
 
 import java.io.IOException;
 import java.sql.DatabaseMetaData;
+import java.sql.Driver;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.sql.Connection;
@@ -30,13 +31,7 @@ public class SQLDatabaseImpl implements Database {
     protected static final Properties SQL_STATEMENTS = new Properties();
     protected static final String SQL_STMT_FILE = "backmeup-keyserver-sql.properties";
 
-    static {
-        try {
-            Class.forName(Configuration.getProperty("backmeup.keyserver.db.driver_name"));
-        } catch (java.lang.ClassNotFoundException e) {
-            LOGGER.error("could not load database driver", e);
-        }
-        
+    static {        
         try {
             ClassLoader loader = Thread.currentThread().getContextClassLoader();
             if (loader.getResourceAsStream(SQL_STMT_FILE) != null) {
@@ -67,11 +62,18 @@ public class SQLDatabaseImpl implements Database {
         }
         return MessageFormat.format(stmt, DB_TABLE);
     }
-
+    
     @Override
     @SuppressWarnings("all")
     public void connect() throws DatabaseException {
         try {
+            try {
+                Class clazz = Class.forName(Configuration.getProperty("backmeup.keyserver.db.driver_name"));
+                DriverManager.registerDriver((Driver) clazz.newInstance());
+            } catch (java.lang.ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+                LOGGER.error("could not load database driver", e);
+            }
+            
             this.conn = DriverManager.getConnection(Configuration.getProperty("backmeup.keyserver.db.connection_string"));
             this.conn.setAutoCommit(false);
             if (!this.checkForTable()) {
