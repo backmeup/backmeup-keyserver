@@ -18,6 +18,7 @@ import org.backmeup.keyserver.model.KeyserverException;
 import org.backmeup.keyserver.model.KeyserverUtils;
 import org.backmeup.keyserver.model.Token;
 import org.backmeup.keyserver.model.TokenValue;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -41,6 +42,14 @@ public class DefaultKeyserverImplTest {
             ks.removeUser(u.getServiceUserId(), u.getUsername(), u.getAccountKey());
         } catch(KeyserverException e) {
             ;
+        }
+    }
+    
+    @AfterClass
+    public static void tearDownAfterClass() throws Exception {
+        if (ks.db.isConnected()) {
+            ks.db.disconnect();
+            assertFalse(ks.db.isConnected());
         }
     }
     
