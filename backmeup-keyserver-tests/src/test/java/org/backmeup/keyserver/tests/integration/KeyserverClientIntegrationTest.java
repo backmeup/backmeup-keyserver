@@ -133,6 +133,9 @@ public class KeyserverClientIntegrationTest {
         assertTrue(foundCore);
         assertTrue(foundWorker);
         assertTrue(foundIndexer);
+        
+        client.removeApp(u.getAppId());
+        client.removeApp(u2.getAppId());
     }
 
     @Test

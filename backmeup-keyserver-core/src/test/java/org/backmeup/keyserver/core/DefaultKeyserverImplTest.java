@@ -1,16 +1,20 @@
 package org.backmeup.keyserver.core;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Calendar;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
-import org.backmeup.keyserver.core.DefaultKeyserverImpl;
 import org.backmeup.keyserver.core.config.Configuration;
 import org.backmeup.keyserver.model.App;
+import org.backmeup.keyserver.model.App.Approle;
 import org.backmeup.keyserver.model.AuthResponse;
 import org.backmeup.keyserver.model.EntryNotFoundException;
 import org.backmeup.keyserver.model.JsonKeys;
@@ -498,33 +502,27 @@ public class DefaultKeyserverImplTest {
         App u2 = ks.registerApp(App.Approle.INDEXER);
         
         List<App> apps = ks.listApps(ks.servicePassword);
-        Collections.sort(apps, new Comparator<App>() {
-            @Override
-            public int compare(App o1, App o2) {
-                int c = o1.getAppRole().compareTo(o2.getAppRole());
-                if (c != 0) {
-                    return c;
-                }
-                return o1.getAppId().compareTo(o2.getAppId());
+        assertTrue(apps.size() >= 3);
+
+        boolean foundCore = false, foundWorker = false, foundIndexer = false;
+
+        for (App a : apps) {
+            if (a.getAppRole() == Approle.CORE && a.getAppId().equals(ks.serviceId)) {
+                foundCore = true;
             }
-        });;
-        assertEquals(3, apps.size());
+            if (a.getAppRole() == u.getAppRole() && a.getAppId().equals(u.getAppId())) {
+                foundWorker = true;
+            }
+            if (a.getAppRole() == u2.getAppRole() && a.getAppId().equals(u2.getAppId())) {
+                foundIndexer = true;
+            }
+            assertNull(a.getPassword());
+        }
+
+        assertTrue(foundCore);
+        assertTrue(foundWorker);
+        assertTrue(foundIndexer);
      
-        App a = apps.get(0);
-        assertEquals(ks.serviceId, a.getAppId());
-        assertNull(a.getPassword());
-        assertEquals(App.Approle.CORE, a.getAppRole());
-        
-        a = apps.get(1);
-        assertEquals(u.getAppId(), a.getAppId());
-        assertNull(a.getPassword());
-        assertEquals(App.Approle.WORKER, a.getAppRole());
-        
-        a = apps.get(2);
-        assertEquals(u2.getAppId(), a.getAppId());
-        assertNull(a.getPassword());
-        assertEquals(App.Approle.INDEXER, a.getAppRole());
-        
         ks.removeApp(u.getAppId());
         ks.removeApp(u2.getAppId());
     }
