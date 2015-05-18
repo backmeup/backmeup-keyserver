@@ -40,7 +40,7 @@ public class DefaultKeyserverImplTest {
             AuthResponse u = ks.authenticateUserWithPassword(USERNAME, PASSWORD);
             ks.removeUser(u.getServiceUserId(), u.getUsername(), u.getAccountKey());
         } catch(KeyserverException e) {
-            System.err.println(e);
+            ;
         }
     }
     
