@@ -139,16 +139,16 @@ public class DatabaseImplTest {
             assertTrue(de.getMessage().contains("ENTRY_EKEY") || de.getMessage().contains("entry_ekey"));
         }
     }
-    
+
     @Test
     public void testSearchEntry() throws DatabaseException {
         KeyserverEntry e = new KeyserverEntry("test_search01");
-        e.setValue(new byte[]{0});
+        e.setValue(new byte[] { 0 });
         db.putEntry(e);
-        e.setValue(new byte[]{1});
+        e.setValue(new byte[] { 1 });
         db.putEntry(e);
         e = new KeyserverEntry("test_search02");
-        e.setValue(new byte[]{0});
+        e.setValue(new byte[] { 0 });
         db.putEntry(e);
 
         List<KeyserverEntry> entries = db.searchByKey("test_search%", false, false);
@@ -159,7 +159,7 @@ public class DatabaseImplTest {
         e = entries.get(1);
         assertEquals("test_search02", e.getKey());
         assertEquals(1, e.getVersion());
-        
+
         entries = db.searchByKey("test_search%", true, false);
         assertEquals(3, entries.size());
         e = entries.get(0);
