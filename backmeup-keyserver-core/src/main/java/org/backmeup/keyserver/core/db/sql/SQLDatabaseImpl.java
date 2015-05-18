@@ -50,7 +50,6 @@ public class SQLDatabaseImpl implements Database {
         }
     }
 
-    protected static final String DB_NAME = SQL_STATEMENTS.getProperty("backmeup.keyserver.db.name");
     protected static final String DB_TABLE = SQL_STATEMENTS.getProperty("backmeup.keyserver.db.table");
 
     protected Connection conn;
@@ -74,7 +73,7 @@ public class SQLDatabaseImpl implements Database {
     @SuppressWarnings("all")
     public void connect() throws DatabaseException {
         try {
-            this.conn = DriverManager.getConnection(MessageFormat.format(Configuration.getProperty("backmeup.keyserver.db.connection_string"), DB_NAME));
+            this.conn = DriverManager.getConnection(Configuration.getProperty("backmeup.keyserver.db.connection_string"));
             if (!this.checkForTable()) {
                 this.prepareTable();
             }
