@@ -117,4 +117,5 @@
 			</build>
 		</profile>
 	</profiles>
+	<name>BackMeUp Keyserver REST</name>
 </project>

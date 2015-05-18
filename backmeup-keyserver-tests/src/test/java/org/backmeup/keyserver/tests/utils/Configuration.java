@@ -1,11 +1,11 @@
-package org.backmeup.keyserver.core.config;
+package org.backmeup.keyserver.tests.utils;
 
 import java.io.IOException;
 import java.util.Properties;
 
 public final class Configuration {
     private static final Properties PROPERTIES = new Properties();
-    private static final String PROPERTYFILE = "backmeup-keyserver.properties";
+    private static final String PROPERTYFILE = "integrationtests.properties";
 
     private Configuration() {
     }

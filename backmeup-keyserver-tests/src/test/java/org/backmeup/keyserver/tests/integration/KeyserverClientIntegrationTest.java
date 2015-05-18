@@ -1,4 +1,4 @@
-package org.backmeup.keyserver.client;
+package org.backmeup.keyserver.tests.integration;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -12,6 +12,8 @@ import java.util.List;
 
 import javax.ws.rs.core.Response;
 
+import org.backmeup.keyserver.client.CallForbiddenException;
+import org.backmeup.keyserver.client.KeyserverClient;
 import org.backmeup.keyserver.model.App.Approle;
 import org.backmeup.keyserver.model.EntryNotFoundException;
 import org.backmeup.keyserver.model.KeyserverException;
@@ -21,23 +23,28 @@ import org.backmeup.keyserver.model.TokenValue.Role;
 import org.backmeup.keyserver.model.dto.AppDTO;
 import org.backmeup.keyserver.model.dto.AuthResponseDTO;
 import org.backmeup.keyserver.model.dto.TokenDTO;
+import org.backmeup.keyserver.tests.IntegrationTest;
+import org.backmeup.keyserver.tests.utils.Configuration;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
-public class KeyserverClientTest {
+@Category(IntegrationTest.class)
+public class KeyserverClientIntegrationTest {
 
     private KeyserverClient client;
 
-    private static final String SERVICE_ID = "backmeup-service";
-    private static final String SERVICE_SECRET = "REPLACE-ME";
-    private static final String PASSWORD = "mypass";
-    private static final String USERNAME = "rest-test";
+    private static final String BASE_URI = Configuration.getProperty("backmeup.keyserver.integration.baseuri");
+    private static final String SERVICE_ID = Configuration.getProperty("backmeup.keyserver.integration.service_id");
+    private static final String SERVICE_SECRET = Configuration.getProperty("backmeup.keyserver.integration.service_secret");
+    private static final String PASSWORD = Configuration.getProperty("backmeup.keyserver.integration.password");
+    private static final String USERNAME = Configuration.getProperty("backmeup.keyserver.integration.username");
 
     @Before
     public void setUp() throws Exception {
 
-        client = new KeyserverClient("http://localhost:8081/backmeup-keyserver-rest", SERVICE_ID, SERVICE_SECRET);
+        client = new KeyserverClient(BASE_URI, SERVICE_ID, SERVICE_SECRET);
         try {
             AuthResponseDTO u = client.authenticateUserWithPassword(USERNAME, PASSWORD);
             client.removeUser(u.getToken());

@@ -50,4 +50,5 @@
 			<version>${version.org.jboss.resteasy}</version>
 		</dependency>
 	</dependencies>
+	<name>BackMeUp Keyserver Core</name>
 </project>
