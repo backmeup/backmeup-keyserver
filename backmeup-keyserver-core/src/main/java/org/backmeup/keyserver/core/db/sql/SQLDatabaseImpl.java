@@ -160,6 +160,7 @@ public class SQLDatabaseImpl implements Database {
         try {
             this.psGet.clearParameters();
             this.psGet.setString(1, key);
+            this.psGet.setTimestamp(2, new Timestamp(KeyserverUtils.getActTime().getTimeInMillis()));
         } catch (SQLException e) {
             throw new DatabaseException(e);
         }
@@ -182,6 +183,7 @@ public class SQLDatabaseImpl implements Database {
             this.psGetWithVersion.clearParameters();
             this.psGetWithVersion.setString(1, key);
             this.psGetWithVersion.setLong(2, version);
+            this.psGetWithVersion.setTimestamp(3, new Timestamp(KeyserverUtils.getActTime().getTimeInMillis()));
         } catch (SQLException e) {
             throw new DatabaseException(e);
         }
@@ -284,6 +286,9 @@ public class SQLDatabaseImpl implements Database {
         try {
             search.clearParameters();
             search.setString(1, key);
+            if (!withExpired) {
+                search.setTimestamp(2, new Timestamp(KeyserverUtils.getActTime().getTimeInMillis()));
+            }
         } catch (SQLException e) {
             throw new DatabaseException(e);
         }

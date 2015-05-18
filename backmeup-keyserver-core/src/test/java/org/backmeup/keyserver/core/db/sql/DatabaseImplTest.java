@@ -4,11 +4,12 @@ import static org.junit.Assert.*;
 
 import java.util.List;
 
+import org.backmeup.keyserver.core.config.Configuration;
 import org.backmeup.keyserver.core.db.Database;
 import org.backmeup.keyserver.core.db.DatabaseException;
-import org.backmeup.keyserver.core.db.derby.DerbyDatabaseImpl;
 import org.backmeup.keyserver.core.db.sql.SQLDatabaseImpl;
 import org.backmeup.keyserver.model.KeyserverEntry;
+import org.backmeup.keyserver.model.KeyserverException;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -19,7 +20,12 @@ public class DatabaseImplTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        db = new DerbyDatabaseImpl();
+        try {
+            Class<?> clazz = Class.forName(Configuration.getProperty("backmeup.keyserver.db.connector"));
+            db = (Database) clazz.newInstance();
+        } catch (java.lang.ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+            throw new KeyserverException("could not load database connector class", e);
+        }
         db.connect();
         assertTrue(db.isConnected());
         assertTrue(((SQLDatabaseImpl) db).checkForTable());
