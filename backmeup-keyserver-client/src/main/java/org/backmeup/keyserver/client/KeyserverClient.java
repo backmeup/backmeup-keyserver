@@ -67,8 +67,18 @@ public class KeyserverClient {
         return t.request().header("Authorization", authorizationHeader);
     }
 
+    private void parsePostResponse(Response response) throws KeyserverException {
+        Response.Status status = Response.Status.fromStatusCode(response.getStatus());
+        if (status.getFamily() != Response.Status.Family.SUCCESSFUL) {
+            throw this.parseException(null, response);
+        }
+    }
+    
     private KeyserverException parseException(WebApplicationException exception) {
-        Response response = exception.getResponse();
+        return this.parseException(exception, exception.getResponse());
+    }
+    
+    private KeyserverException parseException(WebApplicationException exception, Response response) {
         Response.Status status = Response.Status.fromStatusCode(response.getStatus());
 
         if (status == Response.Status.FORBIDDEN || status == Response.Status.UNAUTHORIZED) {
@@ -81,21 +91,28 @@ public class KeyserverClient {
                 f = new CallForbiddenException("rest call forbidden/unauthorized");
             }
             f.setStatus(status);
+            response.close();
             return f;
         }
-
-        if (response.hasEntity()) {
-            try {
+        
+        try {
+            if (response.hasEntity()) {
                 if (status == Response.Status.NOT_FOUND) {
                     return response.readEntity(EntryNotFoundException.class);
                 } else {
                     return response.readEntity(KeyserverException.class);
                 }
-            } catch (ProcessingException | IllegalStateException e) {
+            } else {
                 return new KeyserverException("unparsable/-known rest response", exception);
             }
-        } else {
-            return new KeyserverException("unparsable/-known rest response", exception);
+        } catch (ProcessingException | IllegalStateException e) {
+            if (status == Response.Status.NOT_FOUND) {
+                return new KeyserverException("rest endpoint not found", exception);
+            } else {
+                return new KeyserverException("unparsable/-known rest response", exception);
+            }
+        } finally {
+            response.close();
         }
     }
 
@@ -135,7 +152,8 @@ public class KeyserverClient {
 
     public void removeApp(String appId) throws KeyserverException {
         try {
-            this.createAppSpecificRequest(appId).delete();
+            Response r = this.createAppSpecificRequest(appId).delete();
+            this.parsePostResponse(r);
         } catch (WebApplicationException | ProcessingException exception) {
             throw this.parseException(exception);
         }
@@ -196,7 +214,8 @@ public class KeyserverClient {
 
     public void setProfile(TokenDTO token, String profile) throws KeyserverException {
         try {
-            this.createUserSpecificRequest("/profile", token).post(Entity.form(new Form("profile", profile)));
+            Response r = this.createUserSpecificRequest("/profile", token).post(Entity.form(new Form("profile", profile)));
+            this.parsePostResponse(r);
         } catch (WebApplicationException | ProcessingException exception) {
             throw this.parseException(exception);
         }
@@ -212,7 +231,8 @@ public class KeyserverClient {
 
     public void removeUser(TokenDTO token) throws KeyserverException {
         try {
-            this.createUserSpecificRequest(token).delete();
+            Response r = this.createUserSpecificRequest(token).delete();
+            this.parsePostResponse(r);
         } catch (WebApplicationException | ProcessingException exception) {
             throw this.parseException(exception);
         }
@@ -220,7 +240,8 @@ public class KeyserverClient {
 
     public void removeUserByAdmin(String serviceUserId, String username) throws KeyserverException {
         try {
-            this.createRequest(this.users.path("/adminRemove").queryParam("serviceUserId", serviceUserId).queryParam("username", username)).delete();
+            Response r = this.createRequest(this.users.path("/adminRemove").queryParam("serviceUserId", serviceUserId).queryParam("username", username)).delete();
+            this.parsePostResponse(r);
         } catch (WebApplicationException | ProcessingException exception) {
             throw this.parseException(exception);
         }
@@ -230,7 +251,8 @@ public class KeyserverClient {
         Form f = new Form().param("oldPassword", oldPassword).param("newPassword", newPassword);
 
         try {
-            this.createUserSpecificRequest("/changePassword", token).post(Entity.form(f));
+            Response r = this.createUserSpecificRequest("/changePassword", token).post(Entity.form(f));
+            this.parsePostResponse(r);
         } catch (WebApplicationException | ProcessingException exception) {
             throw this.parseException(exception);
         }
@@ -249,7 +271,8 @@ public class KeyserverClient {
         Form f = new Form().param("pluginId", pluginId).param("data", data);
 
         try {
-            this.createUserSpecificRequest("/plugins/", token).post(Entity.form(f));
+            Response r = this.createUserSpecificRequest("/plugins/", token).post(Entity.form(f));
+            this.parsePostResponse(r);
         } catch (WebApplicationException | ProcessingException exception) {
             throw this.parseException(exception);
         }
@@ -264,8 +287,15 @@ public class KeyserverClient {
     }
 
     public void updatePluginData(TokenDTO token, String pluginId, String data) throws KeyserverException {
+        this.updatePluginData(token, pluginId, data, false);
+    }
+    
+    public void updatePluginData(TokenDTO token, String pluginId, String data, boolean create) throws KeyserverException {
+        Form f = new Form().param("data", data).param("create", Boolean.toString(create));
+        
         try {
-            this.createPluginSpecificRequest(pluginId, token).post(Entity.form(new Form("data", data)));
+            Response r = this.createPluginSpecificRequest(pluginId, token).post(Entity.form(f));
+            this.parsePostResponse(r);
         } catch (WebApplicationException | ProcessingException exception) {
             throw this.parseException(exception);
         }
@@ -273,7 +303,8 @@ public class KeyserverClient {
 
     public void removePluginData(TokenDTO token, String pluginId) throws KeyserverException {
         try {
-            this.createPluginSpecificRequest(pluginId, token).delete();
+            Response r = this.createPluginSpecificRequest(pluginId, token).delete();
+            this.parsePostResponse(r);
         } catch (WebApplicationException | ProcessingException exception) {
             throw this.parseException(exception);
         }
@@ -298,7 +329,8 @@ public class KeyserverClient {
 
     public void revokeToken(TokenDTO token) throws KeyserverException {
         try {
-            this.createTokenSpecificRequest(token).delete();
+            Response r = this.createTokenSpecificRequest(token).delete();
+            this.parsePostResponse(r);
         } catch (WebApplicationException | ProcessingException exception) {
             throw this.parseException(exception);
         }

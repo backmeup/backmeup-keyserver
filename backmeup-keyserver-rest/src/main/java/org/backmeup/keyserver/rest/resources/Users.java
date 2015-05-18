@@ -6,6 +6,7 @@ import java.util.List;
 
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.ForbiddenException;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -17,6 +18,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import org.backmeup.keyserver.model.AuthResponse;
+import org.backmeup.keyserver.model.EntryNotFoundException;
 import org.backmeup.keyserver.model.KeyserverException;
 import org.backmeup.keyserver.model.Token;
 import org.backmeup.keyserver.model.TokenValue;
@@ -144,11 +146,18 @@ public class Users extends SecureBase {
     @TokenRequired({ TokenValue.Role.USER, TokenValue.Role.BACKUP_JOB })
     @POST
     @Path("/tokenUser/plugins/{pluginId}")
-    public void updatePluginData(@PathParam("pluginId") String pluginId, @NotNull @FormParam("data") String data) throws KeyserverException {
+    public void updatePluginData(@PathParam("pluginId") String pluginId, @NotNull @FormParam("data") String data, @FormParam("create") @DefaultValue("false") boolean create) throws KeyserverException {
         AuthResponse auth = this.getAuthResponse();
-        //TODO: create if not existing
-        byte[] pluginKey = this.getPluginKey(pluginId);
-        this.getKeyserverLogic().updatePluginData(auth.getUserId(), pluginId, pluginKey, data);
+        try {
+            byte[] pluginKey = this.getPluginKey(pluginId);
+            this.getKeyserverLogic().updatePluginData(auth.getUserId(), pluginId, pluginKey, data);
+        } catch(EntryNotFoundException e) {
+            if (create) {
+                this.getKeyserverLogic().createPluginData(auth.getUserId(), pluginId, auth.getAccountKey(), data);
+            } else {
+                throw e;
+            }
+        }
     }
 
     @AppsAllowed({ Approle.CORE, Approle.WORKER })

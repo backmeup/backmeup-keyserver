@@ -340,6 +340,20 @@ public class KeyserverClientIntegrationTest {
         String savedData = client.getPluginData(u.getToken(), pluginId);
         assertEquals("xxx", savedData);
     }
+    
+    @Test
+    public void testUpdateOrCreatePluginData() throws KeyserverException {
+        client.registerUser(USERNAME, PASSWORD);
+        AuthResponseDTO u = client.authenticateUserWithPassword(USERNAME, PASSWORD);
+
+        String pluginId = "facebook1";
+        String data = "json with oauth-token";
+
+        client.updatePluginData(u.getToken(), pluginId, data, true);
+
+        String savedData = client.getPluginData(u.getToken(), pluginId);
+        assertEquals(data, savedData);
+    }
 
     @Test
     public void testRemovePluginData() throws KeyserverException {
