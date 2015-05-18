@@ -146,6 +146,7 @@ public class Users extends SecureBase {
     @Path("/tokenUser/plugins/{pluginId}")
     public void updatePluginData(@PathParam("pluginId") String pluginId, @NotNull @FormParam("data") String data) throws KeyserverException {
         AuthResponse auth = this.getAuthResponse();
+        //TODO: create if not existing
         byte[] pluginKey = this.getPluginKey(pluginId);
         this.getKeyserverLogic().updatePluginData(auth.getUserId(), pluginId, pluginKey, data);
     }
