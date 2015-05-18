@@ -47,14 +47,14 @@ public class DatabaseImplTest {
 
     @Test
     public void testGetEntry() throws DatabaseException {
-        KeyserverEntry i = new KeyserverEntry("test");
+        KeyserverEntry i = new KeyserverEntry("test_entry");
         i.setValue(new byte[] { 0, 1, 2 });
         i.setKeyringId(1);
         db.putEntry(i);
 
-        KeyserverEntry e = db.getEntry("test");
+        KeyserverEntry e = db.getEntry("test_entry");
         assertNotNull(e);
-        assertEquals("test", e.getKey());
+        assertEquals("test_entry", e.getKey());
         assertArrayEquals(new byte[] { 0, 1, 2 }, e.getValue());
         assertEquals(1, e.getKeyringId());
         assertEquals(1, e.getVersion());
@@ -62,19 +62,19 @@ public class DatabaseImplTest {
         assertNotNull(e.getLastModified());
         assertNull(e.getTTL());
 
-        e = db.getEntry("not there");
+        e = db.getEntry("test_not_there");
         assertNull(e);
     }
 
     @Test
     public void testPutNewVersion() throws DatabaseException {
-        KeyserverEntry i = new KeyserverEntry("test");
+        KeyserverEntry i = new KeyserverEntry("test_entry");
         i.setValue(new byte[] { 0, 1, 2 });
         db.putEntry(i);
 
-        KeyserverEntry e = db.getEntry("test");
+        KeyserverEntry e = db.getEntry("test_entry");
         assertNotNull(e);
-        assertEquals("test", e.getKey());
+        assertEquals("test_entry", e.getKey());
         assertArrayEquals(new byte[] { 0, 1, 2 }, e.getValue());
         assertEquals(1, e.getVersion());
         assertNotNull(e.getLastModified());
@@ -83,15 +83,15 @@ public class DatabaseImplTest {
         i.expire();
         db.updateTTL(i);
 
-        e = db.getEntry("test");
+        e = db.getEntry("test_entry");
         assertNull(e);
 
         i.setValue(new byte[] { 3, 4 });
         db.putEntry(i);
 
-        KeyserverEntry e2 = db.getEntry("test");
+        KeyserverEntry e2 = db.getEntry("test_entry");
         assertNotNull(e2);
-        assertEquals("test", e2.getKey());
+        assertEquals("test_entry", e2.getKey());
         assertArrayEquals(new byte[] { 3, 4 }, e2.getValue());
         assertEquals(2, e2.getVersion());
         assertEquals(e2.getLastModified(), i.getLastModified());
@@ -100,36 +100,36 @@ public class DatabaseImplTest {
 
     @Test
     public void testGetEntryWithVersion() throws DatabaseException {
-        KeyserverEntry i = new KeyserverEntry("test");
+        KeyserverEntry i = new KeyserverEntry("test_entry");
         i.setValue(new byte[] { 0, 1, 2 });
         db.putEntry(i);
 
         i.setValue(new byte[] { 3, 4 });
         db.putEntry(i);
 
-        KeyserverEntry e = db.getEntry("test", 1);
+        KeyserverEntry e = db.getEntry("test_entry", 1);
         assertNotNull(e);
-        assertEquals("test", e.getKey());
+        assertEquals("test_entry", e.getKey());
         assertEquals(1, e.getVersion());
         assertArrayEquals(new byte[] { 0, 1, 2 }, e.getValue());
 
-        e = db.getEntry("test", 2);
+        e = db.getEntry("test_entry", 2);
         assertNotNull(e);
-        assertEquals("test", e.getKey());
+        assertEquals("test_entry", e.getKey());
         assertEquals(2, e.getVersion());
         assertArrayEquals(new byte[] { 3, 4 }, e.getValue());
     }
 
     @Test
     public void testPutEntry() throws DatabaseException {
-        KeyserverEntry e = new KeyserverEntry("test");
+        KeyserverEntry e = new KeyserverEntry("test_entry");
         e.setValue(new byte[] { 0, 1, 2 });
         db.putEntry(e);
     }
 
     @Test
     public void testDuplicateEntry() throws DatabaseException {
-        KeyserverEntry e = new KeyserverEntry("duplicate");
+        KeyserverEntry e = new KeyserverEntry("test_duplicate");
         e.setValue(new byte[] { 0, 1, 2 });
         db.putEntry(e);
 
@@ -142,34 +142,34 @@ public class DatabaseImplTest {
     
     @Test
     public void testSearchEntry() throws DatabaseException {
-        KeyserverEntry e = new KeyserverEntry("search01");
+        KeyserverEntry e = new KeyserverEntry("test_search01");
         e.setValue(new byte[]{0});
         db.putEntry(e);
         e.setValue(new byte[]{1});
         db.putEntry(e);
-        e = new KeyserverEntry("search02");
+        e = new KeyserverEntry("test_search02");
         e.setValue(new byte[]{0});
         db.putEntry(e);
 
-        List<KeyserverEntry> entries = db.searchByKey("search%", false, false);
+        List<KeyserverEntry> entries = db.searchByKey("test_search%", false, false);
         assertEquals(2, entries.size());
         e = entries.get(0);
-        assertEquals("search01", e.getKey());
+        assertEquals("test_search01", e.getKey());
         assertEquals(2, e.getVersion());
         e = entries.get(1);
-        assertEquals("search02", e.getKey());
+        assertEquals("test_search02", e.getKey());
         assertEquals(1, e.getVersion());
         
-        entries = db.searchByKey("search%", true, false);
+        entries = db.searchByKey("test_search%", true, false);
         assertEquals(3, entries.size());
         e = entries.get(0);
-        assertEquals("search01", e.getKey());
+        assertEquals("test_search01", e.getKey());
         assertEquals(2, e.getVersion());
         e = entries.get(1);
-        assertEquals("search01", e.getKey());
+        assertEquals("test_search01", e.getKey());
         assertEquals(1, e.getVersion());
         e = entries.get(2);
-        assertEquals("search02", e.getKey());
+        assertEquals("test_search02", e.getKey());
         assertEquals(1, e.getVersion());
     }
 

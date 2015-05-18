@@ -135,9 +135,8 @@ public class SQLDatabaseImpl implements Database {
      */
     public void cleanup() throws DatabaseException {
         try (Statement s = conn.createStatement()) {
-            s.execute("DROP TABLE " + DB_TABLE);
+            s.execute("DELETE FROM " + DB_TABLE + " WHERE ekey LIKE 'test_%'");
             conn.commit();
-            this.prepareTable();
         } catch (SQLException e) {
             try {
                 conn.rollback();
@@ -155,43 +154,36 @@ public class SQLDatabaseImpl implements Database {
 
     @Override
     public KeyserverEntry getEntry(String key) throws DatabaseException {
-        KeyserverEntry entry = null;
-
-        try {
-            this.psGet.clearParameters();
-            this.psGet.setString(1, key);
-            this.psGet.setTimestamp(2, new Timestamp(KeyserverUtils.getActTime().getTimeInMillis()));
-        } catch (SQLException e) {
-            throw new DatabaseException(e);
-        }
-
-        try (ResultSet rs = this.psGet.executeQuery()) {
-            if (rs.next()) {
-                entry = createEntryFromResultSet(rs);
-            }
-        } catch (SQLException e) {
-            throw new DatabaseException(e);
-        }
-
-        return entry;
+        return this.getEntry(key, -1);
     }
 
     @Override
     public KeyserverEntry getEntry(String key, long version) throws DatabaseException {
         KeyserverEntry entry = null;
+        PreparedStatement get = null;
+        
         try {
-            this.psGetWithVersion.clearParameters();
-            this.psGetWithVersion.setString(1, key);
-            this.psGetWithVersion.setLong(2, version);
-            this.psGetWithVersion.setTimestamp(3, new Timestamp(KeyserverUtils.getActTime().getTimeInMillis()));
+            if (version == -1) {
+                get = this.psGet;
+                this.psGet.clearParameters();
+                this.psGet.setString(1, key);
+                this.psGet.setTimestamp(2, new Timestamp(KeyserverUtils.getActTime().getTimeInMillis()));
+            } else {
+                get = this.psGetWithVersion;
+                this.psGetWithVersion.clearParameters();
+                this.psGetWithVersion.setString(1, key);
+                this.psGetWithVersion.setLong(2, version);
+                this.psGetWithVersion.setTimestamp(3, new Timestamp(KeyserverUtils.getActTime().getTimeInMillis()));
+            }
         } catch (SQLException e) {
             throw new DatabaseException(e);
         }
 
-        try (ResultSet rs = this.psGetWithVersion.executeQuery()) {
+        try (ResultSet rs = get.executeQuery()) {
             if (rs.next()) {
                 entry = createEntryFromResultSet(rs);
             }
+            this.conn.commit();
         } catch (SQLException e) {
             throw new DatabaseException(e);
         }
@@ -304,6 +296,7 @@ public class SQLDatabaseImpl implements Database {
                     lastKey = actKey;
                 }
             }
+            this.conn.commit();
         } catch (SQLException e) {
             throw new DatabaseException(e);
         }
