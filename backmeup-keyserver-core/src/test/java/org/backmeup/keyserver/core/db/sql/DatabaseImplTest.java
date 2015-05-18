@@ -10,6 +10,7 @@ import org.backmeup.keyserver.core.db.DatabaseException;
 import org.backmeup.keyserver.core.db.sql.SQLDatabaseImpl;
 import org.backmeup.keyserver.model.KeyserverEntry;
 import org.backmeup.keyserver.model.KeyserverException;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -29,6 +30,7 @@ public class DatabaseImplTest {
         db.connect();
         assertTrue(db.isConnected());
         assertTrue(((SQLDatabaseImpl) db).checkForTable());
+        ((SQLDatabaseImpl) db).cleanup();
     }
 
     @AfterClass
@@ -42,6 +44,10 @@ public class DatabaseImplTest {
     @Before
     public void setUp() throws Exception {
         assertTrue(db.isConnected());
+    }
+    
+    @After
+    public void tearDown() throws Exception {
         ((SQLDatabaseImpl) db).cleanup();
     }
 
