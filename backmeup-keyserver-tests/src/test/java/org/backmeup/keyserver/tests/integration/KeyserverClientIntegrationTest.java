@@ -69,6 +69,7 @@ public class KeyserverClientIntegrationTest {
         assertEquals(u.getPassword(), u2.getPassword());
         assertEquals(Approle.WORKER, u.getAppRole());
         assertEquals(Approle.WORKER, u2.getAppRole());
+        client.removeApp(u.getAppId());
     }
 
     @Test
@@ -105,6 +106,7 @@ public class KeyserverClientIntegrationTest {
         } catch (CallForbiddenException e) {
             assertEquals(Response.Status.UNAUTHORIZED, e.getStatus());
         }
+        client.removeApp(u.getAppId());
     }
 
     @Test
