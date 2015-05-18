@@ -1,6 +1,5 @@
 package org.backmeup.keyserver.core.db.sql;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;

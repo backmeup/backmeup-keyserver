@@ -10,7 +10,6 @@ import java.util.Map;
 
 import org.backmeup.keyserver.core.DefaultKeyserverImpl;
 import org.backmeup.keyserver.core.config.Configuration;
-import org.backmeup.keyserver.core.db.sql.SQLDatabaseImpl;
 import org.backmeup.keyserver.model.App;
 import org.backmeup.keyserver.model.AuthResponse;
 import org.backmeup.keyserver.model.EntryNotFoundException;
@@ -19,7 +18,6 @@ import org.backmeup.keyserver.model.KeyserverException;
 import org.backmeup.keyserver.model.KeyserverUtils;
 import org.backmeup.keyserver.model.Token;
 import org.backmeup.keyserver.model.TokenValue;
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -35,15 +33,15 @@ public class DefaultKeyserverImplTest {
     public static void setUpBeforeClass() throws Exception {
         ks = new DefaultKeyserverImpl();
     }
-    
-    @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        ((SQLDatabaseImpl) ks.db).cleanup();
-    }
-    
+   
     @Before
     public void setUp() throws Exception {
-        ((SQLDatabaseImpl) ks.db).cleanup();
+        try {
+            AuthResponse u = ks.authenticateUserWithPassword(USERNAME, PASSWORD);
+            ks.removeUser(u.getServiceUserId(), u.getUsername(), u.getAccountKey());
+        } catch(KeyserverException e) {
+            System.err.println(e);
+        }
     }
     
     //=========================================================================
@@ -242,6 +240,7 @@ public class DefaultKeyserverImplTest {
         AuthResponse u2 = ks.authenticateUserWithPassword(USERNAME, "test");
         assertEquals(u.getUsername(), u2.getUsername());
         assertEquals(u.getServiceUserId(), u2.getServiceUserId());
+        ks.removeUser(u2.getServiceUserId(), u2.getUsername(), u2.getAccountKey());
     }
     
     //=========================================================================
@@ -328,6 +327,8 @@ public class DefaultKeyserverImplTest {
         } catch(EntryNotFoundException e) {
             assertTrue(e.getMessage().equals(EntryNotFoundException.TOKEN));
         }
+        
+        ks.removeUser(u.getServiceUserId(), u.getUsername(), u.getAccountKey());
     }
     
     private AuthResponse createUserWithPluginsAndOnetimeToken(Calendar time) throws KeyserverException {
@@ -440,6 +441,7 @@ public class DefaultKeyserverImplTest {
         assertEquals(u.getPassword(), u2.getPassword());
         assertEquals(App.Approle.WORKER, u.getAppRole());
         assertEquals(App.Approle.WORKER, u2.getAppRole());
+        ks.removeApp(u.getAppId());
     }
 
     @Test
@@ -478,6 +480,7 @@ public class DefaultKeyserverImplTest {
         } catch (KeyserverException e) {
             assertTrue(e.getCause().getCause() instanceof javax.crypto.BadPaddingException);
         }
+        ks.removeApp(u.getAppId());
     }
     
     @Test
@@ -512,6 +515,9 @@ public class DefaultKeyserverImplTest {
         assertEquals(u2.getAppId(), a.getAppId());
         assertNull(a.getPassword());
         assertEquals(App.Approle.INDEXER, a.getAppRole());
+        
+        ks.removeApp(u.getAppId());
+        ks.removeApp(u2.getAppId());
     }
 
     @Test
