@@ -31,7 +31,7 @@ public class SQLDatabaseImpl implements Database {
     protected static final Properties SQL_STATEMENTS = new Properties();
     protected static final String SQL_STMT_FILE = "backmeup-keyserver-sql.properties";
 
-    static {        
+    static {
         try {
             ClassLoader loader = Thread.currentThread().getContextClassLoader();
             if (loader.getResourceAsStream(SQL_STMT_FILE) != null) {
@@ -54,15 +54,15 @@ public class SQLDatabaseImpl implements Database {
     protected PreparedStatement psGetWithVersion;
     protected PreparedStatement psSearchByKey;
     protected PreparedStatement psSearchByKeyWithExpired;
-    
+
     protected static String getSQLStatement(String key) throws DatabaseException {
         String stmt = SQL_STATEMENTS.getProperty(key);
         if (stmt == null) {
-            throw new DatabaseException("Statement "+key+" not found in "+SQL_STMT_FILE);
+            throw new DatabaseException("Statement " + key + " not found in " + SQL_STMT_FILE);
         }
         return MessageFormat.format(stmt, DB_TABLE);
     }
-    
+
     @Override
     @SuppressWarnings("all")
     public void connect() throws DatabaseException {
@@ -73,7 +73,7 @@ public class SQLDatabaseImpl implements Database {
             } catch (java.lang.ClassNotFoundException | InstantiationException | IllegalAccessException e) {
                 LOGGER.error("could not load database driver", e);
             }
-            
+
             this.conn = DriverManager.getConnection(Configuration.getProperty("backmeup.keyserver.db.connection_string"));
             this.conn.setAutoCommit(false);
             if (!this.checkForTable()) {
@@ -163,7 +163,7 @@ public class SQLDatabaseImpl implements Database {
     public KeyserverEntry getEntry(String key, long version) throws DatabaseException {
         KeyserverEntry entry = null;
         PreparedStatement get = null;
-        
+
         try {
             if (version == -1) {
                 get = this.psGet;
@@ -265,18 +265,18 @@ public class SQLDatabaseImpl implements Database {
             throw new DatabaseException(e);
         }
     }
-    
+
     @Override
     public List<KeyserverEntry> searchByKey(String key, boolean allVersions, boolean withExpired) throws DatabaseException {
         List<KeyserverEntry> entries = new LinkedList<>();
         PreparedStatement search = null;
-        
+
         if (withExpired) {
             search = this.psSearchByKeyWithExpired;
         } else {
             search = this.psSearchByKey;
         }
-        
+
         try {
             search.clearParameters();
             search.setString(1, key);
@@ -286,10 +286,10 @@ public class SQLDatabaseImpl implements Database {
         } catch (SQLException e) {
             throw new DatabaseException(e);
         }
-         
+
         try (ResultSet rs = search.executeQuery()) {
             String lastKey = null;
-            
+
             while (rs.next()) {
                 KeyserverEntry entry = createEntryFromResultSet(rs);
                 String actKey = entry.getKey();
