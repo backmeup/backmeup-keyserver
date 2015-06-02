@@ -2,6 +2,11 @@ package org.backmeup.keyserver.model;
 
 import java.util.Calendar;
 
+/**
+ * Represents a keyserver db entry as Java object.
+ * @author wolfgang
+ *
+ */
 public class KeyserverEntry {
     protected String key;
     protected byte[] value;

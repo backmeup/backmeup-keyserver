@@ -13,6 +13,11 @@ import org.backmeup.keyserver.model.EntryNotFoundException;
 import org.backmeup.keyserver.model.KeyserverEntry;
 import org.backmeup.keyserver.model.KeyserverException;
 
+/**
+ * Keyserver implementation module for plugin (data)store specific logic.
+ * @author wolfgang
+ *
+ */
 public class DefaultPluginDataLogic {
     private static final MessageFormat PLUGIN_KEY_ENTRY_FMT = new MessageFormat("{0}."+PepperApps.PLUGIN+"{1}.Key");
     private static final MessageFormat PLUGIN_DATA_ENTRY_FMT = new MessageFormat("{0}."+PepperApps.PLUGIN+"{1}");

@@ -6,6 +6,12 @@ import static org.backmeup.keyserver.model.KeyserverUtils.fromBase64String;
 import java.util.Arrays;
 import java.util.Calendar;
 
+/**
+ * This class encapsulates a keyserver token entry.
+ * Actual token data is stored in {@link TokenValue}.
+ * @author wolfgang
+ *
+ */
 public class Token {
     public static enum Kind {
         INTERNAL, EXTERNAL, ONETIME;
@@ -123,6 +129,9 @@ public class Token {
         return this.value != null;
     }
     
+    /**
+     * @return token string representation (e.g. INTERNAL;xnefOdjxCb1DzTc65HfQ-ZhaoLV0RAFflBTLbq_w4q0)
+     */
     public String toTokenString() {
         return this.kind + SEPARATOR + this.b64Token;
     }

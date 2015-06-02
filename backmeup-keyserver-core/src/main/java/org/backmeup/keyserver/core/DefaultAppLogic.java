@@ -20,6 +20,11 @@ import org.backmeup.keyserver.model.EntryNotFoundException;
 import org.backmeup.keyserver.model.KeyserverEntry;
 import org.backmeup.keyserver.model.KeyserverException;
 
+/**
+ * Keyserver implementation module for app specific logic.
+ * @author wolfgang
+ *
+ */
 public class DefaultAppLogic {
     
     private static final MessageFormat APP_ENTRY_FORMAT = new MessageFormat("{0}." + PepperApps.APP);

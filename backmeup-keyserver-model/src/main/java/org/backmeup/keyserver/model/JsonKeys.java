@@ -1,5 +1,10 @@
 package org.backmeup.keyserver.model;
 
+/**
+ * Keys for token values and their serialization to JSON.
+ * @author wolfgang
+ *
+ */
 public final class JsonKeys {
     public static final String USER_ID = "userId";
     public static final String SERVICE_USER_ID = "serviceUserId";

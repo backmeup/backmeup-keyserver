@@ -8,6 +8,13 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import org.backmeup.keyserver.model.TokenValue.Role;
 
+/**
+ * Response the authentication request.
+ * Includes a next token (see {@link #getNext()}) if
+ * e.g. a backup job/onetime token is rescheduled.
+ * @author wolfgang
+ *
+ */
 @XmlRootElement
 public class AuthResponse {
     private Token token;
@@ -58,35 +65,35 @@ public class AuthResponse {
         return this.next;
     }
 
-    /*
+    /**
      * Should only be used inside Keyserver!
      */
     public Token getToken() {
         return this.token;
     }
 
-    /*
+    /**
      * Should only be used inside Keyserver!
      */
     public void setToken(Token token) {
         this.token = token;
     }
 
-    /*
+    /**
      * Should only be used inside Keyserver!
      */
     public String getUserId() {
         return this.token.getValue().getUserId();
     }
 
-    /*
+    /**
      * Should only be used inside Keyserver!
      */
     public byte[] getAccountKey() {
         return this.token.getValue().getValueAsByteArray(JsonKeys.ACCOUNT_KEY);
     }
 
-    /*
+    /**
      * Should only be used inside Keyserver!
      */
     public byte[] getPluginKey(String pluginId) {

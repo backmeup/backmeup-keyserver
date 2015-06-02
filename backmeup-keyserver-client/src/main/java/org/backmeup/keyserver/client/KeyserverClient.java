@@ -22,6 +22,11 @@ import org.backmeup.keyserver.model.dto.AppDTO;
 import org.backmeup.keyserver.model.dto.AuthResponseDTO;
 import org.backmeup.keyserver.model.dto.TokenDTO;
 
+/**
+ * Client for Keyserver operations via Keyserver REST API.
+ * @author wolfgang
+ *
+ */
 public class KeyserverClient {
     protected static final GenericType<List<AppDTO>> APPDTO_LIST_TYPE = new GenericType<List<AppDTO>>() {
     };
@@ -39,6 +44,12 @@ public class KeyserverClient {
     private String appId;
     private String authorizationHeader;
 
+    /**
+     * Constructs a new keyserver client.
+     * @param baseUrl rest base url for calling the keyserver, e.g. http://themis-keysrv01:8080/backmeup-keyserver-rest
+     * @param appId authentication id of client (e.g. CORE/service app).
+     * @param appSecret authentication key of client
+     */
     public KeyserverClient(String baseUrl, String appId, String appSecret) {
         this.client = ClientBuilder.newClient();
 
@@ -134,6 +145,12 @@ public class KeyserverClient {
         return this.theApp.resolveTemplate("appId", appId).request().header("Authorization", authorizationHeader);
     }
 
+    /**
+     * Lists all apps that are registered on the keyserver.
+     * Only a keyserver client which is authenticated as CORE app can use this method.
+     * @return list of AppDTOs.
+     * @throws KeyserverException
+     */
     public List<AppDTO> listApps() throws KeyserverException {
         try {
             return this.createRequest(this.apps).get(APPDTO_LIST_TYPE);
@@ -142,6 +159,13 @@ public class KeyserverClient {
         }
     }
 
+    /**
+     * Register a new app on the keyserver.
+     * Only a keyserver client which is authenticated as CORE app can use this method.
+     * @param role role of the app to register.
+     * @return AppDTO with app ID and key for later use.
+     * @throws KeyserverException
+     */
     public AppDTO registerApp(Approle role) throws KeyserverException {
         try {
             return this.createRequest(this.apps).post(Entity.form(new Form("role", role.toString())), AppDTO.class);
@@ -149,7 +173,13 @@ public class KeyserverClient {
             throw this.parseException(exception);
         }
     }
-
+    
+    /**
+     * Removes an app from keyserver.
+     * Only a keyserver client which is authenticated as CORE app can use this method.
+     * @param appId id of the app to remove.
+     * @throws KeyserverException
+     */
     public void removeApp(String appId) throws KeyserverException {
         try {
             Response r = this.createAppSpecificRequest(appId).delete();
@@ -159,6 +189,13 @@ public class KeyserverClient {
         }
     }
 
+    /**
+     * Authenticates an app at keyserver.
+     * @param appId
+     * @param appKey
+     * @return AppDTO including role of app - if authentication is valid.
+     * @throws KeyserverException at any error or invalid authentication.
+     */
     public AppDTO authenticateApp(String appId, String appKey) throws KeyserverException {
         try {
             return this.createAppSpecificRequest(appId).post(Entity.form(new Form("key", appKey)), AppDTO.class);
@@ -184,6 +221,14 @@ public class KeyserverClient {
         return target.request().header("Authorization", authorizationHeader).header("Token", t.toTokenString());
     }
 
+    /**
+     * Register a new user at keyserver.
+     * Only a keyserver client which is authenticated as CORE app can use this method.
+     * @param username
+     * @param password
+     * @return the (external) user id for later use.
+     * @throws KeyserverException
+     */
     public String registerUser(String username, String password) throws KeyserverException {
         try {
             Form f = new Form().param("username", username).param("password", password);
@@ -194,6 +239,14 @@ public class KeyserverClient {
         }
     }
 
+    /**
+     * Authenticate user with username and password.
+     * Only a keyserver client which is authenticated as CORE app can use this method.
+     * @param username
+     * @param password
+     * @return AuthResponseDTO object with user infos and internal token for later use/authentication.
+     * @throws KeyserverException at any error or invalid authentication.
+     */
     public AuthResponseDTO authenticateUserWithPassword(String username, String password) throws KeyserverException {
         try {
             Form f = new Form().param("username", username).param("password", password);
@@ -204,6 +257,12 @@ public class KeyserverClient {
         }
     }
 
+    /**
+     * Gets the user profile.
+     * @param token the authentication token that identifies the user.
+     * @return user profile as string, interpretation is up to caller.
+     * @throws KeyserverException
+     */
     public String getProfile(TokenDTO token) throws KeyserverException {
         try {
             return this.createUserSpecificRequest("/profile", token).get(String.class);
@@ -212,6 +271,13 @@ public class KeyserverClient {
         }
     }
 
+    /**
+     * Sets the user profile.
+     * Only a keyserver client which is authenticated as CORE app can use this method.
+     * @param token the authentication token that identifies the user.
+     * @param profile user profile as string, interpretation is up to caller.
+     * @throws KeyserverException
+     */
     public void setProfile(TokenDTO token, String profile) throws KeyserverException {
         try {
             Response r = this.createUserSpecificRequest("/profile", token).post(Entity.form(new Form("profile", profile)));
@@ -221,6 +287,13 @@ public class KeyserverClient {
         }
     }
 
+    /**
+     * Gets the key for index en-/decryption.
+     * Only a keyserver client which is authenticated as CORE or INDEXER app can use this method.
+     * @param token the authentication token that identifies the user.
+     * @return the encryption key.
+     * @throws KeyserverException
+     */
     public String getIndexKey(TokenDTO token) throws KeyserverException {
         try {
             return this.createUserSpecificRequest("/index_key", token).get(String.class);
@@ -229,6 +302,12 @@ public class KeyserverClient {
         }
     }
 
+    /**
+     * Removes the user and all of its data from keyserver.
+     * Only a keyserver client which is authenticated as CORE app can use this method.
+     * @param token the authentication token that identifies the user.
+     * @throws KeyserverException
+     */
     public void removeUser(TokenDTO token) throws KeyserverException {
         try {
             Response r = this.createUserSpecificRequest(token).delete();
@@ -238,6 +317,13 @@ public class KeyserverClient {
         }
     }
 
+    /**
+     * Does an administrative remove of the user and all of its data from keyserver.
+     * Only a keyserver client which is authenticated as CORE app can use this method.
+     * @param serviceUserId the (external) user id which was created at user registration.
+     * @param username the username of the user to remove.
+     * @throws KeyserverException
+     */
     public void removeUserByAdmin(String serviceUserId, String username) throws KeyserverException {
         try {
             Response r = this.createRequest(this.users.path("/adminRemove").queryParam("serviceUserId", serviceUserId).queryParam("username", username)).delete();
@@ -247,6 +333,14 @@ public class KeyserverClient {
         }
     }
 
+    /**
+     * Change the password of an user.
+     * Only a keyserver client which is authenticated as CORE app can use this method.
+     * @param token the authentication token that identifies the user.
+     * @param oldPassword
+     * @param newPassword
+     * @throws KeyserverException at any error or invalid authentication.
+     */
     public void changeUserPassword(TokenDTO token, String oldPassword, String newPassword) throws KeyserverException {
         Form f = new Form().param("oldPassword", oldPassword).param("newPassword", newPassword);
 
@@ -267,6 +361,14 @@ public class KeyserverClient {
                 .header("Token", t.toTokenString());
     }
 
+    /**
+     * Create (data)store for plugin and set data.
+     * Only a keyserver client which is authenticated as CORE or WORKER app can use this method.
+     * @param token the authentication token that identifies the user or a backup of this user.
+     * @param pluginId id for the plugin store that should be created. Has to be unique within the user account.
+     * @param data data to store into plugin store. Interpretation is up to caller.
+     * @throws KeyserverException
+     */
     public void createPluginData(TokenDTO token, String pluginId, String data) throws KeyserverException {
         Form f = new Form().param("pluginId", pluginId).param("data", data);
 
@@ -278,6 +380,14 @@ public class KeyserverClient {
         }
     }
 
+    /**
+     * Get data from specified plugin store.
+     * Only a keyserver client which is authenticated as CORE or WORKER app can use this method.
+     * @param token the authentication token that identifies the user or a backup of this user.
+     * @param pluginId the id of the plugin store to get data from.
+     * @return data from the plugin store. Interpretation is up to caller.
+     * @throws KeyserverException
+     */
     public String getPluginData(TokenDTO token, String pluginId) throws KeyserverException {
         try {
             return this.createPluginSpecificRequest(pluginId, token).get(String.class);
@@ -286,10 +396,23 @@ public class KeyserverClient {
         }
     }
 
+    /**
+     * Updates data in plugin store but doesn't create a store if not existant.
+     * @see KeyserverClient#updatePluginData(TokenDTO, String, String, boolean).
+     */
     public void updatePluginData(TokenDTO token, String pluginId, String data) throws KeyserverException {
         this.updatePluginData(token, pluginId, data, false);
     }
     
+    /**
+     * Updates data in plugin store.
+     * Only a keyserver client which is authenticated as CORE or WORKER app can use this method.
+     * @param token the authentication token that identifies the user or a backup of this user.
+     * @param pluginId the id of the plugin store to update.
+     * @param data data to store into plugin store. Interpretation is up to caller.
+     * @param create if true, create store if not existant.
+     * @throws KeyserverException
+     */
     public void updatePluginData(TokenDTO token, String pluginId, String data, boolean create) throws KeyserverException {
         Form f = new Form().param("data", data).param("create", Boolean.toString(create));
         
@@ -301,6 +424,13 @@ public class KeyserverClient {
         }
     }
 
+    /**
+     * Remove plugin (data)store.
+     * Only a keyserver client which is authenticated as CORE or WORKER app can use this method.
+     * @param token the authentication token that identifies the user or a backup of this user.
+     * @param pluginId the id of the plugin store to remove.
+     * @throws KeyserverException
+     */
     public void removePluginData(TokenDTO token, String pluginId) throws KeyserverException {
         try {
             Response r = this.createPluginSpecificRequest(pluginId, token).delete();
@@ -319,6 +449,13 @@ public class KeyserverClient {
                 .header("Authorization", authorizationHeader);
     }
 
+    /**
+     * Authenticate internal token.
+     * Only a keyserver client which is authenticated as CORE app can use this method.
+     * @param token the internal token to authenticate.
+     * @return AuthResponseDTO object with user infos and internal token for later use/authentication.
+     * @throws KeyserverException at any error or invalid authentication.
+     */
     public AuthResponseDTO authenticateWithInternalToken(TokenDTO token) throws KeyserverException {
         try {
             return this.createTokenSpecificRequest(token).post(Entity.form(new Form()), AuthResponseDTO.class);
@@ -327,6 +464,11 @@ public class KeyserverClient {
         }
     }
 
+    /**
+     * Revoke token (any kind) at keyserver.
+     * @param token the token to revoke.
+     * @throws KeyserverException
+     */
     public void revokeToken(TokenDTO token) throws KeyserverException {
         try {
             Response r = this.createTokenSpecificRequest(token).delete();
@@ -337,6 +479,17 @@ public class KeyserverClient {
 
     }
 
+    /**
+     * Creates an onetime token for later use at a backup.
+     * Only a keyserver client which is authenticated as CORE app can use this method.
+     * @param token the authentication token that identifies the user.
+     * @param pluginIds puginIds which should be included in the onetime tokens. 
+     *  Only the specified plugin data stores can be retrieved later on with the generated onetime token.
+     * @param scheduledExecutionTime the scheduled execution time of the backup.
+     * @return AuthResponseDTO object with user infos and onetime token for later use at a backup 
+     *  (has to be converted to an internal token, see {@link #authenticateWithOnetime(TokenDTO)}).
+     * @throws KeyserverException
+     */
     public AuthResponseDTO createOnetime(TokenDTO token, String[] pluginIds, Calendar scheduledExecutionTime) throws KeyserverException {
         Form f = new Form().param("scheduledExecutionTime", "" + scheduledExecutionTime.getTime().getTime());
         for (String pluginId : pluginIds) {
@@ -350,10 +503,27 @@ public class KeyserverClient {
         }
     }
 
+    /**
+     * Authenticate onetime token. This transforms the onetime token to an internal token.
+     * Only a keyserver client which is authenticated as CORE app can use this method.
+     * @see KeyserverClient#authenticateWithOnetime(TokenDTO, Calendar)
+     * @param token the onetime token to authenticate.
+     * @return AuthResponseDTO object with user infos and internal token for later use/authentication.
+     * @throws KeyserverException at any error or invalid authentication.
+     */
     public AuthResponseDTO authenticateWithOnetime(TokenDTO token) throws KeyserverException {
         return this.authenticateWithOnetime(token, null);
     }
 
+    /**
+     * Authenticate onetime token. This transforms the onetime token to an internal token.
+     * Only a keyserver client which is authenticated as CORE app can use this method.
+     * @param token the onetime token to authenticate.
+     * @param nextScheduledExecutionTime if not null, retrieve a new onetime token for the given execution time. 
+     *  The new token is derived from the given onetime token.
+     * @return AuthResponseDTO object with user infos and internal token for later use/authentication, including a next onetime token (if requested).
+     * @throws KeyserverException at any error or invalid authentication.
+     */
     public AuthResponseDTO authenticateWithOnetime(TokenDTO token, Calendar nextScheduledExecutionTime) throws KeyserverException {
         try {
             Form f = new Form();
@@ -369,6 +539,12 @@ public class KeyserverClient {
         }
     }
 
+    /**
+     * List tokens of specified user. Only tokens with annotation get listed (this excludes internal and onetime tokens).
+     * @param token the authentication token that identifies the user.
+     * @return a list of user tokens as TokenDTO objects.
+     * @throws KeyserverException
+     */
     public List<TokenDTO> listTokens(TokenDTO token) throws KeyserverException {
         try {
             return this.createUserSpecificRequest("/tokens/", token).get(TOKENDTO_LIST_TYPE);

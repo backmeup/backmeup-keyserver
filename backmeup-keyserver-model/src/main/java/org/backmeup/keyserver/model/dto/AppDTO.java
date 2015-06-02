@@ -4,6 +4,11 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import org.backmeup.keyserver.model.App.Approle;
 
+/**
+ * DTO for {@link org.backmeup.keyserver.model.App} objects.
+ * @author wolfgang
+ *
+ */
 @XmlRootElement
 @SuppressWarnings("unused")
 public class AppDTO {

@@ -4,6 +4,11 @@ import java.util.List;
 
 import org.backmeup.keyserver.model.KeyserverEntry;
 
+/**
+ * Public interface a keyserver database has to provide.
+ * @author wolfgang
+ *
+ */
 public interface Database {
     void connect() throws DatabaseException;
 

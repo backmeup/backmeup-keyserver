@@ -7,6 +7,12 @@ import java.sql.SQLException;
 import org.backmeup.keyserver.core.db.DatabaseException;
 import org.backmeup.keyserver.core.db.sql.SQLDatabaseImpl;
 
+/**
+ * Database implementation for Derby keyserver database.
+ * Needs a special disconnect handling for saving changes to files.
+ * @author wolfgang
+ *
+ */
 public class DerbyDatabaseImpl extends SQLDatabaseImpl {
     @Override
     public void disconnect() throws DatabaseException {

@@ -8,6 +8,11 @@ import org.backmeup.keyserver.model.AuthResponse;
 import org.backmeup.keyserver.model.KeyserverException;
 import org.backmeup.keyserver.model.Token;
 
+/**
+ * Public interface a Keyserver has to provide.
+ * @author wolfgang
+ *
+ */
 public interface Keyserver {
 
     //=========================================================================

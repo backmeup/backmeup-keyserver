@@ -1,9 +1,17 @@
 package org.backmeup.keyserver.model.dto;
 
 import java.util.Set;
+
 import javax.xml.bind.annotation.XmlRootElement;
+
+import org.backmeup.keyserver.model.AuthResponse;
 import org.backmeup.keyserver.model.TokenValue.Role;
 
+/**
+ * DTO for {@link org.backmeup.keyserver.model.AuthResponse} objects.
+ * @author wolfgang
+ *
+ */
 @XmlRootElement
 @SuppressWarnings("unused")
 public class AuthResponseDTO {

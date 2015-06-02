@@ -30,6 +30,11 @@ import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.node.ObjectNode;
 
+/**
+ * Keyserver implementation module for token specific logic.
+ * @author wolfgang
+ *
+ */
 public class DefaultTokenLogic {
     private static final MessageFormat TK_ENTRY_FORMAT = new MessageFormat("{0}.{1}");
     private static final MessageFormat ANN_ENTRY_FORMAT = new MessageFormat("{0}."+PepperApps.ACCOUNT+".{1}.{2}");

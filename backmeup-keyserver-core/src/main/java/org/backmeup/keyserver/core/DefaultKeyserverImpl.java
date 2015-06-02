@@ -26,6 +26,17 @@ import org.backmeup.keyserver.model.KeyserverException;
 import org.backmeup.keyserver.model.Token;
 import org.codehaus.jackson.map.ObjectMapper;
 
+/**
+ * Default keyserver implementation.
+ * Most methods are simple facade functions to specific submodules like {@link DefaultUserLogic}.
+ * Other methods are common utility functions.
+ * @see DefaultAppLogic
+ * @see DefaultUserLogic
+ * @see DefaultPluginDataLogic
+ * @see DefaultTokenLogic
+ * @author wolfgang
+ *
+ */
 public class DefaultKeyserverImpl implements Keyserver {
     protected SortedMap<Integer, Keyring> keyrings = new TreeMap<>(Collections.reverseOrder());
     protected Keyring activeKeyring;
@@ -88,6 +99,11 @@ public class DefaultKeyserverImpl implements Keyserver {
         this.tokenLogic = new DefaultTokenLogic(this);
         this.pluglinDataLogic = new DefaultPluginDataLogic(this);
     }
+    
+    //=========================================================================
+    // Utility methods for all submodules
+    // Mainly to hide activeKeyring and to unify often used methods.
+    //=========================================================================
     
     protected KeyserverEntry createEntry(String key, byte[] payload, Calendar ttl, long precedingVersion) throws DatabaseException {
         KeyserverEntry entry = new KeyserverEntry(key, precedingVersion);

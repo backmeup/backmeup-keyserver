@@ -4,6 +4,11 @@ import java.util.Calendar;
 import javax.xml.bind.annotation.XmlRootElement;
 import org.backmeup.keyserver.model.Token.Kind;
 
+/**
+ * DTO for {@link org.backmeup.keyserver.model.Token} objects.
+ * @author wolfgang
+ *
+ */
 @XmlRootElement
 @SuppressWarnings("unused")
 public class TokenDTO {
@@ -55,10 +60,19 @@ public class TokenDTO {
         this.ttl = ttl;
     }
     
+    /**
+     * @return token string representation (e.g. INTERNAL;xnefOdjxCb1DzTc65HfQ-ZhaoLV0RAFflBTLbq_w4q0)
+     */
     public String toTokenString() {
         return this.kind + SEPARATOR + this.b64Token;
     }
     
+    /**
+     * Parses a token string (e.g. INTERNAL;xnefOdjxCb1DzTc65HfQ-ZhaoLV0RAFflBTLbq_w4q0).
+     * @see #toTokenString()
+     * @param tokenString token string to parse.
+     * @return
+     */
     public static TokenDTO fromTokenString(String tokenString) {
         String[] parts = tokenString.split(SEPARATOR);
         if (parts.length != 2) {

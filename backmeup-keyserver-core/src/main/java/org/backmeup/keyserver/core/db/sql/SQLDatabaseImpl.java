@@ -25,6 +25,11 @@ import org.backmeup.keyserver.model.KeyserverUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Default implemenation for SQL databases.
+ * @author wolfgang
+ *
+ */
 public class SQLDatabaseImpl implements Database {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SQLDatabaseImpl.class);

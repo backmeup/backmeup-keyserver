@@ -21,6 +21,11 @@ import org.backmeup.keyserver.model.KeyserverException;
 import org.backmeup.keyserver.model.Token;
 import org.codehaus.jackson.node.ObjectNode;
 
+/**
+ * Keyserver implementation module for user specific logic.
+ * @author wolfgang
+ *
+ */
 public class DefaultUserLogic {
     private static final MessageFormat USER_ID_ENTRY_FMT = new MessageFormat("{0}."+PepperApps.USER_ID);
     private static final MessageFormat SERVICE_USER_ID_ENTRY_FMT = new MessageFormat("{0}."+PepperApps.SERVICE_USER_ID);

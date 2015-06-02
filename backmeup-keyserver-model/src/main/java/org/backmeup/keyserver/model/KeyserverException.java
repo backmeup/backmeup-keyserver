@@ -20,7 +20,9 @@ public class KeyserverException extends Exception {
         this.causedByCryptoException = this.getCause() instanceof CryptoException;
     }
     
-    
+    /**
+     * @return true, if this KeyserverException was caused by a {@link CryptoException} (mainly bad password).
+     */
     public boolean isCausedByCryptoException() {
         return this.causedByCryptoException;
     }

@@ -6,6 +6,13 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Stores the actual token data of a token.
+ * Includes userId, serviceUserId, roles and a map with additional key-value-pairs.
+ * @see JsonKeys
+ * @author wolfgang
+ *
+ */
 public class TokenValue {
     public static enum Role {
         USER, BACKUP_JOB, SHARE_SOURCE, SHARE_TARGET
