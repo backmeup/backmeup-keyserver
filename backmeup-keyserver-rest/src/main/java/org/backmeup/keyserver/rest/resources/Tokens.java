@@ -19,6 +19,7 @@ import org.backmeup.keyserver.rest.auth.AppsAllowed;
 /**
  * All token specific operations (except onetime token creation and user token
  * listing) will be handled within this class.
+ * @author wolfgang
  */
 @Path("/tokens")
 @Produces(MediaType.APPLICATION_JSON)

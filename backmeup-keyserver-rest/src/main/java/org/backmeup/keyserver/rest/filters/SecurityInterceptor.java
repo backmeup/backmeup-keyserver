@@ -30,6 +30,11 @@ import org.jboss.resteasy.core.ServerResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * SecurityInterceptor to parse and verify app header, verify app roles, parse and verify token etc.
+ * @author wolfgang
+ *
+ */
 @Provider
 public class SecurityInterceptor implements ContainerRequestFilter {
     private static final ServerResponse ACCESS_FORBIDDEN = new ServerResponse("Access forbidden", 403, new Headers<>());

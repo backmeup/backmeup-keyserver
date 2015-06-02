@@ -32,6 +32,7 @@ import org.backmeup.keyserver.rest.auth.TokenRequired;
 /**
  * All user and plugin data specific operations will be handled within this
  * class.
+ * @author wolfgang
  */
 @Path("/users")
 @Produces(MediaType.APPLICATION_JSON)

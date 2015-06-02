@@ -20,6 +20,7 @@ import org.backmeup.keyserver.rest.auth.AppsAllowed;
 
 /**
  * All app specific operations will be handled within this class.
+ * @author wolfgang
  */
 @Path("/applications")
 @Produces(MediaType.APPLICATION_JSON)
