@@ -44,6 +44,9 @@ public class KeyserverClient {
     private String appId;
     private String authorizationHeader;
 
+    private KeyserverClient() {
+    }
+    
     /**
      * Constructs a new keyserver client.
      * @param baseUrl rest base url for calling the keyserver, e.g. http://themis-keysrv01:8080/backmeup-keyserver-rest
