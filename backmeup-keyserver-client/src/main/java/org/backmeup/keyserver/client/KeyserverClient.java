@@ -6,6 +6,7 @@ import java.util.List;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation.Builder;
 import javax.ws.rs.client.WebTarget;
@@ -57,9 +58,9 @@ public class KeyserverClient {
      * @param appSecret authentication key of client
      */
     public KeyserverClient(String baseUrl, String appId, String appSecret) {
-        ResteasyClientBuilder clientBuilder = new ResteasyClientBuilder();
-        clientBuilder = clientBuilder.connectionPoolSize(50);
+        ResteasyClientBuilder clientBuilder = new ResteasyClientBuilder().connectionPoolSize(20);
         this.client = clientBuilder.build();
+        //this.client = ClientBuilder.newClient();
 
         UriBuilder base = UriBuilder.fromUri(baseUrl);
         this.apps = this.client.target(base).path("/applications/");

@@ -8,6 +8,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Calendar;
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.ws.rs.core.Response;
@@ -138,6 +139,43 @@ public class KeyserverClientIntegrationTest {
         
         client.removeApp(u.getAppId());
         client.removeApp(u2.getAppId());
+    }
+    
+    @Test
+    public void testListAppsConcurrent() throws KeyserverException, InterruptedException {
+        List<Thread> threads = new LinkedList<>();
+        final List<Boolean> ret = new LinkedList<>();
+        
+        Runnable r = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    List<AppDTO> apps = client.listApps();
+                    ret.add(apps.size() >= 1);
+                    
+                } catch (KeyserverException e) {
+                    e.printStackTrace();
+                    ret.add(false);
+                }
+    
+            }
+        };
+        
+        int size = 30;
+        for (int i=0; i<size; i++) {
+            Thread t = new Thread(r);
+            threads.add(t);
+            t.start();
+        }
+        
+        for(Thread t : threads) {
+            t.join();
+        }
+        
+        assertEquals(size, ret.size());
+        for(Boolean b : ret) {
+            assertTrue(b);
+        }
     }
 
     @Test
