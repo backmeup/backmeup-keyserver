@@ -6,7 +6,6 @@ import java.util.List;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation.Builder;
 import javax.ws.rs.client.WebTarget;
@@ -21,6 +20,7 @@ import org.backmeup.keyserver.model.KeyserverException;
 import org.backmeup.keyserver.model.dto.AppDTO;
 import org.backmeup.keyserver.model.dto.AuthResponseDTO;
 import org.backmeup.keyserver.model.dto.TokenDTO;
+import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 
 /**
  * Client for Keyserver operations via Keyserver REST API.
@@ -57,7 +57,9 @@ public class KeyserverClient {
      * @param appSecret authentication key of client
      */
     public KeyserverClient(String baseUrl, String appId, String appSecret) {
-        this.client = ClientBuilder.newClient();
+        ResteasyClientBuilder clientBuilder = new ResteasyClientBuilder();
+        clientBuilder = clientBuilder.connectionPoolSize(50);
+        this.client = clientBuilder.build();
 
         UriBuilder base = UriBuilder.fromUri(baseUrl);
         this.apps = this.client.target(base).path("/applications/");
