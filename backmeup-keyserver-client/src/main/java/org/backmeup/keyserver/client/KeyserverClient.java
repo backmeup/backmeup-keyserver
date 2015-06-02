@@ -44,7 +44,10 @@ public class KeyserverClient {
     private String appId;
     private String authorizationHeader;
 
-    private KeyserverClient() {
+    /**
+     * Should not be used - only for depency injection.
+     */
+    public KeyserverClient() {
     }
     
     /**
@@ -64,8 +67,7 @@ public class KeyserverClient {
         this.thePlugin = this.users.path("/tokenUser/plugins/{pluginId}");
         this.theToken = this.client.target(base).path("/tokens/{kind}/{token}");
 
-        this.appId = appId;
-        this.authorizationHeader = appId + ";" + appSecret;
+        this.setAuthorization(appId, appSecret);
     }
 
     public String getAppId() {
