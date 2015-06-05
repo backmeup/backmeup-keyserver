@@ -7,10 +7,16 @@ import javax.ws.rs.ext.Provider;
 
 import org.backmeup.keyserver.model.EntryNotFoundException;
 import org.backmeup.keyserver.model.KeyserverException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Provider
 public class KeyserverExceptionMapper implements ExceptionMapper<KeyserverException> {    
+    private static final Logger LOGGER = LoggerFactory.getLogger(KeyserverExceptionMapper.class);
+    
     public Response toResponse(KeyserverException exception) {
+        LOGGER.error("KeyserverException at REST", exception);
+        
         if (exception instanceof EntryNotFoundException) {
             return Response.status(Status.NOT_FOUND).entity(exception).build();
         }

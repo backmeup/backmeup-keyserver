@@ -70,7 +70,7 @@ public class SQLDatabaseImpl implements Database {
 
     @Override
     @SuppressWarnings("all")
-    public void connect() throws DatabaseException {
+    public synchronized void connect() throws DatabaseException {
         try {
             try {
                 Class clazz = Class.forName(Configuration.getProperty("backmeup.keyserver.db.driver_name"));
@@ -115,7 +115,7 @@ public class SQLDatabaseImpl implements Database {
     }
 
     @Override
-    public void disconnect() throws DatabaseException {
+    public synchronized void disconnect() throws DatabaseException {
         this.connected = false;
 
         try {
@@ -155,17 +155,17 @@ public class SQLDatabaseImpl implements Database {
     }
 
     @Override
-    public boolean isConnected() {
+    public synchronized boolean isConnected() {
         return this.connected;
     }
 
     @Override
-    public KeyserverEntry getEntry(String key) throws DatabaseException {
+    public synchronized KeyserverEntry getEntry(String key) throws DatabaseException {
         return this.getEntry(key, -1);
     }
 
     @Override
-    public KeyserverEntry getEntry(String key, long version) throws DatabaseException {
+    public synchronized KeyserverEntry getEntry(String key, long version) throws DatabaseException {
         KeyserverEntry entry = null;
         PreparedStatement get = null;
 
@@ -198,7 +198,7 @@ public class SQLDatabaseImpl implements Database {
         return entry;
     }
 
-    protected KeyserverEntry createEntryFromResultSet(ResultSet rs) throws SQLException {
+    protected synchronized KeyserverEntry createEntryFromResultSet(ResultSet rs) throws SQLException {
         Calendar createdAt = KeyserverUtils.getActTime();
         createdAt.setTime(rs.getTimestamp("created_at"));
         Calendar lastModified = KeyserverUtils.getActTime();
@@ -216,7 +216,7 @@ public class SQLDatabaseImpl implements Database {
     }
 
     @Override
-    public void putEntry(KeyserverEntry entry) throws DatabaseException {
+    public synchronized void putEntry(KeyserverEntry entry) throws DatabaseException {
         try {
             this.psPut.clearParameters();
             this.psPut.setString(1, entry.getKey());
@@ -245,7 +245,7 @@ public class SQLDatabaseImpl implements Database {
     }
 
     @Override
-    public void updateTTL(KeyserverEntry entry) throws DatabaseException {
+    public synchronized void updateTTL(KeyserverEntry entry) throws DatabaseException {
         try {
             this.psUpdateTTL.clearParameters();
 
@@ -272,7 +272,7 @@ public class SQLDatabaseImpl implements Database {
     }
 
     @Override
-    public List<KeyserverEntry> searchByKey(String key, boolean allVersions, boolean withExpired) throws DatabaseException {
+    public synchronized List<KeyserverEntry> searchByKey(String key, boolean allVersions, boolean withExpired) throws DatabaseException {
         List<KeyserverEntry> entries = new LinkedList<>();
         PreparedStatement search = null;
 
