@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import javax.enterprise.context.ApplicationScoped;
+
 import org.backmeup.keyserver.core.config.Configuration;
 import org.backmeup.keyserver.core.config.KeyringConfiguration;
 import org.backmeup.keyserver.core.crypto.Keyring;
@@ -37,6 +39,7 @@ import org.codehaus.jackson.map.ObjectMapper;
  * @author wolfgang
  *
  */
+@ApplicationScoped
 public class DefaultKeyserverImpl implements Keyserver {
     protected SortedMap<Integer, Keyring> keyrings = new TreeMap<>(Collections.reverseOrder());
     protected Keyring activeKeyring;

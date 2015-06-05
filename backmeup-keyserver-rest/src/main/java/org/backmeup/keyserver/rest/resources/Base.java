@@ -3,7 +3,6 @@ package org.backmeup.keyserver.rest.resources;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.backmeup.keyserver.core.Keyserver;
@@ -23,7 +22,6 @@ public class Base {
     private Mapper mapper;
 
     @Inject
-    @ApplicationScoped
     private Keyserver keyserverLogic;
 
     public Keyserver getKeyserverLogic() {
