@@ -11,7 +11,7 @@
   <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
     <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
       <!-- daily rollover -->
-      <fileNamePattern>${catalina.home}/logs/backmeup-keyserver_%d{yyyy-MM-dd}.log</fileNamePattern>
+      <fileNamePattern>${catalina.base}/logs/backmeup-keyserver_%d{yyyy-MM-dd}.log</fileNamePattern>
 
       <!-- keep 14 days' worth of history --> 
       <maxHistory>14</maxHistory>
