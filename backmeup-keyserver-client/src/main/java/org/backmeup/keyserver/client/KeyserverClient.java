@@ -551,14 +551,15 @@ public class KeyserverClient {
     public AuthResponseDTO authenticateWithOnetime(TokenDTO token, boolean renew, Calendar nextScheduledExecutionTime) throws KeyserverException {
         try {
             Form f = new Form();
+            boolean shouldRenew = renew;
 
             if (nextScheduledExecutionTime == null) {
                 f.param("nextScheduledExecutionTime", null);
             } else {
-                renew = true;
+                shouldRenew = true;
                 f.param("nextScheduledExecutionTime", Long.toString(nextScheduledExecutionTime.getTime().getTime()));
             }
-            f.param("renew", Boolean.toString(renew));
+            f.param("renew", Boolean.toString(shouldRenew));
             
             return this.createTokenSpecificRequest(token).post(Entity.form(f), AuthResponseDTO.class);
         } catch (WebApplicationException | ProcessingException exception) {
