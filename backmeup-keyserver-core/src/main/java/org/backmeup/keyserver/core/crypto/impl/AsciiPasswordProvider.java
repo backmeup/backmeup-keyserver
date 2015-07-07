@@ -18,7 +18,7 @@ public class AsciiPasswordProvider implements PasswordProvider {
     }
 
     @Override
-    public String getPassword(int length) {
+    public synchronized String getPassword(int length) {
         return RandomStringUtils.random(length, ASCII_LOWERCASE_CHARS + ASCII_UPPERCASE_CHARS + NUMBERS + SPECIAL_CHARS);
     }
 }

@@ -41,13 +41,13 @@ public class AESEncryptionProvider implements EncryptionProvider {
     }
 
     @Override
-    public byte[] generateKey(int length) {
+    public synchronized byte[] generateKey(int length) {
         this.keyGen.init(length);
         return keyGen.generateKey().getEncoded();
     }
 
     @Override
-    public byte[] encrypt(byte[] key, byte[] message) throws CryptoException {
+    public synchronized byte[] encrypt(byte[] key, byte[] message) throws CryptoException {
         SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
         try {
             this.cipher.init(Cipher.ENCRYPT_MODE, keySpec);
@@ -60,7 +60,7 @@ public class AESEncryptionProvider implements EncryptionProvider {
     }
 
     @Override
-    public byte[] decrypt(byte[] key, byte[] enrcypted) throws CryptoException {
+    public synchronized byte[] decrypt(byte[] key, byte[] enrcypted) throws CryptoException {
         SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
         byte[][] ivAndEncrypted = EncryptionUtils.split(enrcypted, IV_LENGTH);
         try {

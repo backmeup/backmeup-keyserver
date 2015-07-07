@@ -25,7 +25,7 @@ public class MessageDigestHashProvider implements HashProvider {
     }
 
     @Override
-    public byte[] hash(byte[] message) throws CryptoException {
+    public synchronized byte[] hash(byte[] message) throws CryptoException {
         digest.reset();
         return digest.digest(message);
     }
