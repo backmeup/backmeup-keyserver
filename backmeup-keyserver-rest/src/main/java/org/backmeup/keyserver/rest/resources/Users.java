@@ -54,7 +54,7 @@ public class Users extends SecureBase {
         return pluginKey;
     }
 
-    @AppsAllowed(Approle.CORE)
+    @AppsAllowed(Approle.SERVICE)
     @POST
     @Path("/")
     public String register(@NotNull @FormParam("username") String username, @NotNull @FormParam("password") String password)
@@ -62,7 +62,7 @@ public class Users extends SecureBase {
         return getKeyserverLogic().registerUser(username, password);
     }
 
-    @AppsAllowed(Approle.CORE)
+    @AppsAllowed(Approle.SERVICE)
     @POST
     @Path("/tokenUser")
     public AuthResponseDTO authenticate(@NotNull @FormParam("username") String username, @NotNull @FormParam("password") String password)
@@ -70,7 +70,7 @@ public class Users extends SecureBase {
         return this.map(this.getKeyserverLogic().authenticateUserWithPassword(username, password), AuthResponseDTO.class);
     }
 
-    @AppsAllowed(Approle.CORE)
+    @AppsAllowed(Approle.SERVICE)
     @TokenRequired
     @DELETE
     @Path("/tokenUser")
@@ -79,7 +79,7 @@ public class Users extends SecureBase {
         getKeyserverLogic().removeUser(auth.getServiceUserId(), auth.getUsername(), auth.getAccountKey());
     }
 
-    @AppsAllowed(Approle.CORE)
+    @AppsAllowed(Approle.SERVICE)
     @DELETE
     @Path("/adminRemove")
     public void adminRemove(@NotNull @QueryParam("serviceUserId") String serviceUserId, @NotNull @QueryParam("username") String username)
@@ -87,7 +87,7 @@ public class Users extends SecureBase {
         getKeyserverLogic().removeUser(serviceUserId, username);
     }
 
-    @AppsAllowed({ Approle.CORE, Approle.INDEXER })
+    @AppsAllowed({ Approle.SERVICE, Approle.INDEXER })
     @TokenRequired
     @GET
     @Path("/tokenUser/index_key")
@@ -96,7 +96,7 @@ public class Users extends SecureBase {
         return this.getKeyserverLogic().getIndexKey(auth.getUserId(), auth.getAccountKey());
     }
 
-    @AppsAllowed({ Approle.CORE, Approle.WORKER, Approle.STORAGE, Approle.INDEXER })
+    @AppsAllowed({ Approle.SERVICE, Approle.WORKER, Approle.STORAGE, Approle.INDEXER })
     @TokenRequired
     @GET
     @Path("/tokenUser/profile")
@@ -105,7 +105,7 @@ public class Users extends SecureBase {
         return this.getKeyserverLogic().getProfile(auth.getUserId(), auth.getAccountKey());
     }
 
-    @AppsAllowed(Approle.CORE)
+    @AppsAllowed(Approle.SERVICE)
     @TokenRequired
     @POST
     @Path("/tokenUser/profile")
@@ -114,7 +114,7 @@ public class Users extends SecureBase {
         this.getKeyserverLogic().setProfile(auth.getUserId(), auth.getAccountKey(), profile);
     }
 
-    @AppsAllowed(Approle.CORE)
+    @AppsAllowed(Approle.SERVICE)
     @TokenRequired
     @POST
     @Path("/tokenUser/changePassword")
@@ -124,7 +124,7 @@ public class Users extends SecureBase {
         this.getKeyserverLogic().changeUserPassword(auth.getUserId(), auth.getUsername(), oldPassword, newPassword);
     }
 
-    @AppsAllowed({ Approle.CORE, Approle.WORKER })
+    @AppsAllowed({ Approle.SERVICE, Approle.WORKER })
     @TokenRequired({ TokenValue.Role.USER, TokenValue.Role.BACKUP_JOB })
     @POST
     @Path("/tokenUser/plugins/")
@@ -133,7 +133,7 @@ public class Users extends SecureBase {
         this.getKeyserverLogic().createPluginData(auth.getUserId(), pluginId, auth.getAccountKey(), data);
     }
 
-    @AppsAllowed({ Approle.CORE, Approle.WORKER })
+    @AppsAllowed({ Approle.SERVICE, Approle.WORKER })
     @TokenRequired({ TokenValue.Role.USER, TokenValue.Role.BACKUP_JOB })
     @GET
     @Path("/tokenUser/plugins/{pluginId}")
@@ -143,7 +143,7 @@ public class Users extends SecureBase {
         return this.getKeyserverLogic().getPluginData(auth.getUserId(), pluginId, pluginKey);
     }
 
-    @AppsAllowed({ Approle.CORE, Approle.WORKER })
+    @AppsAllowed({ Approle.SERVICE, Approle.WORKER })
     @TokenRequired({ TokenValue.Role.USER, TokenValue.Role.BACKUP_JOB })
     @POST
     @Path("/tokenUser/plugins/{pluginId}")
@@ -161,7 +161,7 @@ public class Users extends SecureBase {
         }
     }
 
-    @AppsAllowed({ Approle.CORE, Approle.WORKER })
+    @AppsAllowed({ Approle.SERVICE, Approle.WORKER })
     @TokenRequired({ TokenValue.Role.USER, TokenValue.Role.BACKUP_JOB })
     @DELETE
     @Path("/tokenUser/plugins/{pluginId}")
@@ -170,7 +170,7 @@ public class Users extends SecureBase {
         this.getKeyserverLogic().removePluginData(auth.getUserId(), pluginId);
     }
 
-    @AppsAllowed(Approle.CORE)
+    @AppsAllowed(Approle.SERVICE)
     @TokenRequired
     @POST
     @Path("/tokenUser/tokens/onetime")
@@ -185,7 +185,7 @@ public class Users extends SecureBase {
                         pluginIds, cal), AuthResponseDTO.class);
     }
 
-    @AppsAllowed(Approle.CORE)
+    @AppsAllowed(Approle.SERVICE)
     @TokenRequired
     @GET
     @Path("/tokenUser/tokens")

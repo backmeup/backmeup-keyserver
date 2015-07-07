@@ -79,7 +79,7 @@ public class KeyserverClientIntegrationTest {
         AppDTO u = client.authenticateApp(SERVICE_ID, SERVICE_SECRET);
         assertEquals(u.getAppId(), SERVICE_ID);
         assertEquals(u.getPassword(), SERVICE_SECRET);
-        assertEquals(Approle.CORE, u.getAppRole());
+        assertEquals(Approle.SERVICE, u.getAppRole());
     }
 
     @Test
@@ -115,7 +115,7 @@ public class KeyserverClientIntegrationTest {
         boolean foundCore = false, foundWorker = false, foundIndexer = false;
 
         for (AppDTO a : apps) {
-            if (a.getAppRole() == Approle.CORE && a.getAppId().equals(SERVICE_ID)) {
+            if (a.getAppRole() == Approle.SERVICE && a.getAppId().equals(SERVICE_ID)) {
                 foundCore = true;
             }
             if (a.getAppRole() == u.getAppRole() && a.getAppId().equals(u.getAppId())) {

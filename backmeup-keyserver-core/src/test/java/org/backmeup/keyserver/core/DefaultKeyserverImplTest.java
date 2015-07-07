@@ -481,7 +481,7 @@ public class DefaultKeyserverImplTest {
         App u = ks.authenticateApp(appId, appKey);
         assertEquals(u.getAppId(), appId);
         assertEquals(u.getPassword(), appKey);
-        assertEquals(App.Approle.CORE, u.getAppRole());
+        assertEquals(App.Approle.SERVICE, u.getAppRole());
     }
 
     @Test
@@ -517,7 +517,7 @@ public class DefaultKeyserverImplTest {
         boolean foundCore = false, foundWorker = false, foundIndexer = false;
 
         for (App a : apps) {
-            if (a.getAppRole() == Approle.CORE && a.getAppId().equals(SERVICE_APPID)) {
+            if (a.getAppRole() == Approle.SERVICE && a.getAppId().equals(SERVICE_APPID)) {
                 foundCore = true;
             }
             if (a.getAppRole() == u.getAppRole() && a.getAppId().equals(u.getAppId())) {

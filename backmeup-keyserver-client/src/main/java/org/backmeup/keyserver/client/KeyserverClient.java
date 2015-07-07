@@ -53,7 +53,7 @@ public class KeyserverClient {
     /**
      * Constructs a new keyserver client.
      * @param baseUrl rest base url for calling the keyserver, e.g. http://themis-keysrv01:8080/backmeup-keyserver-rest
-     * @param appId authentication id of client (e.g. CORE/service app).
+     * @param appId authentication id of client (e.g. SERVICE app).
      * @param appSecret authentication key of client
      */
     public KeyserverClient(String baseUrl, String appId, String appSecret) {
@@ -153,7 +153,7 @@ public class KeyserverClient {
 
     /**
      * Lists all apps that are registered on the keyserver.
-     * Only a keyserver client which is authenticated as CORE app can use this method.
+     * Only a keyserver client which is authenticated as SERVICE app can use this method.
      * @return list of AppDTOs.
      * @throws KeyserverException
      */
@@ -167,7 +167,7 @@ public class KeyserverClient {
 
     /**
      * Register a new app on the keyserver.
-     * Only a keyserver client which is authenticated as CORE app can use this method.
+     * Only a keyserver client which is authenticated as SERVICE app can use this method.
      * @param role role of the app to register.
      * @return AppDTO with app ID and key for later use.
      * @throws KeyserverException
@@ -182,7 +182,7 @@ public class KeyserverClient {
     
     /**
      * Removes an app from keyserver.
-     * Only a keyserver client which is authenticated as CORE app can use this method.
+     * Only a keyserver client which is authenticated as SERVICE app can use this method.
      * @param appId id of the app to remove.
      * @throws KeyserverException
      */
@@ -229,7 +229,7 @@ public class KeyserverClient {
 
     /**
      * Register a new user at keyserver.
-     * Only a keyserver client which is authenticated as CORE app can use this method.
+     * Only a keyserver client which is authenticated as SERVICE app can use this method.
      * @param username
      * @param password
      * @return the (external) user id for later use.
@@ -247,7 +247,7 @@ public class KeyserverClient {
 
     /**
      * Authenticate user with username and password.
-     * Only a keyserver client which is authenticated as CORE app can use this method.
+     * Only a keyserver client which is authenticated as SERVICE app can use this method.
      * @param username
      * @param password
      * @return AuthResponseDTO object with user infos and internal token for later use/authentication.
@@ -279,7 +279,7 @@ public class KeyserverClient {
 
     /**
      * Sets the user profile.
-     * Only a keyserver client which is authenticated as CORE app can use this method.
+     * Only a keyserver client which is authenticated as SERVICE app can use this method.
      * @param token the authentication token that identifies the user.
      * @param profile user profile as string, interpretation is up to caller.
      * @throws KeyserverException
@@ -295,7 +295,7 @@ public class KeyserverClient {
 
     /**
      * Gets the key for index en-/decryption.
-     * Only a keyserver client which is authenticated as CORE or INDEXER app can use this method.
+     * Only a keyserver client which is authenticated as SERVICE or INDEXER app can use this method.
      * @param token the authentication token that identifies the user.
      * @return the encryption key.
      * @throws KeyserverException
@@ -310,7 +310,7 @@ public class KeyserverClient {
 
     /**
      * Removes the user and all of its data from keyserver.
-     * Only a keyserver client which is authenticated as CORE app can use this method.
+     * Only a keyserver client which is authenticated as SERVICE app can use this method.
      * @param token the authentication token that identifies the user.
      * @throws KeyserverException
      */
@@ -325,7 +325,7 @@ public class KeyserverClient {
 
     /**
      * Does an administrative remove of the user and all of its data from keyserver.
-     * Only a keyserver client which is authenticated as CORE app can use this method.
+     * Only a keyserver client which is authenticated as SERVICE app can use this method.
      * @param serviceUserId the (external) user id which was created at user registration.
      * @param username the username of the user to remove.
      * @throws KeyserverException
@@ -341,7 +341,7 @@ public class KeyserverClient {
 
     /**
      * Change the password of an user.
-     * Only a keyserver client which is authenticated as CORE app can use this method.
+     * Only a keyserver client which is authenticated as SERVICE app can use this method.
      * @param token the authentication token that identifies the user.
      * @param oldPassword
      * @param newPassword
@@ -369,7 +369,7 @@ public class KeyserverClient {
 
     /**
      * Create (data)store for plugin and set data.
-     * Only a keyserver client which is authenticated as CORE or WORKER app can use this method.
+     * Only a keyserver client which is authenticated as SERVICE or WORKER app can use this method.
      * @param token the authentication token that identifies the user or a backup of this user.
      * @param pluginId id for the plugin store that should be created. Has to be unique within the user account.
      * @param data data to store into plugin store. Interpretation is up to caller.
@@ -388,7 +388,7 @@ public class KeyserverClient {
 
     /**
      * Get data from specified plugin store.
-     * Only a keyserver client which is authenticated as CORE or WORKER app can use this method.
+     * Only a keyserver client which is authenticated as SERVICE or WORKER app can use this method.
      * @param token the authentication token that identifies the user or a backup of this user.
      * @param pluginId the id of the plugin store to get data from.
      * @return data from the plugin store. Interpretation is up to caller.
@@ -412,7 +412,7 @@ public class KeyserverClient {
     
     /**
      * Updates data in plugin store.
-     * Only a keyserver client which is authenticated as CORE or WORKER app can use this method.
+     * Only a keyserver client which is authenticated as SERVICE or WORKER app can use this method.
      * @param token the authentication token that identifies the user or a backup of this user.
      * @param pluginId the id of the plugin store to update.
      * @param data data to store into plugin store. Interpretation is up to caller.
@@ -432,7 +432,7 @@ public class KeyserverClient {
 
     /**
      * Remove plugin (data)store.
-     * Only a keyserver client which is authenticated as CORE or WORKER app can use this method.
+     * Only a keyserver client which is authenticated as SERVICE or WORKER app can use this method.
      * @param token the authentication token that identifies the user or a backup of this user.
      * @param pluginId the id of the plugin store to remove.
      * @throws KeyserverException
@@ -457,7 +457,7 @@ public class KeyserverClient {
 
     /**
      * Authenticate internal token.
-     * Only a keyserver client which is authenticated as CORE app can use this method.
+     * Only a keyserver client which is authenticated as SERVICE app can use this method.
      * @param token the internal token to authenticate.
      * @return AuthResponseDTO object with user infos and internal token for later use/authentication.
      * @throws KeyserverException at any error or invalid authentication.
@@ -487,7 +487,7 @@ public class KeyserverClient {
 
     /**
      * Creates an onetime token for later use at a backup.
-     * Only a keyserver client which is authenticated as CORE app can use this method.
+     * Only a keyserver client which is authenticated as SERVICE app can use this method.
      * @param token the authentication token that identifies the user.
      * @param pluginIds puginIds which should be included in the onetime tokens. 
      *  Only the specified plugin data stores can be retrieved later on with the generated onetime token.
@@ -511,7 +511,7 @@ public class KeyserverClient {
 
     /**
      * Authenticate onetime token. This transforms the onetime token to an internal token.
-     * Only a keyserver client which is authenticated as CORE app can use this method.
+     * Only a keyserver client which is authenticated as SERVICE app can use this method.
      * @see KeyserverClient#authenticateWithOnetime(TokenDTO, Calendar)
      * @param token the onetime token to authenticate.
      * @return AuthResponseDTO object with user infos and internal token for later use/authentication.
@@ -523,7 +523,7 @@ public class KeyserverClient {
 
     /**
      * Authenticate onetime token. This transforms the onetime token to an internal token.
-     * Only a keyserver client which is authenticated as CORE app can use this method.
+     * Only a keyserver client which is authenticated as SERVICE app can use this method.
      * @param token the onetime token to authenticate.
      * @param nextScheduledExecutionTime if not null, retrieve a new onetime token for the given execution time. 
      *  The new token is derived from the given onetime token.

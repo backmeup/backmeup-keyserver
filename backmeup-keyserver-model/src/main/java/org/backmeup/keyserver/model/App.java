@@ -10,7 +10,7 @@ package org.backmeup.keyserver.model;
 public class App {
 
     public static enum Approle {
-        CORE, WORKER, STORAGE, INDEXER
+        SERVICE, WORKER, STORAGE, INDEXER
     }
 
     private String appId;

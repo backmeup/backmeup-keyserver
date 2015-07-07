@@ -26,7 +26,7 @@ import org.backmeup.keyserver.rest.auth.AppsAllowed;
 @Produces(MediaType.APPLICATION_JSON)
 public class Applications extends SecureBase {
 
-    @AppsAllowed(Approle.CORE)
+    @AppsAllowed(Approle.SERVICE)
     @GET
     @Path("/")
     public List<AppDTO> listApps() throws KeyserverException {
@@ -34,21 +34,21 @@ public class Applications extends SecureBase {
         return this.map(apps, AppDTO.class);
     }
 
-    @AppsAllowed(Approle.CORE)
+    @AppsAllowed(Approle.SERVICE)
     @POST
     @Path("/")
     public AppDTO register(@NotNull @FormParam("role") Approle role) throws KeyserverException {
         return this.map(getKeyserverLogic().registerApp(role), AppDTO.class);
     }
 
-    @AppsAllowed(Approle.CORE)
+    @AppsAllowed(Approle.SERVICE)
     @DELETE
     @Path("/{appId}")
     public void remove(@PathParam("appId") String appId) throws KeyserverException {
         this.getKeyserverLogic().removeApp(appId);
     }
 
-    @AppsAllowed({ Approle.CORE, Approle.WORKER, Approle.STORAGE, Approle.INDEXER })
+    @AppsAllowed({ Approle.SERVICE, Approle.WORKER, Approle.STORAGE, Approle.INDEXER })
     @POST
     @Path("/{appId}")
     public AppDTO authenticate(@PathParam("appId") String appId, @NotNull @FormParam("key") String appKey) throws KeyserverException {

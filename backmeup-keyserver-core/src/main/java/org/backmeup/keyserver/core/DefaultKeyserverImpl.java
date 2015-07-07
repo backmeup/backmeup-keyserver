@@ -116,7 +116,7 @@ public class DefaultKeyserverImpl implements Keyserver {
 
         // find and register core app
         for (App a : apps) {
-            if (a.getAppRole().equals(Approle.CORE)) {
+            if (a.getAppRole().equals(Approle.SERVICE)) {
                 this.appLogic.setServicePassword(a.getPassword());
                 break;
             }
