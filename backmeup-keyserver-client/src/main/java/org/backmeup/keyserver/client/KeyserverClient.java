@@ -32,6 +32,8 @@ public class KeyserverClient {
     };
     protected static final GenericType<List<TokenDTO>> TOKENDTO_LIST_TYPE = new GenericType<List<TokenDTO>>() {
     };
+    
+    private static final String AUTHORIZATION_HEADER_KEY = "Authorization";
 
     @SuppressWarnings("PMD.SingularField")
     private Client client;
@@ -75,13 +77,13 @@ public class KeyserverClient {
         return appId;
     }
 
-    public void setAuthorization(String appId, String appSecret) {
+    public final void setAuthorization(String appId, String appSecret) {
         this.appId = appId;
         this.authorizationHeader = appId + ";" + appSecret;
     }
 
     private Builder createRequest(WebTarget t) {
-        return t.request().header("Authorization", authorizationHeader);
+        return t.request().header(AUTHORIZATION_HEADER_KEY, authorizationHeader);
     }
 
     private void parsePostResponse(Response response) throws KeyserverException {
@@ -95,7 +97,7 @@ public class KeyserverClient {
         return this.parseException(exception, exception.getResponse());
     }
     
-    private KeyserverException parseException(WebApplicationException exception, Response response) {
+    private KeyserverException parseException(WebApplicationException exception, Response response) { //NOSONAR
         Response.Status status = Response.Status.fromStatusCode(response.getStatus());
 
         if (status == Response.Status.FORBIDDEN || status == Response.Status.UNAUTHORIZED) {
@@ -105,7 +107,7 @@ public class KeyserverClient {
             } catch (ProcessingException | IllegalStateException e) {
                 // in some cases (e.g. SecurityInterceptor denies access) we get
                 // a string and thus an exception at the above readEntity
-                f = new CallForbiddenException("rest call forbidden/unauthorized");
+                f = new CallForbiddenException("rest call forbidden/unauthorized", e);
             }
             f.setStatus(status);
             response.close();
@@ -126,7 +128,7 @@ public class KeyserverClient {
             if (status == Response.Status.NOT_FOUND) {
                 return new KeyserverException("rest endpoint not found", exception);
             } else {
-                return new KeyserverException("unparsable/-known rest response", exception);
+                return new KeyserverException("unparsable/-known rest response", e);
             }
         } finally {
             response.close();
@@ -148,7 +150,7 @@ public class KeyserverClient {
     // =========================================================================
 
     private Builder createAppSpecificRequest(String appId) {
-        return this.theApp.resolveTemplate("appId", appId).request().header("Authorization", authorizationHeader);
+        return this.theApp.resolveTemplate("appId", appId).request().header(AUTHORIZATION_HEADER_KEY, authorizationHeader);
     }
 
     /**
@@ -224,7 +226,7 @@ public class KeyserverClient {
             target = target.path(path);
         }
 
-        return target.request().header("Authorization", authorizationHeader).header("Token", t.toTokenString());
+        return target.request().header(AUTHORIZATION_HEADER_KEY, authorizationHeader).header("Token", t.toTokenString());
     }
 
     /**
@@ -363,7 +365,7 @@ public class KeyserverClient {
     // =========================================================================
 
     private Builder createPluginSpecificRequest(String pluginId, TokenDTO t) {
-        return this.thePlugin.resolveTemplate("pluginId", pluginId).request().header("Authorization", authorizationHeader)
+        return this.thePlugin.resolveTemplate("pluginId", pluginId).request().header(AUTHORIZATION_HEADER_KEY, authorizationHeader)
                 .header("Token", t.toTokenString());
     }
 
@@ -452,7 +454,7 @@ public class KeyserverClient {
 
     private Builder createTokenSpecificRequest(TokenDTO token) {
         return this.theToken.resolveTemplate("kind", token.getKind()).resolveTemplate("token", token.getB64Token()).request()
-                .header("Authorization", authorizationHeader);
+                .header(AUTHORIZATION_HEADER_KEY, authorizationHeader);
     }
 
     /**

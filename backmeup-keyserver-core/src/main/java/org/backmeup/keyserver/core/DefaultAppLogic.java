@@ -33,7 +33,6 @@ public class DefaultAppLogic {
     
     private DefaultKeyserverImpl keyserver;
     private Keyring keyring;
-    protected String servicePassword;
     private byte[] serviceKey;
 
     public DefaultAppLogic(DefaultKeyserverImpl keyserver) {
@@ -51,7 +50,6 @@ public class DefaultAppLogic {
 
     // only for initialization/internal use
     protected void setServicePassword(String password) throws KeyserverException {
-        this.servicePassword = password;
         try {
             this.serviceKey = stretchStringWithPepper(this.keyring, password, PepperApps.APP_ROLE);
         } catch (CryptoException e) {

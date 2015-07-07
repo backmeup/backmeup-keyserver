@@ -30,6 +30,8 @@ import org.backmeup.keyserver.model.KeyserverException;
 import org.backmeup.keyserver.model.Token;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Default keyserver implementation.
@@ -44,6 +46,8 @@ import org.codehaus.jackson.type.TypeReference;
  */
 @ApplicationScoped
 public class DefaultKeyserverImpl implements Keyserver {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultKeyserverImpl.class);
+    
     protected SortedMap<Integer, Keyring> keyrings = new TreeMap<>(Collections.reverseOrder());
     protected Keyring activeKeyring;
     protected SecureRandom random = new SecureRandom();
@@ -122,11 +126,12 @@ public class DefaultKeyserverImpl implements Keyserver {
             }
         }
 
-        // register all default apps
+        // register all default apps - if non existent
         for (App a : apps) {
             try {
                 this.appLogic.authenticate(a.getAppId(), a.getPassword());
             } catch (EntryNotFoundException e) {
+                LOGGER.info("creating default app "+a);
                 this.appLogic.registerDefaultApp(a);
             } catch (KeyserverException e) {
                 if (e.isCausedByCryptoException()) {

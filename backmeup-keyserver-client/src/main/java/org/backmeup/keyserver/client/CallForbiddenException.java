@@ -12,7 +12,7 @@ import org.backmeup.keyserver.model.KeyserverException;
 public class CallForbiddenException extends KeyserverException {
 
     private static final long serialVersionUID = -3008690041437547327L;
-    private Response.Status status;
+    private Response.Status status = null; //NOSONAR
 
     public CallForbiddenException(String message) {
         super(message);

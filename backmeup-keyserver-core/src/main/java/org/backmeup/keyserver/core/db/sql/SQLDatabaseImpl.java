@@ -110,6 +110,7 @@ public class SQLDatabaseImpl implements Database {
             s.execute(getSQLStatement("backmeup.keyserver.db.sql.create"));
             this.conn.commit();
         } catch (SQLException e) {
+            LOGGER.error("error at prepare table", e);
             conn.rollback();
         }
     }

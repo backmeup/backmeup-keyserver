@@ -32,6 +32,7 @@ public class DefaultKeyserverImplTest {
     private static final String PASSWORD = "mypass";
     private static final String USERNAME = "keyserver-test";
     private static final String SERVICE_APPID = "backmeup-service";
+    private static final String SERVICE_SECRET = "REPLACE-SERVICE";
     
     private static DefaultKeyserverImpl ks;
 
@@ -477,7 +478,7 @@ public class DefaultKeyserverImplTest {
     @Test
     public void testAuthenticateCoreApp() throws KeyserverException {
         String appId = SERVICE_APPID;
-        String appKey = ks.appLogic.servicePassword;
+        String appKey = SERVICE_SECRET;
         App u = ks.authenticateApp(appId, appKey);
         assertEquals(u.getAppId(), appId);
         assertEquals(u.getPassword(), appKey);
@@ -511,7 +512,7 @@ public class DefaultKeyserverImplTest {
         App u = ks.registerApp(App.Approle.WORKER);
         App u2 = ks.registerApp(App.Approle.INDEXER);
         
-        List<App> apps = ks.listApps(ks.appLogic.servicePassword);
+        List<App> apps = ks.listApps(SERVICE_SECRET);
         assertTrue(apps.size() >= 3);
 
         boolean foundCore = false, foundWorker = false, foundIndexer = false;
