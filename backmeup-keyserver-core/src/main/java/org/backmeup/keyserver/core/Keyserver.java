@@ -57,12 +57,12 @@ public interface Keyserver {
     
     AuthResponse authenticateWithInternalToken(String tokenHash) throws KeyserverException;
     
-    AuthResponse createOnetime(String userId, String serviceUserId, String username, byte[] accountKey, String[] pluginIds, Calendar scheduledExecutionTime) throws KeyserverException;
+    AuthResponse createOnetimeForBackup(String userId, String serviceUserId, String username, byte[] accountKey, String[] pluginIds, Calendar scheduledExecutionTime) throws KeyserverException;
     
-    AuthResponse authenticateWithOnetime(String tokenHash) throws KeyserverException;
+    AuthResponse createOnetimeForAuthentication(String userId, String serviceUserId, String username, byte[] accountKey) throws KeyserverException;
 
-    AuthResponse authenticateWithOnetime(String tokenHash, Calendar scheduledExecutionTime) throws KeyserverException;
-    
+    AuthResponse authenticateWithOnetime(String tokenHash, boolean renew, Calendar scheduledExecutionTime) throws KeyserverException;
+        
     List<Token> listTokens(String userId, byte[] accountKey, Token.Kind kind) throws KeyserverException;
     
     void revokeToken(Token.Kind kind, String tokenHash) throws KeyserverException;

@@ -32,10 +32,10 @@ public class Tokens extends SecureBase {
         return this.map(this.getKeyserverLogic().authenticateWithInternalToken(tokenHash), AuthResponseDTO.class);
     }
 
-    @AppsAllowed({Approle.SERVICE, Approle.WORKER})
+    @AppsAllowed({ Approle.SERVICE, Approle.WORKER })
     @POST
     @Path("/ONETIME/{token}")
-    public AuthResponseDTO authenticateWithOnetimeToken(@PathParam("token") String tokenHash,
+    public AuthResponseDTO authenticateWithOnetimeToken(@PathParam("token") String tokenHash, @FormParam("renew") boolean renew,
             @FormParam("nextScheduledExecutionTime") Long nextScheduledExecutionTime) throws KeyserverException {
         Calendar cal = null;
         if (nextScheduledExecutionTime != null) {
@@ -43,7 +43,7 @@ public class Tokens extends SecureBase {
             cal.setTimeInMillis((Long) nextScheduledExecutionTime);
         }
 
-        return this.map(this.getKeyserverLogic().authenticateWithOnetime(tokenHash, cal), AuthResponseDTO.class);
+        return this.map(this.getKeyserverLogic().authenticateWithOnetime(tokenHash, renew, cal), AuthResponseDTO.class);
     }
 
     @AppsAllowed(Approle.SERVICE)

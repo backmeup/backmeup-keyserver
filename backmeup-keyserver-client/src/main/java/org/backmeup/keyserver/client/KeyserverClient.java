@@ -498,14 +498,30 @@ public class KeyserverClient {
      *  (has to be converted to an internal token, see {@link #authenticateWithOnetime(TokenDTO)}).
      * @throws KeyserverException
      */
-    public AuthResponseDTO createOnetime(TokenDTO token, String[] pluginIds, Calendar scheduledExecutionTime) throws KeyserverException {
+    public AuthResponseDTO createOnetimeForBackup(TokenDTO token, String[] pluginIds, Calendar scheduledExecutionTime) throws KeyserverException {
         Form f = new Form().param("scheduledExecutionTime", "" + scheduledExecutionTime.getTime().getTime());
         for (String pluginId : pluginIds) {
             f.param("pluginId", pluginId);
         }
 
         try {
-            return this.createUserSpecificRequest("/tokens/onetime", token).post(Entity.form(f), AuthResponseDTO.class);
+            return this.createUserSpecificRequest("/tokens/onetime/backup", token).post(Entity.form(f), AuthResponseDTO.class);
+        } catch (WebApplicationException | ProcessingException exception) {
+            throw this.parseException(exception);
+        }
+    }
+    
+    /**
+     * Creates an onetime token for later use to authenticate the user.
+     * Only a keyserver client which is authenticated as SERVICE app can use this method.
+     * @param token the authentication token that identifies the user.
+     * @return AuthResponseDTO object with user infos and onetime token for later use 
+     *  (has to be converted to an internal token, see {@link #authenticateWithOnetime(TokenDTO)}).
+     * @throws KeyserverException
+     */
+    public AuthResponseDTO createOnetimeForAuthentication(TokenDTO token) throws KeyserverException {
+        try {
+            return this.createUserSpecificRequest("/tokens/onetime/authentication", token).post(Entity.form(new Form()), AuthResponseDTO.class);
         } catch (WebApplicationException | ProcessingException exception) {
             throw this.parseException(exception);
         }
@@ -514,33 +530,36 @@ public class KeyserverClient {
     /**
      * Authenticate onetime token. This transforms the onetime token to an internal token.
      * Only a keyserver client which is authenticated as SERVICE app can use this method.
-     * @see KeyserverClient#authenticateWithOnetime(TokenDTO, Calendar)
+     * @see KeyserverClient#authenticateWithOnetime(TokenDTO, boolean, Calendar)
      * @param token the onetime token to authenticate.
      * @return AuthResponseDTO object with user infos and internal token for later use/authentication.
      * @throws KeyserverException at any error or invalid authentication.
      */
     public AuthResponseDTO authenticateWithOnetime(TokenDTO token) throws KeyserverException {
-        return this.authenticateWithOnetime(token, null);
+        return this.authenticateWithOnetime(token, false, null);
     }
 
     /**
      * Authenticate onetime token. This transforms the onetime token to an internal token.
      * Only a keyserver client which is authenticated as SERVICE app can use this method.
      * @param token the onetime token to authenticate.
-     * @param nextScheduledExecutionTime if not null, retrieve a new onetime token for the given execution time. 
-     *  The new token is derived from the given onetime token.
+     * @param renew should a new token be derived from this one? If a new token is needed, renew has to be true for a token of role AUTHORIZATION and will be automatically set to true if nextScheduledExecutionTime is given (tokens of role BACKUP_JOB).
+     * @param nextScheduledExecutionTime if not null, retrieve the new onetime token for the given execution time. 
      * @return AuthResponseDTO object with user infos and internal token for later use/authentication, including a next onetime token (if requested).
      * @throws KeyserverException at any error or invalid authentication.
      */
-    public AuthResponseDTO authenticateWithOnetime(TokenDTO token, Calendar nextScheduledExecutionTime) throws KeyserverException {
+    public AuthResponseDTO authenticateWithOnetime(TokenDTO token, boolean renew, Calendar nextScheduledExecutionTime) throws KeyserverException {
         try {
             Form f = new Form();
 
             if (nextScheduledExecutionTime == null) {
                 f.param("nextScheduledExecutionTime", null);
             } else {
-                f.param("nextScheduledExecutionTime", "" + nextScheduledExecutionTime.getTime().getTime());
+                renew = true;
+                f.param("nextScheduledExecutionTime", Long.toString(nextScheduledExecutionTime.getTime().getTime()));
             }
+            f.param("renew", Boolean.toString(renew));
+            
             return this.createTokenSpecificRequest(token).post(Entity.form(f), AuthResponseDTO.class);
         } catch (WebApplicationException | ProcessingException exception) {
             throw this.parseException(exception);

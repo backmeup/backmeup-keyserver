@@ -383,18 +383,18 @@ public class DefaultKeyserverImpl implements Keyserver {
     }
     
     @Override
-    public AuthResponse createOnetime(String userId, String serviceUserId, String username, byte[] accountKey, String[] pluginIds, Calendar scheduledExecutionTime) throws KeyserverException {
-        return this.tokenLogic.createOnetime(userId, serviceUserId, username, accountKey, pluginIds, scheduledExecutionTime);
+    public AuthResponse createOnetimeForBackup(String userId, String serviceUserId, String username, byte[] accountKey, String[] pluginIds, Calendar scheduledExecutionTime) throws KeyserverException {
+        return this.tokenLogic.createOnetimeForBackup(userId, serviceUserId, username, accountKey, pluginIds, scheduledExecutionTime);
     }
     
     @Override
-    public AuthResponse authenticateWithOnetime(String tokenHash) throws KeyserverException {
-        return this.authenticateWithOnetime(tokenHash, null);
+    public AuthResponse createOnetimeForAuthentication(String userId, String serviceUserId, String username, byte[] accountKey) throws KeyserverException {
+        return this.tokenLogic.createOnetimeForAuthentication(userId, serviceUserId, username, accountKey);
     }
-
+    
     @Override
-    public AuthResponse authenticateWithOnetime(String tokenHash, Calendar scheduledExecutionTime) throws KeyserverException {
-        return this.tokenLogic.authenticateWithOnetime(tokenHash, scheduledExecutionTime);
+    public AuthResponse authenticateWithOnetime(String tokenHash, boolean renew, Calendar scheduledExecutionTime) throws KeyserverException {
+        return this.tokenLogic.authenticateWithOnetime(tokenHash, renew, scheduledExecutionTime);
     }
 
     //=========================================================================

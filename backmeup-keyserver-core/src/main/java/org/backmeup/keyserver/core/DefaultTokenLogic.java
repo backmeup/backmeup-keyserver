@@ -292,7 +292,7 @@ public class DefaultTokenLogic {
         return token;
     }
     
-    public AuthResponse createOnetime(String userId, String serviceUserId, String username, byte[] accountKey, String[] pluginIds, Calendar scheduledExecutionTime) throws KeyserverException {
+    public AuthResponse createOnetimeForBackup(String userId, String serviceUserId, String username, byte[] accountKey, String[] pluginIds, Calendar scheduledExecutionTime) throws KeyserverException {
         Token token = new Token(Token.Kind.ONETIME);
         TokenValue tokenValue = new TokenValue(userId, serviceUserId, TokenValue.Role.BACKUP_JOB);
         tokenValue.putValue(JsonKeys.USERNAME, username);
@@ -305,6 +305,17 @@ public class DefaultTokenLogic {
         
         token.setValue(tokenValue);
         this.scheduleJobToken(token, scheduledExecutionTime);
+        
+        this.create(token, accountKey);
+        return new AuthResponse(token);
+    }
+    
+    public AuthResponse createOnetimeForAuthentication(String userId, String serviceUserId, String username, byte[] accountKey) throws KeyserverException {
+        Token token = new Token(Token.Kind.ONETIME);
+        TokenValue tokenValue = new TokenValue(userId, serviceUserId, TokenValue.Role.AUTHENTICATION);
+        tokenValue.putValue(JsonKeys.USERNAME, username);
+        
+        token.setValue(tokenValue);
         
         this.create(token, accountKey);
         return new AuthResponse(token);
@@ -348,7 +359,7 @@ public class DefaultTokenLogic {
         return new AuthResponse(token);
     }
     
-    public AuthResponse authenticateWithOnetime(String tokenHash, Calendar scheduledExecutionTime) throws KeyserverException {
+    public AuthResponse authenticateWithOnetime(String tokenHash, boolean renew, Calendar scheduledExecutionTime) throws KeyserverException {
         Token onetimeToken = new Token(Token.Kind.ONETIME, tokenHash);
         String tokenKindApp = Token.Kind.ONETIME.getApplication();
         Token internalToken = null;
@@ -367,7 +378,7 @@ public class DefaultTokenLogic {
                 throw new EntryNotFoundException(EntryNotFoundException.TOKEN_USER_REMOVED);
             }
             
-            if(getActTime().before(value.getValueAsCalendar(JsonKeys.EARLIEST_START_TIME))) {
+            if(value.hasRole(TokenValue.Role.BACKUP_JOB) && getActTime().before(value.getValueAsCalendar(JsonKeys.EARLIEST_START_TIME))) {
                 this.revoke(onetimeToken);
                 throw new EntryNotFoundException(EntryNotFoundException.TOKEN_USED_TO_EARLY);
             }
@@ -378,9 +389,11 @@ public class DefaultTokenLogic {
             this.create(internalToken, null);
             
             //re-schedule token
-            if (scheduledExecutionTime != null) {
+            if (renew) {
                 Token newToken = new Token(onetimeToken);
-                this.scheduleJobToken(newToken, scheduledExecutionTime);
+                if (scheduledExecutionTime != null) {
+                    this.scheduleJobToken(newToken, scheduledExecutionTime);
+                }
                 this.create(newToken, null);
                 nextAuth = new AuthResponse(newToken);
             }

@@ -359,7 +359,7 @@ public class DefaultKeyserverImplTest {
         ks.removeUser(u.getServiceUserId(), u.getUsername(), u.getAccountKey());
     }
     
-    private AuthResponse createUserWithPluginsAndOnetimeToken(Calendar time) throws KeyserverException {
+    private AuthResponse createUserWithPluginsAndOnetimeTokenForBackup(Calendar time) throws KeyserverException {
         String serviceUserId = ks.registerUser(USERNAME, PASSWORD);
         AuthResponse u = ks.authenticateUserWithPassword(USERNAME, PASSWORD);
         String userId = u.getUserId();
@@ -369,7 +369,7 @@ public class DefaultKeyserverImplTest {
         ks.createPluginData(userId, pluginIds[0], u.getAccountKey(), data);
         ks.createPluginData(userId, pluginIds[1], u.getAccountKey(), data);
         
-        AuthResponse ot = ks.createOnetime(userId, serviceUserId, u.getUsername(), u.getAccountKey(), pluginIds, time);
+        AuthResponse ot = ks.createOnetimeForBackup(userId, serviceUserId, u.getUsername(), u.getAccountKey(), pluginIds, time);
         assertEquals(serviceUserId, ot.getServiceUserId());
         assertEquals(USERNAME, ot.getUsername());
         assertTrue(ot.getRoles().contains(TokenValue.Role.BACKUP_JOB));
@@ -380,14 +380,28 @@ public class DefaultKeyserverImplTest {
         return ot;
     }
     
+    private AuthResponse createUserWithOnetimeTokenForAuthentication() throws KeyserverException {
+        String serviceUserId = ks.registerUser(USERNAME, PASSWORD);
+        AuthResponse u = ks.authenticateUserWithPassword(USERNAME, PASSWORD);
+        String userId = u.getUserId();
+        
+        AuthResponse ot = ks.createOnetimeForAuthentication(userId, serviceUserId, u.getUsername(), u.getAccountKey());
+        assertEquals(serviceUserId, ot.getServiceUserId());
+        assertEquals(USERNAME, ot.getUsername());
+        assertTrue(ot.getRoles().contains(TokenValue.Role.AUTHENTICATION));
+        assertFalse(ot.hasNext());
+        
+        return ot;
+    }
+    
     @Test
-    public void testOnetimeToken() throws KeyserverException {
-        AuthResponse ot = this.createUserWithPluginsAndOnetimeToken(KeyserverUtils.getActTime());
+    public void testOnetimeTokenForBackup() throws KeyserverException {
+        AuthResponse ot = this.createUserWithPluginsAndOnetimeTokenForBackup(KeyserverUtils.getActTime());
         assertEquals(USERNAME, ot.getUsername());
         assertTrue(ot.getRoles().contains(TokenValue.Role.BACKUP_JOB));
         assertArrayEquals(new byte[0], ot.getAccountKey());
         
-        AuthResponse it = ks.authenticateWithOnetime(ot.getB64Token());
+        AuthResponse it = ks.authenticateWithOnetime(ot.getB64Token(), false, null);
         assertEquals(ot.getServiceUserId(), it.getServiceUserId());
         assertEquals(USERNAME, it.getUsername());
         assertTrue(it.getRoles().contains(TokenValue.Role.BACKUP_JOB));
@@ -405,13 +419,13 @@ public class DefaultKeyserverImplTest {
     }
     
     @Test
-    public void testOnetimeTokenTooEarly() throws KeyserverException {
+    public void testOnetimeTokenForBackupTooEarly() throws KeyserverException {
         Calendar tomorrow = KeyserverUtils.getActTime();
         tomorrow.add(Calendar.DAY_OF_YEAR, +1);
-        AuthResponse ot = this.createUserWithPluginsAndOnetimeToken(tomorrow);
+        AuthResponse ot = this.createUserWithPluginsAndOnetimeTokenForBackup(tomorrow);
         
         try {
-           ks.authenticateWithOnetime(ot.getB64Token());
+           ks.authenticateWithOnetime(ot.getB64Token(), false, null);
            fail();
         } catch(EntryNotFoundException e) {
             assertEquals(EntryNotFoundException.TOKEN_USED_TO_EARLY, e.getMessage());
@@ -419,13 +433,13 @@ public class DefaultKeyserverImplTest {
     }
     
     @Test
-    public void testOnetimeTokenTooLate() throws KeyserverException {
+    public void testOnetimeTokenForBackupTooLate() throws KeyserverException {
         Calendar yesterday = KeyserverUtils.getActTime();
         yesterday.add(Calendar.DAY_OF_YEAR, -1);
-        AuthResponse ot = this.createUserWithPluginsAndOnetimeToken(yesterday);
+        AuthResponse ot = this.createUserWithPluginsAndOnetimeTokenForBackup(yesterday);
         
         try {
-           ks.authenticateWithOnetime(ot.getB64Token());
+           ks.authenticateWithOnetime(ot.getB64Token(), false, null);
            fail();
         } catch(EntryNotFoundException e) {
             assertEquals(EntryNotFoundException.TOKEN, e.getMessage());
@@ -433,12 +447,12 @@ public class DefaultKeyserverImplTest {
     }
     
     @Test
-    public void testOnetimeTokenDoubleUsage() throws KeyserverException {
-        AuthResponse ot = this.createUserWithPluginsAndOnetimeToken(KeyserverUtils.getActTime());
+    public void testOnetimeTokenForBackupDoubleUsage() throws KeyserverException {
+        AuthResponse ot = this.createUserWithPluginsAndOnetimeTokenForBackup(KeyserverUtils.getActTime());
         
-        ks.authenticateWithOnetime(ot.getB64Token());
+        ks.authenticateWithOnetime(ot.getB64Token(), false, null);
         try {
-           ks.authenticateWithOnetime(ot.getB64Token());
+           ks.authenticateWithOnetime(ot.getB64Token(), false, null);
            fail();
         } catch(EntryNotFoundException e) {
             assertEquals(EntryNotFoundException.TOKEN, e.getMessage());
@@ -446,18 +460,68 @@ public class DefaultKeyserverImplTest {
     }
     
     @Test
-    public void testOnetimeTokenReschedule() throws KeyserverException {
+    public void testOnetimeTokenForBackupReschedule() throws KeyserverException {
         Calendar tomorrow = KeyserverUtils.getActTime();
         tomorrow.add(Calendar.DAY_OF_YEAR, +1);
-        AuthResponse ot = this.createUserWithPluginsAndOnetimeToken(KeyserverUtils.getActTime());
+        AuthResponse ot = this.createUserWithPluginsAndOnetimeTokenForBackup(KeyserverUtils.getActTime());
         
-        AuthResponse it = ks.authenticateWithOnetime(ot.getB64Token(), tomorrow);
+        AuthResponse it = ks.authenticateWithOnetime(ot.getB64Token(), true, tomorrow);
         assertTrue(it.hasNext());
         AuthResponse next = it.getNext();
         assertEquals(ot.getServiceUserId(), next.getServiceUserId());
         assertEquals(USERNAME, next.getUsername());
         assertTrue(next.getRoles().contains(TokenValue.Role.BACKUP_JOB));
         assertTrue(next.getTtl().after(tomorrow));
+    }
+    
+    @Test
+    public void testOnetimeTokenForAuthentication() throws KeyserverException {
+        AuthResponse ot = this.createUserWithOnetimeTokenForAuthentication();
+        assertEquals(USERNAME, ot.getUsername());
+        assertTrue(ot.getRoles().contains(TokenValue.Role.AUTHENTICATION));
+        
+        AuthResponse it = ks.authenticateWithOnetime(ot.getB64Token(), false, null);
+        assertEquals(ot.getServiceUserId(), it.getServiceUserId());
+        assertEquals(USERNAME, it.getUsername());
+        assertTrue(it.getRoles().contains(TokenValue.Role.AUTHENTICATION));
+    }
+        
+    @Test
+    public void testOnetimeTokenForAuthenticationDoubleUsage() throws KeyserverException {
+        AuthResponse ot = this.createUserWithOnetimeTokenForAuthentication();
+        
+        ks.authenticateWithOnetime(ot.getB64Token(), false, null);
+        try {
+           ks.authenticateWithOnetime(ot.getB64Token(), false, null);
+           fail();
+        } catch(EntryNotFoundException e) {
+            assertEquals(EntryNotFoundException.TOKEN, e.getMessage());
+        }
+    }
+    
+    @Test
+    public void testOnetimeTokenForAuthenticationReschedule() throws KeyserverException {
+        AuthResponse ot = this.createUserWithOnetimeTokenForAuthentication();
+        
+        AuthResponse it = ks.authenticateWithOnetime(ot.getB64Token(), true, null);
+        assertTrue(it.hasNext());
+        AuthResponse next = it.getNext();
+        assertEquals(ot.getServiceUserId(), next.getServiceUserId());
+        assertEquals(USERNAME, next.getUsername());
+        assertTrue(next.getRoles().contains(TokenValue.Role.AUTHENTICATION));
+    }
+    
+    @Test
+    public void testOnetimeTokenForAuthenticationAccessFail() throws KeyserverException {
+        AuthResponse ot = this.createUserWithOnetimeTokenForAuthentication();
+        
+        AuthResponse it = ks.authenticateWithOnetime(ot.getB64Token(), false, null);
+        try {
+            ks.getIndexKey(it.getUserId(), it.getAccountKey());
+            fail();
+        } catch(KeyserverException e) {
+            assertTrue(e.getCause().getCause() instanceof javax.crypto.BadPaddingException);
+        }
     }
     
     //=========================================================================

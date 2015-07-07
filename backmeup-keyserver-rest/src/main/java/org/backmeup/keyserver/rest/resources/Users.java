@@ -173,16 +173,28 @@ public class Users extends SecureBase {
     @AppsAllowed(Approle.SERVICE)
     @TokenRequired
     @POST
-    @Path("/tokenUser/tokens/onetime")
-    public AuthResponseDTO createOnetimeToken(@FormParam("pluginId") String[] pluginIds,
+    @Path("/tokenUser/tokens/onetime/backup")
+    public AuthResponseDTO createOnetimeTokenForBackup(@FormParam("pluginId") String[] pluginIds,
             @NotNull @FormParam("scheduledExecutionTime") Long scheduledExecutionTime) throws KeyserverException {
         AuthResponse auth = this.getAuthResponse();
 
         Calendar cal = Calendar.getInstance();
         cal.setTimeInMillis((Long) scheduledExecutionTime);
         return this.map(
-                this.getKeyserverLogic().createOnetime(auth.getUserId(), auth.getServiceUserId(), auth.getUsername(), auth.getAccountKey(),
+                this.getKeyserverLogic().createOnetimeForBackup(auth.getUserId(), auth.getServiceUserId(), auth.getUsername(), auth.getAccountKey(),
                         pluginIds, cal), AuthResponseDTO.class);
+    }
+    
+    @AppsAllowed(Approle.SERVICE)
+    @TokenRequired
+    @POST
+    @Path("/tokenUser/tokens/onetime/authentication")
+    public AuthResponseDTO createOnetimeTokenForAuthentication() throws KeyserverException {
+        AuthResponse auth = this.getAuthResponse();
+
+        return this.map(
+                this.getKeyserverLogic().createOnetimeForAuthentication(auth.getUserId(), auth.getServiceUserId(), auth.getUsername(),
+                        auth.getAccountKey()), AuthResponseDTO.class);
     }
 
     @AppsAllowed(Approle.SERVICE)

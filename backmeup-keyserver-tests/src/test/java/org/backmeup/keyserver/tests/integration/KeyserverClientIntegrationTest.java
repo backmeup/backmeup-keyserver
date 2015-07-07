@@ -440,7 +440,7 @@ public class KeyserverClientIntegrationTest {
         }
     }
 
-    private AuthResponseDTO createUserWithPluginsAndOnetimeToken(Calendar time) throws KeyserverException {
+    private AuthResponseDTO createUserWithPluginsAndOnetimeTokenForBackup(Calendar time) throws KeyserverException {
         client.registerUser(USERNAME, PASSWORD);
         AuthResponseDTO u = client.authenticateUserWithPassword(USERNAME, PASSWORD);
 
@@ -449,7 +449,7 @@ public class KeyserverClientIntegrationTest {
         client.createPluginData(u.getToken(), pluginIds[0], data);
         client.createPluginData(u.getToken(), pluginIds[1], data);
 
-        AuthResponseDTO ot = client.createOnetime(u.getToken(), pluginIds, time);
+        AuthResponseDTO ot = client.createOnetimeForBackup(u.getToken(), pluginIds, time);
         assertEquals(u.getServiceUserId(), ot.getServiceUserId());
         assertEquals(USERNAME, ot.getUsername());
         assertTrue(ot.getRoles().contains(TokenValue.Role.BACKUP_JOB));
@@ -459,8 +459,8 @@ public class KeyserverClientIntegrationTest {
     }
 
     @Test
-    public void testOnetimeToken() throws KeyserverException {
-        AuthResponseDTO ot = this.createUserWithPluginsAndOnetimeToken(KeyserverUtils.getActTime());
+    public void testOnetimeTokenForBackup() throws KeyserverException {
+        AuthResponseDTO ot = this.createUserWithPluginsAndOnetimeTokenForBackup(KeyserverUtils.getActTime());
         assertEquals(USERNAME, ot.getUsername());
         assertTrue(ot.getRoles().contains(TokenValue.Role.BACKUP_JOB));
 
@@ -478,10 +478,10 @@ public class KeyserverClientIntegrationTest {
     }
 
     @Test
-    public void testOnetimeTokenTooEarly() throws KeyserverException {
+    public void testOnetimeTokenForBackupTooEarly() throws KeyserverException {
         Calendar tomorrow = KeyserverUtils.getActTime();
         tomorrow.add(Calendar.DAY_OF_YEAR, +1);
-        AuthResponseDTO ot = this.createUserWithPluginsAndOnetimeToken(tomorrow);
+        AuthResponseDTO ot = this.createUserWithPluginsAndOnetimeTokenForBackup(tomorrow);
 
         try {
             client.authenticateWithOnetime(ot.getToken());
@@ -492,10 +492,10 @@ public class KeyserverClientIntegrationTest {
     }
 
     @Test
-    public void testOnetimeTokenTooLate() throws KeyserverException {
+    public void testOnetimeTokenForBackupTooLate() throws KeyserverException {
         Calendar yesterday = KeyserverUtils.getActTime();
         yesterday.add(Calendar.DAY_OF_YEAR, -1);
-        AuthResponseDTO ot = this.createUserWithPluginsAndOnetimeToken(yesterday);
+        AuthResponseDTO ot = this.createUserWithPluginsAndOnetimeTokenForBackup(yesterday);
 
         try {
             client.authenticateWithOnetime(ot.getToken());
@@ -506,8 +506,8 @@ public class KeyserverClientIntegrationTest {
     }
 
     @Test
-    public void testOnetimeTokenDoubleUsage() throws KeyserverException {
-        AuthResponseDTO ot = this.createUserWithPluginsAndOnetimeToken(KeyserverUtils.getActTime());
+    public void testOnetimeTokenForBackupDoubleUsage() throws KeyserverException {
+        AuthResponseDTO ot = this.createUserWithPluginsAndOnetimeTokenForBackup(KeyserverUtils.getActTime());
 
         client.authenticateWithOnetime(ot.getToken());
         try {
@@ -519,12 +519,12 @@ public class KeyserverClientIntegrationTest {
     }
 
     @Test
-    public void testOnetimeTokenReschedule() throws KeyserverException {
+    public void testOnetimeTokenForBackupReschedule() throws KeyserverException {
         Calendar tomorrow = KeyserverUtils.getActTime();
         tomorrow.add(Calendar.DAY_OF_YEAR, +1);
-        AuthResponseDTO ot = this.createUserWithPluginsAndOnetimeToken(KeyserverUtils.getActTime());
+        AuthResponseDTO ot = this.createUserWithPluginsAndOnetimeTokenForBackup(KeyserverUtils.getActTime());
 
-        AuthResponseDTO it = client.authenticateWithOnetime(ot.getToken(), tomorrow);
+        AuthResponseDTO it = client.authenticateWithOnetime(ot.getToken(), true, tomorrow);
         assertTrue(it.hasNext());
         AuthResponseDTO next = it.getNext();
         assertEquals(ot.getServiceUserId(), next.getServiceUserId());
@@ -540,5 +540,55 @@ public class KeyserverClientIntegrationTest {
 
         List<TokenDTO> tokens = client.listTokens(u.getToken());
         assertEquals(0, tokens.size());
+    }
+    
+    private AuthResponseDTO createUserWithOnetimeTokenForAuthentication() throws KeyserverException {
+        client.registerUser(USERNAME, PASSWORD);
+        AuthResponseDTO u = client.authenticateUserWithPassword(USERNAME, PASSWORD);
+
+        AuthResponseDTO ot = client.createOnetimeForAuthentication(u.getToken());
+        assertEquals(u.getServiceUserId(), ot.getServiceUserId());
+        assertEquals(USERNAME, ot.getUsername());
+        assertTrue(ot.getRoles().contains(TokenValue.Role.AUTHENTICATION));
+        assertFalse(ot.hasNext());
+
+        return ot;
+    }
+
+    @Test
+    public void testOnetimeTokenForAuthentication() throws KeyserverException {
+        AuthResponseDTO ot = this.createUserWithOnetimeTokenForAuthentication();
+        assertEquals(USERNAME, ot.getUsername());
+        assertTrue(ot.getRoles().contains(TokenValue.Role.AUTHENTICATION));
+
+        AuthResponseDTO it = client.authenticateWithOnetime(ot.getToken());
+        assertEquals(ot.getServiceUserId(), it.getServiceUserId());
+        assertEquals(USERNAME, it.getUsername());
+        assertTrue(it.getRoles().contains(TokenValue.Role.AUTHENTICATION));
+    }
+
+    @Test
+    public void testOnetimeTokenForAuthenticationDoubleUsage() throws KeyserverException {
+        AuthResponseDTO ot = this.createUserWithOnetimeTokenForAuthentication();
+
+        client.authenticateWithOnetime(ot.getToken());
+        try {
+            client.authenticateWithOnetime(ot.getToken());
+            fail();
+        } catch (EntryNotFoundException e) {
+            assertEquals(EntryNotFoundException.TOKEN, e.getMessage());
+        }
+    }
+
+    @Test
+    public void testOnetimeTokenForAuthenticationReschedule() throws KeyserverException {
+        AuthResponseDTO ot = this.createUserWithOnetimeTokenForAuthentication();
+
+        AuthResponseDTO it = client.authenticateWithOnetime(ot.getToken(), true, null);
+        assertTrue(it.hasNext());
+        AuthResponseDTO next = it.getNext();
+        assertEquals(ot.getServiceUserId(), next.getServiceUserId());
+        assertEquals(USERNAME, next.getUsername());
+        assertTrue(next.getRoles().contains(TokenValue.Role.AUTHENTICATION));
     }
 }
