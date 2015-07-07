@@ -4,6 +4,7 @@ import static org.backmeup.keyserver.core.EncryptionUtils.hashByteArrayWithPeppe
 import static org.backmeup.keyserver.core.EncryptionUtils.hashStringWithPepper;
 import static org.backmeup.keyserver.model.KeyserverUtils.toBase64String;
 
+import java.io.IOException;
 import java.security.SecureRandom;
 import java.text.MessageFormat;
 import java.util.Calendar;
@@ -20,6 +21,7 @@ import org.backmeup.keyserver.core.crypto.Keyring;
 import org.backmeup.keyserver.core.db.Database;
 import org.backmeup.keyserver.core.db.DatabaseException;
 import org.backmeup.keyserver.model.App;
+import org.backmeup.keyserver.model.App.Approle;
 import org.backmeup.keyserver.model.AuthResponse;
 import org.backmeup.keyserver.model.CryptoException;
 import org.backmeup.keyserver.model.EntryNotFoundException;
@@ -27,6 +29,7 @@ import org.backmeup.keyserver.model.KeyserverEntry;
 import org.backmeup.keyserver.model.KeyserverException;
 import org.backmeup.keyserver.model.Token;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.type.TypeReference;
 
 /**
  * Default keyserver implementation.
@@ -47,8 +50,6 @@ public class DefaultKeyserverImpl implements Keyserver {
     protected Database db;
     protected ObjectMapper jsonMapper = new ObjectMapper();
 
-    protected String serviceId = null;
-    protected String servicePassword = null;
     protected String defaultProfile = null;
     protected int uiTokenTimeout;
     protected int backupTokenFromTimout;
@@ -63,17 +64,16 @@ public class DefaultKeyserverImpl implements Keyserver {
         this.loadConfig();
         this.connectDB();
         this.registerLogic();
+        this.registerDefaultApps();
     }
 
     private void loadConfig() {
-        this.serviceId = Configuration.getProperty("backmeup.service.id");
-        this.servicePassword = Configuration.getProperty("backmeup.service.password");
         this.defaultProfile = Configuration.getProperty("backmeup.keyserver.defaultProfile");
         this.uiTokenTimeout = Integer.parseInt(Configuration.getProperty("backmeup.keyserver.uiTokenTimeout"));
         this.backupTokenFromTimout = Integer.parseInt(Configuration.getProperty("backmeup.keyserver.backupTokenFromTimout"));
         this.backupTokenToTimout = Integer.parseInt(Configuration.getProperty("backmeup.keyserver.backupTokenToTimout"));
         
-        //load keyrings
+        // load keyrings
         for(Keyring k : KeyringConfiguration.getKeyrings()) {
             this.keyrings.put(k.getKeyringId(), k);
         }
@@ -101,6 +101,41 @@ public class DefaultKeyserverImpl implements Keyserver {
         this.userLogic = new DefaultUserLogic(this);
         this.tokenLogic = new DefaultTokenLogic(this);
         this.pluglinDataLogic = new DefaultPluginDataLogic(this);
+    }
+    
+    private void registerDefaultApps() throws KeyserverException {
+        // load default apps
+        List<App> apps = null;
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            apps = mapper.readValue(Configuration.getProperty("backmeup.keyserver.defaultApps"), new TypeReference<List<App>>() {
+            });
+        } catch (IOException e) {
+            throw new KeyserverException("cannot parse default app list from configuration", e);
+        }
+
+        // find and register core app
+        for (App a : apps) {
+            if (a.getAppRole().equals(Approle.CORE)) {
+                this.appLogic.setServicePassword(a.getPassword());
+                break;
+            }
+        }
+
+        // register all default apps
+        for (App a : apps) {
+            try {
+                this.appLogic.authenticate(a.getAppId(), a.getPassword());
+            } catch (EntryNotFoundException e) {
+                this.appLogic.registerDefaultApp(a);
+            } catch (KeyserverException e) {
+                if (e.isCausedByCryptoException()) {
+                    throw new KeyserverException("default app " + a.getAppId() + " already exists with different password", e);
+                } else {
+                    throw e;
+                }
+            }
+        }
     }
     
     //=========================================================================

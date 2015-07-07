@@ -16,6 +16,11 @@ public class App {
     private String appId;
     private String password;
     private Approle appRole;
+    
+    @SuppressWarnings("unused")
+    private App() {
+        
+    }
 
     public App(String appId, String password, Approle appRole) {
         this.appId = appId;

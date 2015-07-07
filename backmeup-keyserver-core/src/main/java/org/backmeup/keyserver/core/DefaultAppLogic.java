@@ -15,6 +15,7 @@ import org.backmeup.keyserver.core.crypto.Keyring;
 import org.backmeup.keyserver.core.crypto.PepperApps;
 import org.backmeup.keyserver.core.db.DatabaseException;
 import org.backmeup.keyserver.model.App;
+import org.backmeup.keyserver.model.App.Approle;
 import org.backmeup.keyserver.model.CryptoException;
 import org.backmeup.keyserver.model.EntryNotFoundException;
 import org.backmeup.keyserver.model.KeyserverEntry;
@@ -32,6 +33,8 @@ public class DefaultAppLogic {
     
     private DefaultKeyserverImpl keyserver;
     private Keyring keyring;
+    protected String servicePassword;
+    private byte[] serviceKey;
 
     public DefaultAppLogic(DefaultKeyserverImpl keyserver) {
         this.keyserver = keyserver;
@@ -46,11 +49,38 @@ public class DefaultAppLogic {
         return fmtKey(APP_ROLE_ENTRY_FORMAT, appId);
     }
 
-    public App register(App.Approle role) throws KeyserverException {
-        if (role == App.Approle.CORE) {
-            throw new KeyserverException("Registration of app with role core is forbidden!");
+    // only for initialization/internal use
+    protected void setServicePassword(String password) throws KeyserverException {
+        this.servicePassword = password;
+        try {
+            this.serviceKey = stretchStringWithPepper(this.keyring, password, PepperApps.APP_ROLE);
+        } catch (CryptoException e) {
+            throw new KeyserverException(e);
+        }
+    }
+
+    // only for initialization/internal use
+    protected App registerDefaultApp(App app) throws KeyserverException {
+        String appId = app.getAppId();
+        byte[] appKey = fromBase64String(app.getPassword());
+        Approle role = app.getAppRole();
+
+        try {
+            // [Hash(AppKey)].App
+            byte[] payload = this.keyserver.encryptString(appKey, PepperApps.APP, role.name());
+            this.keyserver.createEntry(appKey(appId), payload);
+
+            // [Hash(AppKey)].AppRole
+            payload = this.keyserver.encryptString(this.serviceKey, PepperApps.APP_ROLE, role.name());
+            this.keyserver.createEntry(appRoleKey(appId), payload);
+        } catch (CryptoException | DatabaseException e) {
+            throw new KeyserverException(e);
         }
 
+        return app;
+    }
+    
+    public App register(App.Approle role) throws KeyserverException {
         String appId = null;
         byte[] appKey = null;
 
@@ -69,8 +99,7 @@ public class DefaultAppLogic {
             this.keyserver.createEntry(appKey(appId), payload);
             
             // [Hash(AppKey)].AppRole
-            byte[] key = stretchStringWithPepper(this.keyring, this.keyserver.servicePassword, PepperApps.APP_ROLE);
-            payload = this.keyserver.encryptString(key, PepperApps.APP_ROLE, role.name());
+            payload = this.keyserver.encryptString(this.serviceKey, PepperApps.APP_ROLE, role.name());
             this.keyserver.createEntry(appRoleKey(appId), payload);
         } catch (CryptoException | DatabaseException e) {
             throw new KeyserverException(e);
@@ -97,7 +126,6 @@ public class DefaultAppLogic {
     public List<App> listApps(String servicePassword) throws KeyserverException {
         try {
             List<App> apps = new LinkedList<>();
-            apps.add(new App(this.keyserver.serviceId, null, App.Approle.CORE));
             
             List<KeyserverEntry> appRoleEntries = this.keyserver.db.searchByKey(appRoleKey("%"), false, false);
             byte[] key = stretchStringWithPepper(this.keyring, servicePassword, PepperApps.APP_ROLE);
@@ -114,11 +142,6 @@ public class DefaultAppLogic {
     }
 
     public App authenticate(String appId, String appKey) throws KeyserverException {
-        // workaround for core app
-        if (appId.equals(this.keyserver.serviceId) && appKey.equals(this.keyserver.servicePassword)) {
-            return new App(appId, appKey, App.Approle.CORE);
-        }
-
         try {
             KeyserverEntry appEntry = this.keyserver.checkedGetEntry(appKey(appId), EntryNotFoundException.APP);
             String appValue = this.keyserver.decryptString(fromBase64String(appKey), PepperApps.APP, appEntry.getValue());
