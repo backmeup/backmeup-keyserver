@@ -6,6 +6,7 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.Calendar;
 import java.util.LinkedList;
@@ -74,15 +75,6 @@ public class KeyserverClientIntegrationTest {
     }
 
     @Test
-    public void testRegisterCoreApp() {
-        try {
-            client.registerApp(Approle.CORE);
-        } catch (KeyserverException e) {
-            assertTrue(e.getMessage().contains("forbidden"));
-        }
-    }
-
-    @Test
     public void testAuthenticateCoreApp() throws KeyserverException {
         AppDTO u = client.authenticateApp(SERVICE_ID, SERVICE_SECRET);
         assertEquals(u.getAppId(), SERVICE_ID);
@@ -94,6 +86,7 @@ public class KeyserverClientIntegrationTest {
     public void testAuthenticateNonExistantApp() throws KeyserverException {
         try {
             client.authenticateApp("not here", "xxx");
+            fail();
         } catch (EntryNotFoundException e) {
             assertTrue(e.getMessage().equals(EntryNotFoundException.APP));
         }
@@ -104,6 +97,7 @@ public class KeyserverClientIntegrationTest {
         AppDTO u = client.registerApp(Approle.WORKER);
         try {
             client.authenticateApp(u.getAppId(), "xxx");
+            fail();
         } catch (CallForbiddenException e) {
             assertEquals(Response.Status.UNAUTHORIZED, e.getStatus());
         }
@@ -184,6 +178,7 @@ public class KeyserverClientIntegrationTest {
         client.removeApp(u.getAppId());
         try {
             client.authenticateApp(u.getAppId(), u.getPassword());
+            fail();
         } catch (EntryNotFoundException e) {
             assertEquals(EntryNotFoundException.APP, e.getMessage());
         }
@@ -217,6 +212,7 @@ public class KeyserverClientIntegrationTest {
 
         try {
             client.authenticateUserWithPassword(USERNAME, "xxx");
+            fail();
         } catch (KeyserverException e) {
             assertTrue(e.isCausedByCryptoException());
         }
@@ -274,12 +270,14 @@ public class KeyserverClientIntegrationTest {
 
         try {
             client.authenticateUserWithPassword(USERNAME, PASSWORD);
+            fail();
         } catch (EntryNotFoundException e) {
             assertEquals(EntryNotFoundException.USERNAME, e.getMessage());
         }
 
         try {
             client.authenticateWithInternalToken(u.getToken());
+            fail();
         } catch (EntryNotFoundException e) {
             assertEquals(EntryNotFoundException.TOKEN_USER_REMOVED, e.getMessage());
         }
@@ -293,6 +291,7 @@ public class KeyserverClientIntegrationTest {
 
         try {
             client.authenticateUserWithPassword(USERNAME, PASSWORD);
+            fail();
         } catch (EntryNotFoundException e) {
             assertEquals(EntryNotFoundException.USERNAME, e.getMessage());
         }
@@ -312,12 +311,14 @@ public class KeyserverClientIntegrationTest {
 
         try {
             client.authenticateUserWithPassword(USERNAME, PASSWORD);
+            fail();
         } catch (EntryNotFoundException e) {
             assertEquals(EntryNotFoundException.USERNAME, e.getMessage());
         }
 
         try {
             client.authenticateWithInternalToken(u.getToken());
+            fail();
         } catch (EntryNotFoundException e) {
             // token still exists, but user not
             assertEquals(EntryNotFoundException.TOKEN_USER_REMOVED, e.getMessage());
@@ -326,6 +327,7 @@ public class KeyserverClientIntegrationTest {
         // but now it should be gone
         try {
             client.authenticateWithInternalToken(u.getToken());
+            fail();
         } catch (EntryNotFoundException e) {
             assertEquals(EntryNotFoundException.TOKEN, e.getMessage());
         }
@@ -340,6 +342,7 @@ public class KeyserverClientIntegrationTest {
 
         try {
             client.authenticateUserWithPassword(USERNAME, PASSWORD);
+            fail();
         } catch (KeyserverException e) {
             assertTrue(e.isCausedByCryptoException());
         } finally {
@@ -412,6 +415,7 @@ public class KeyserverClientIntegrationTest {
 
         try {
             client.getPluginData(u.getToken(), pluginId);
+            fail();
         } catch (EntryNotFoundException e) {
             assertEquals(EntryNotFoundException.PLUGIN_KEY, e.getMessage());
         }
@@ -430,6 +434,7 @@ public class KeyserverClientIntegrationTest {
 
         try {
             client.authenticateWithInternalToken(u.getToken());
+            fail();
         } catch (EntryNotFoundException e) {
             assertTrue(e.getMessage().equals(EntryNotFoundException.TOKEN));
         }
@@ -480,6 +485,7 @@ public class KeyserverClientIntegrationTest {
 
         try {
             client.authenticateWithOnetime(ot.getToken());
+            fail();
         } catch (EntryNotFoundException e) {
             assertEquals(EntryNotFoundException.TOKEN_USED_TO_EARLY, e.getMessage());
         }
@@ -493,6 +499,7 @@ public class KeyserverClientIntegrationTest {
 
         try {
             client.authenticateWithOnetime(ot.getToken());
+            fail();
         } catch (EntryNotFoundException e) {
             assertEquals(EntryNotFoundException.TOKEN, e.getMessage());
         }
@@ -505,6 +512,7 @@ public class KeyserverClientIntegrationTest {
         client.authenticateWithOnetime(ot.getToken());
         try {
             client.authenticateWithOnetime(ot.getToken());
+            fail();
         } catch (EntryNotFoundException e) {
             assertEquals(EntryNotFoundException.TOKEN, e.getMessage());
         }

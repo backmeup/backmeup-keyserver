@@ -7,12 +7,12 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 
-import org.backmeup.keyserver.core.config.Configuration;
 import org.backmeup.keyserver.model.App;
 import org.backmeup.keyserver.model.App.Approle;
 import org.backmeup.keyserver.model.AuthResponse;
@@ -31,6 +31,7 @@ public class DefaultKeyserverImplTest {
 
     private static final String PASSWORD = "mypass";
     private static final String USERNAME = "keyserver-test";
+    private static final String SERVICE_APPID = "backmeup-service";
     
     private static DefaultKeyserverImpl ks;
 
@@ -83,6 +84,7 @@ public class DefaultKeyserverImplTest {
         
         try {
             ks.authenticateUserWithPassword(USERNAME, "xxx");
+            fail();
         } catch(KeyserverException e) {
             assertTrue(e.getCause().getCause() instanceof javax.crypto.BadPaddingException);
         }
@@ -141,12 +143,14 @@ public class DefaultKeyserverImplTest {
         
         try {
             ks.authenticateUserWithPassword(USERNAME, PASSWORD);
+            fail();
         } catch(EntryNotFoundException e) {
             assertEquals(EntryNotFoundException.USERNAME, e.getMessage());
         }
         
         try {
             ks.authenticateWithInternalToken(u.getB64Token());
+            fail();
         } catch(EntryNotFoundException e) {
             assertEquals(EntryNotFoundException.TOKEN_USER_REMOVED, e.getMessage());
             
@@ -169,12 +173,14 @@ public class DefaultKeyserverImplTest {
         
         try {
             ks.authenticateUserWithPassword(USERNAME, PASSWORD);
+            fail();
         } catch(EntryNotFoundException e) {
             assertEquals(EntryNotFoundException.USERNAME, e.getMessage());
         }
         
         try {
             ks.authenticateWithInternalToken(u.getB64Token());
+            fail();
         } catch(EntryNotFoundException e) {
             //token should be deleted
             assertEquals(EntryNotFoundException.TOKEN, e.getMessage());
@@ -190,6 +196,7 @@ public class DefaultKeyserverImplTest {
         
         try {
             ks.authenticateUserWithPassword(USERNAME, PASSWORD);
+            fail();
         } catch(EntryNotFoundException e) {
             assertEquals(EntryNotFoundException.USERNAME, e.getMessage());
         }
@@ -217,12 +224,14 @@ public class DefaultKeyserverImplTest {
         
         try {
             ks.authenticateUserWithPassword(USERNAME, PASSWORD);
+            fail();
         } catch(EntryNotFoundException e) {
             assertEquals(EntryNotFoundException.USERNAME, e.getMessage());
         }
         
         try {
             ks.authenticateWithInternalToken(u.getB64Token());
+            fail();
         } catch(EntryNotFoundException e) {
             //token still exists, but user not
             assertEquals(EntryNotFoundException.TOKEN_USER_REMOVED, e.getMessage());
@@ -231,6 +240,7 @@ public class DefaultKeyserverImplTest {
         //but now it should be gone
         try {
             ks.authenticateWithInternalToken(u.getB64Token());
+            fail();
         } catch(EntryNotFoundException e) {
             assertEquals(EntryNotFoundException.TOKEN, e.getMessage());
             
@@ -246,6 +256,7 @@ public class DefaultKeyserverImplTest {
             
         try {
             ks.authenticateUserWithPassword(USERNAME, PASSWORD);
+            fail();
         } catch(KeyserverException e) {
             assertTrue(e.getCause().getCause() instanceof javax.crypto.BadPaddingException);
         }
@@ -309,6 +320,7 @@ public class DefaultKeyserverImplTest {
 
         try {
             ks.getPluginDataKey(userId, pluginId, u.getAccountKey());
+            fail();
         } catch(EntryNotFoundException e) {
             assertEquals(EntryNotFoundException.PLUGIN_KEY, e.getMessage());
             
@@ -316,6 +328,7 @@ public class DefaultKeyserverImplTest {
         
         try {
             ks.getPluginData(userId, pluginId, pluginKey);
+            fail();
         } catch(EntryNotFoundException e) {
             assertEquals(EntryNotFoundException.PLUGIN, e.getMessage());
             
@@ -337,6 +350,7 @@ public class DefaultKeyserverImplTest {
         
         try {
             ks.authenticateWithInternalToken(u.getB64Token());
+            fail();
         } catch(EntryNotFoundException e) {
             assertTrue(e.getMessage().equals(EntryNotFoundException.TOKEN));
         }
@@ -397,6 +411,7 @@ public class DefaultKeyserverImplTest {
         
         try {
            ks.authenticateWithOnetime(ot.getB64Token());
+           fail();
         } catch(EntryNotFoundException e) {
             assertEquals(EntryNotFoundException.TOKEN_USED_TO_EARLY, e.getMessage());
         }
@@ -410,6 +425,7 @@ public class DefaultKeyserverImplTest {
         
         try {
            ks.authenticateWithOnetime(ot.getB64Token());
+           fail();
         } catch(EntryNotFoundException e) {
             assertEquals(EntryNotFoundException.TOKEN, e.getMessage());
         }        
@@ -422,6 +438,7 @@ public class DefaultKeyserverImplTest {
         ks.authenticateWithOnetime(ot.getB64Token());
         try {
            ks.authenticateWithOnetime(ot.getB64Token());
+           fail();
         } catch(EntryNotFoundException e) {
             assertEquals(EntryNotFoundException.TOKEN, e.getMessage());
         }
@@ -458,18 +475,9 @@ public class DefaultKeyserverImplTest {
     }
 
     @Test
-    public void testRegisterCoreApp() throws KeyserverException {
-        try {
-            ks.registerApp(App.Approle.CORE);
-        } catch (KeyserverException e) {
-            assertTrue(e.getMessage().contains("forbidden"));
-        }
-    }
-
-    @Test
     public void testAuthenticateCoreApp() throws KeyserverException {
-        String appId = Configuration.getProperty("backmeup.service.id");
-        String appKey = Configuration.getProperty("backmeup.service.password");
+        String appId = SERVICE_APPID;
+        String appKey = ks.appLogic.servicePassword;
         App u = ks.authenticateApp(appId, appKey);
         assertEquals(u.getAppId(), appId);
         assertEquals(u.getPassword(), appKey);
@@ -480,6 +488,7 @@ public class DefaultKeyserverImplTest {
     public void testAuthenticateNonExistantApp() throws KeyserverException {
         try {
             ks.authenticateApp("not here", "xxx");
+            fail();
         } catch (EntryNotFoundException e) {
             assertTrue(e.getMessage().equals(EntryNotFoundException.APP));
         }
@@ -490,6 +499,7 @@ public class DefaultKeyserverImplTest {
         App u = ks.registerApp(App.Approle.WORKER);
         try {
             ks.authenticateApp(u.getAppId(), "xxx");
+            fail();
         } catch (KeyserverException e) {
             assertTrue(e.getCause().getCause() instanceof javax.crypto.BadPaddingException);
         }
@@ -501,13 +511,13 @@ public class DefaultKeyserverImplTest {
         App u = ks.registerApp(App.Approle.WORKER);
         App u2 = ks.registerApp(App.Approle.INDEXER);
         
-        List<App> apps = ks.listApps(ks.servicePassword);
+        List<App> apps = ks.listApps(ks.appLogic.servicePassword);
         assertTrue(apps.size() >= 3);
 
         boolean foundCore = false, foundWorker = false, foundIndexer = false;
 
         for (App a : apps) {
-            if (a.getAppRole() == Approle.CORE && a.getAppId().equals(ks.serviceId)) {
+            if (a.getAppRole() == Approle.CORE && a.getAppId().equals(SERVICE_APPID)) {
                 foundCore = true;
             }
             if (a.getAppRole() == u.getAppRole() && a.getAppId().equals(u.getAppId())) {
@@ -533,6 +543,7 @@ public class DefaultKeyserverImplTest {
         ks.removeApp(u.getAppId());
         try {
             ks.authenticateApp(u.getAppId(), u.getPassword());
+            fail();
         } catch (EntryNotFoundException e) {
             assertEquals(EntryNotFoundException.APP, e.getMessage());
         }
