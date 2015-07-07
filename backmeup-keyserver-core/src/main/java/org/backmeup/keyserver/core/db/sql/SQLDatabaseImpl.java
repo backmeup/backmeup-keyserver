@@ -98,14 +98,14 @@ public class SQLDatabaseImpl implements Database {
         this.connected = true;
     }
 
-    protected boolean checkForTable() throws SQLException {
+    protected synchronized boolean checkForTable() throws SQLException {
         DatabaseMetaData dbm = this.conn.getMetaData();
         try (ResultSet tables = dbm.getTables(null, null, DB_TABLE, null)) {
             return tables.next();
         }
     }
 
-    protected void prepareTable() throws SQLException, DatabaseException {
+    protected synchronized void prepareTable() throws SQLException, DatabaseException {
         try (Statement s = this.conn.createStatement()) {
             s.execute(getSQLStatement("backmeup.keyserver.db.sql.create"));
             this.conn.commit();
@@ -140,7 +140,7 @@ public class SQLDatabaseImpl implements Database {
     /*
      * This method should only be called for testing purposes!
      */
-    public void cleanup() throws DatabaseException {
+    public synchronized void cleanup() throws DatabaseException {
         try (Statement s = conn.createStatement()) {
             s.execute("DELETE FROM " + DB_TABLE + " WHERE ekey LIKE 'test_%'");
             conn.commit();
