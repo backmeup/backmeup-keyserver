@@ -77,7 +77,7 @@ public class KeyserverClient {
         return appId;
     }
 
-    public final void setAuthorization(String appId, String appSecret) {
+    public void setAuthorization(String appId, String appSecret) {
         this.appId = appId;
         this.authorizationHeader = appId + ";" + appSecret;
     }
