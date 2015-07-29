@@ -9,10 +9,12 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.IOException;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 
+import org.backmeup.keyserver.core.config.Configuration;
 import org.backmeup.keyserver.model.App;
 import org.backmeup.keyserver.model.App.Approle;
 import org.backmeup.keyserver.model.AuthResponse;
@@ -22,6 +24,8 @@ import org.backmeup.keyserver.model.KeyserverException;
 import org.backmeup.keyserver.model.KeyserverUtils;
 import org.backmeup.keyserver.model.Token;
 import org.backmeup.keyserver.model.TokenValue;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.type.TypeReference;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -31,14 +35,32 @@ public class DefaultKeyserverImplTest {
 
     private static final String PASSWORD = "mypass";
     private static final String USERNAME = "keyserver-test";
-    private static final String SERVICE_APPID = "backmeup-service";
-    private static final String SERVICE_SECRET = "REPLACE-SERVICE";
+    private static String SERVICE_APPID = "backmeup-service";
+    private static String SERVICE_SECRET = "REPLACE-SERVICE";
     
     private static DefaultKeyserverImpl ks;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         ks = new DefaultKeyserverImpl();
+        // load default apps
+        List<App> apps = null;
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            apps = mapper.readValue(Configuration.getProperty("backmeup.keyserver.defaultApps"), new TypeReference<List<App>>() {
+            });
+        } catch (IOException e) {
+            throw new KeyserverException("cannot parse default app list from configuration", e);
+        }
+
+        // find and register core app
+        for (App a : apps) {
+            if (a.getAppRole().equals(Approle.SERVICE)) {
+                SERVICE_APPID = a.getAppId();
+                SERVICE_SECRET = a.getPassword();
+                break;
+            }
+        }
     }
    
     @Before
