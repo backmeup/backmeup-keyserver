@@ -25,14 +25,14 @@ import org.backmeup.keyserver.rest.auth.AppsAllowed;
 @Produces(MediaType.APPLICATION_JSON)
 public class Tokens extends SecureBase {
 
-    @AppsAllowed(Approle.SERVICE)
+    @AppsAllowed({ Approle.SERVICE, Approle.WORKER, Approle.INDEXER, Approle.STORAGE })
     @POST
     @Path("/INTERNAL/{token}")
     public AuthResponseDTO authenticateWithInternalToken(@PathParam("token") String tokenHash) throws KeyserverException {
         return this.map(this.getKeyserverLogic().authenticateWithInternalToken(tokenHash), AuthResponseDTO.class);
     }
 
-    @AppsAllowed({ Approle.SERVICE, Approle.WORKER })
+    @AppsAllowed({ Approle.SERVICE, Approle.WORKER, Approle.INDEXER, Approle.STORAGE })
     @POST
     @Path("/ONETIME/{token}")
     public AuthResponseDTO authenticateWithOnetimeToken(@PathParam("token") String tokenHash, @FormParam("renew") boolean renew,
@@ -46,7 +46,7 @@ public class Tokens extends SecureBase {
         return this.map(this.getKeyserverLogic().authenticateWithOnetime(tokenHash, renew, cal), AuthResponseDTO.class);
     }
 
-    @AppsAllowed(Approle.SERVICE)
+    @AppsAllowed({ Approle.SERVICE, Approle.WORKER, Approle.INDEXER, Approle.STORAGE })
     @DELETE
     @Path("/{kind}/{token}")
     public void remove(@PathParam("kind") Token.Kind kind, @PathParam("token") String tokenHash) throws KeyserverException {
