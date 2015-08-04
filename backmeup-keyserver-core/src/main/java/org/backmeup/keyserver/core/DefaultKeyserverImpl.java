@@ -334,6 +334,16 @@ public class DefaultKeyserverImpl implements Keyserver {
         return this.userLogic.getIndexKey(userId, accountKey);
     }
     
+    @Override
+    public byte[] getPublicKey(String userId) throws KeyserverException {
+        return this.userLogic.getPublicKey(userId);
+    }
+    
+    @Override
+    public byte[] getPrivateKey(String userId, byte[] accountKey) throws KeyserverException {
+        return this.userLogic.getPrivateKey(userId, accountKey);
+    }
+    
     //=========================================================================
     // PluginData logic
     //=========================================================================

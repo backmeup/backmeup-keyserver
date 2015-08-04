@@ -4,6 +4,7 @@ import static org.backmeup.keyserver.core.EncryptionUtils.*;
 import static org.backmeup.keyserver.model.KeyserverUtils.toBase64String;
 
 import java.io.IOException;
+import java.security.KeyPair;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.List;
@@ -31,9 +32,10 @@ public class DefaultUserLogic {
     private static final MessageFormat SERVICE_USER_ID_ENTRY_FMT = new MessageFormat("{0}."+PepperApps.SERVICE_USER_ID);
     private static final MessageFormat USERNAME_ENTRY_FMT = new MessageFormat("{0}."+PepperApps.USERNAME);
     private static final MessageFormat ACCOUNT_ENTRY_FMT = new MessageFormat("{0}."+PepperApps.ACCOUNT);
-    private static final MessageFormat ACCOUNT_PUBKKEY_ENTRY_FMT = new MessageFormat("{0}."+PepperApps.ACCOUNT_PUBK_KEY);
     private static final MessageFormat PROFILE_ENTRY_FMT = new MessageFormat("{0}."+PepperApps.PROFILE);
     private static final MessageFormat INDEX_ENTRY_FMT = new MessageFormat("{0}."+PepperApps.INDEX);
+    private static final MessageFormat PUBLIC_KEY_ENTRY_FMT = new MessageFormat("{0}."+PepperApps.PUBLIC_KEY);
+    private static final MessageFormat PRIVATE_KEY_ENTRY_FMT = new MessageFormat("{0}."+PepperApps.PRIVATE_KEY);
     
     private DefaultKeyserverImpl keyserver;
     private Keyring keyring;
@@ -76,10 +78,14 @@ public class DefaultUserLogic {
             // generate accountKey, which is saved later in [UserId].Account or in [Hash(UserKey)].InternalToken
             accountKey = generateSymmetricKey(this.keyring);
             
-            // [UserId].Account.PKey
-            byte[] pkkey = generateSymmetricKey(this.keyring);
-            byte[] payload = this.keyserver.encryptByteArray(accountKey, PepperApps.ACCOUNT_PUBK_KEY, pkkey);
-            this.keyserver.createEntry(fmtKey(ACCOUNT_PUBKKEY_ENTRY_FMT, userId), payload);
+            // generate public/private key pair for encryption
+            KeyPair kp = generateAsymmetricKey(this.keyring);
+            
+            // [UserId].PublicKey
+            this.keyserver.createEntry(fmtKey(PUBLIC_KEY_ENTRY_FMT, userId), kp.getPublic().getEncoded());
+            // [UserId].PrivateKey
+            byte[] payload = this.keyserver.encryptByteArray(accountKey, PepperApps.PRIVATE_KEY, kp.getPrivate().getEncoded());
+            this.keyserver.createEntry(fmtKey(PRIVATE_KEY_ENTRY_FMT, userId), payload);
             
         } catch (CryptoException | DatabaseException e) {
             throw new KeyserverException(e);
@@ -237,15 +243,6 @@ public class DefaultUserLogic {
         }
     }
     
-    protected byte[] getPubKKey(String userId, byte[] accountKey) throws KeyserverException {
-        try {
-            KeyserverEntry pubkkeyEntry = this.keyserver.checkedGetEntry(fmtKey(ACCOUNT_PUBKKEY_ENTRY_FMT, userId), EntryNotFoundException.ACCOUNT);
-            return this.keyserver.decryptByteArray(accountKey, PepperApps.ACCOUNT_PUBK_KEY, pubkkeyEntry.getValue());
-        } catch (DatabaseException | CryptoException e) {
-            throw new KeyserverException(e);
-        }
-    }
-    
     public void setProfile(String userId, byte[] accountKey, String profile) throws KeyserverException {       
         try {          
             KeyserverEntry profileEntry = this.keyserver.checkedGetEntry(fmtKey(PROFILE_ENTRY_FMT, userId), EntryNotFoundException.PROFILE);
@@ -270,6 +267,24 @@ public class DefaultUserLogic {
         try {
             KeyserverEntry indexEntry = this.keyserver.checkedGetEntry(fmtKey(INDEX_ENTRY_FMT, userId), EntryNotFoundException.INDEX);
             return this.keyserver.decryptString(accountKey, PepperApps.INDEX, indexEntry.getValue());
+        } catch (DatabaseException | CryptoException e) {
+            throw new KeyserverException(e);
+        }
+    }
+    
+    protected byte[] getPublicKey(String userId) throws KeyserverException {
+        try {
+            KeyserverEntry pubkeyEntry = this.keyserver.checkedGetEntry(fmtKey(PUBLIC_KEY_ENTRY_FMT, userId), EntryNotFoundException.PUBLIC_KEY);
+            return pubkeyEntry.getValue();
+        } catch (DatabaseException e) {
+            throw new KeyserverException(e);
+        }
+    }
+    
+    protected byte[] getPrivateKey(String userId, byte[] accountKey) throws KeyserverException {
+        try {
+            KeyserverEntry privkeyEntry = this.keyserver.checkedGetEntry(fmtKey(PRIVATE_KEY_ENTRY_FMT, userId), EntryNotFoundException.PRIVATE_KEY);
+            return this.keyserver.decryptByteArray(accountKey, PepperApps.PRIVATE_KEY, privkeyEntry.getValue());
         } catch (DatabaseException | CryptoException e) {
             throw new KeyserverException(e);
         }

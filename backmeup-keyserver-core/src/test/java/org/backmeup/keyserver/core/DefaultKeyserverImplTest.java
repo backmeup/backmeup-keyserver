@@ -10,14 +10,25 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.codec.binary.StringUtils;
 import org.backmeup.keyserver.core.config.Configuration;
+import org.backmeup.keyserver.core.crypto.AsymmetricEncryptionProvider;
+import org.backmeup.keyserver.core.crypto.impl.RSAEncryptionProvider;
 import org.backmeup.keyserver.model.App;
 import org.backmeup.keyserver.model.App.Approle;
 import org.backmeup.keyserver.model.AuthResponse;
+import org.backmeup.keyserver.model.CryptoException;
 import org.backmeup.keyserver.model.EntryNotFoundException;
 import org.backmeup.keyserver.model.JsonKeys;
 import org.backmeup.keyserver.model.KeyserverException;
@@ -122,17 +133,6 @@ public class DefaultKeyserverImplTest {
         assertEquals(serviceUserId, u2.getServiceUserId());
         assertEquals(u.getServiceUserId(), u2.getServiceUserId());
         assertEquals(u.getRoles(), u2.getRoles());
-    }
-    
-    @Test
-    public void testGetPubKKey() throws KeyserverException {
-        ks.registerUser(USERNAME, PASSWORD);
-        AuthResponse u = ks.authenticateUserWithPassword(USERNAME, PASSWORD);
-
-        byte[] accountKey = u.getAccountKey();
-        assertNotNull(accountKey);
-        byte[] pubkKey = ks.userLogic.getPubKKey(u.getUserId(), accountKey);
-        assertNotNull(pubkKey);
     }
     
     @Test
@@ -288,6 +288,33 @@ public class DefaultKeyserverImplTest {
         assertEquals(u.getUsername(), u2.getUsername());
         assertEquals(u.getServiceUserId(), u2.getServiceUserId());
         ks.removeUser(u2.getServiceUserId(), u2.getUsername(), u2.getAccountKey());
+    }
+    
+    @Test
+    public void testGetEncryptionKeys() throws KeyserverException {
+        ks.registerUser(USERNAME, PASSWORD);
+        AuthResponse u = ks.authenticateUserWithPassword(USERNAME, PASSWORD);
+
+        byte[] accountKey = u.getAccountKey();
+        assertNotNull(accountKey);
+        byte[] pubKey = ks.userLogic.getPublicKey(u.getUserId());
+        assertNotNull(pubKey);
+        byte[] privKey = ks.userLogic.getPrivateKey(u.getUserId(), accountKey);
+        assertNotNull(privKey);
+        
+        KeyFactory keyFactory;
+        try {
+            keyFactory = KeyFactory.getInstance("RSA");
+            PublicKey publicKey = keyFactory.generatePublic(new X509EncodedKeySpec(pubKey));
+            PrivateKey privateKey = keyFactory.generatePrivate(new PKCS8EncodedKeySpec(privKey));
+            
+            AsymmetricEncryptionProvider ep = new RSAEncryptionProvider();
+            byte[] encrypted = ep.encrypt(publicKey, StringUtils.getBytesUtf8("mysecrettext"));
+            String message = StringUtils.newStringUtf8(ep.decrypt(privateKey, encrypted));
+            assertEquals("mysecrettext", message);
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException | CryptoException e) {
+            throw new KeyserverException(e);
+        }
     }
     
     //=========================================================================

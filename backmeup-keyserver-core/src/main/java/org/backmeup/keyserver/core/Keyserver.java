@@ -37,6 +37,10 @@ public interface Keyserver {
     
     String getIndexKey(String userId, byte[] accountKey) throws KeyserverException;
     
+    byte[] getPublicKey(String userId) throws KeyserverException;
+    
+    byte[] getPrivateKey(String userId, byte[] accountKey) throws KeyserverException;
+    
   //=========================================================================
     // PluginData logic
     //=========================================================================

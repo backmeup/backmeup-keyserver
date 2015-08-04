@@ -28,6 +28,10 @@ public class EntryNotFoundException extends KeyserverException {
     public static final String PLUGIN_KEY = "plugin key not found";
 
     public static final String PLUGIN = "plugin not found";
+    
+    public static final String PUBLIC_KEY = "public key not found";
+    
+    public static final String PRIVATE_KEY = "private key not found";
         
     public EntryNotFoundException(String message) {
         super(message);
