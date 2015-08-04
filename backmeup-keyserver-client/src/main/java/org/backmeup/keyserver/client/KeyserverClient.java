@@ -17,6 +17,7 @@ import javax.ws.rs.core.UriBuilder;
 import org.backmeup.keyserver.model.App.Approle;
 import org.backmeup.keyserver.model.EntryNotFoundException;
 import org.backmeup.keyserver.model.KeyserverException;
+import org.backmeup.keyserver.model.KeyserverUtils;
 import org.backmeup.keyserver.model.dto.AppDTO;
 import org.backmeup.keyserver.model.dto.AuthResponseDTO;
 import org.backmeup.keyserver.model.dto.TokenDTO;
@@ -311,6 +312,36 @@ public class KeyserverClient {
     }
 
     /**
+     * Gets the public key of user for data encryption.
+     * Only a keyserver client which is authenticated as SERVICE, STORAGE or INDEXER app can use this method.
+     * @param token the authentication token that identifies the user or a backup of this user.
+     * @return the public key.
+     * @throws KeyserverException
+     */
+    public byte[] getPublicKey(TokenDTO token) throws KeyserverException {
+        try {
+            return KeyserverUtils.fromBase64String(this.createUserSpecificRequest("/public_key", token).get(String.class));
+        } catch (WebApplicationException | ProcessingException exception) {
+            throw this.parseException(exception);
+        }
+    }
+    
+    /**
+     * Gets the private key of user for data decryption.
+     * Only a keyserver client which is authenticated as SERVICE, STORAGE or INDEXER app can use this method.
+     * @param token the authentication token that identifies the user.
+     * @return the private key.
+     * @throws KeyserverException
+     */
+    public byte[] getPrivateKey(TokenDTO token) throws KeyserverException {
+        try {
+            return KeyserverUtils.fromBase64String(this.createUserSpecificRequest("/private_key", token).get(String.class));
+        } catch (WebApplicationException | ProcessingException exception) {
+            throw this.parseException(exception);
+        }
+    }
+
+    /**
      * Removes the user and all of its data from keyserver.
      * Only a keyserver client which is authenticated as SERVICE app can use this method.
      * @param token the authentication token that identifies the user.
@@ -459,7 +490,6 @@ public class KeyserverClient {
 
     /**
      * Authenticate internal token.
-     * Only a keyserver client which is authenticated as SERVICE app can use this method.
      * @param token the internal token to authenticate.
      * @return AuthResponseDTO object with user infos and internal token for later use/authentication.
      * @throws KeyserverException at any error or invalid authentication.
@@ -529,7 +559,6 @@ public class KeyserverClient {
 
     /**
      * Authenticate onetime token. This transforms the onetime token to an internal token.
-     * Only a keyserver client which is authenticated as SERVICE app can use this method.
      * @see KeyserverClient#authenticateWithOnetime(TokenDTO, boolean, Calendar)
      * @param token the onetime token to authenticate.
      * @return AuthResponseDTO object with user infos and internal token for later use/authentication.
@@ -541,7 +570,6 @@ public class KeyserverClient {
 
     /**
      * Authenticate onetime token. This transforms the onetime token to an internal token.
-     * Only a keyserver client which is authenticated as SERVICE app can use this method.
      * @param token the onetime token to authenticate.
      * @param renew should a new token be derived from this one? If a new token is needed, renew has to be true for a token of role AUTHORIZATION and will be automatically set to true if nextScheduledExecutionTime is given (tokens of role BACKUP_JOB).
      * @param nextScheduledExecutionTime if not null, retrieve the new onetime token for the given execution time. 

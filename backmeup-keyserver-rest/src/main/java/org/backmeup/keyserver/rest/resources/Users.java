@@ -20,8 +20,8 @@ import javax.ws.rs.core.MediaType;
 import org.backmeup.keyserver.model.AuthResponse;
 import org.backmeup.keyserver.model.EntryNotFoundException;
 import org.backmeup.keyserver.model.KeyserverException;
+import org.backmeup.keyserver.model.KeyserverUtils;
 import org.backmeup.keyserver.model.Token;
-import org.backmeup.keyserver.model.TokenValue;
 import org.backmeup.keyserver.model.App.Approle;
 import org.backmeup.keyserver.model.TokenValue.Role;
 import org.backmeup.keyserver.model.dto.AuthResponseDTO;
@@ -95,6 +95,24 @@ public class Users extends SecureBase {
         AuthResponse auth = this.getAuthResponse();
         return this.getKeyserverLogic().getIndexKey(auth.getUserId(), auth.getAccountKey());
     }
+    
+    @AppsAllowed({ Approle.SERVICE, Approle.STORAGE, Approle.INDEXER })
+    @TokenRequired({ Role.USER, Role.BACKUP_JOB })
+    @GET
+    @Path("/tokenUser/public_key")
+    public String getPublicKey() throws KeyserverException {
+        AuthResponse auth = this.getAuthResponse();
+        return KeyserverUtils.toBase64String(this.getKeyserverLogic().getPublicKey(auth.getUserId()));
+    }
+    
+    @AppsAllowed({ Approle.SERVICE, Approle.STORAGE, Approle.INDEXER })
+    @TokenRequired
+    @GET
+    @Path("/tokenUser/private_key")
+    public String getPrivateKey() throws KeyserverException {
+        AuthResponse auth = this.getAuthResponse();
+        return KeyserverUtils.toBase64String(this.getKeyserverLogic().getPrivateKey(auth.getUserId(), auth.getAccountKey()));
+    }
 
     @AppsAllowed({ Approle.SERVICE, Approle.WORKER, Approle.STORAGE, Approle.INDEXER })
     @TokenRequired
@@ -125,7 +143,7 @@ public class Users extends SecureBase {
     }
 
     @AppsAllowed({ Approle.SERVICE, Approle.WORKER })
-    @TokenRequired({ TokenValue.Role.USER, TokenValue.Role.BACKUP_JOB })
+    @TokenRequired({ Role.USER, Role.BACKUP_JOB })
     @POST
     @Path("/tokenUser/plugins/")
     public void createPluginData(@FormParam("pluginId") String pluginId, @NotNull @FormParam("data") String data) throws KeyserverException {
@@ -134,7 +152,7 @@ public class Users extends SecureBase {
     }
 
     @AppsAllowed({ Approle.SERVICE, Approle.WORKER })
-    @TokenRequired({ TokenValue.Role.USER, TokenValue.Role.BACKUP_JOB })
+    @TokenRequired({ Role.USER, Role.BACKUP_JOB })
     @GET
     @Path("/tokenUser/plugins/{pluginId}")
     public String getPluginData(@PathParam("pluginId") String pluginId) throws KeyserverException {
@@ -144,7 +162,7 @@ public class Users extends SecureBase {
     }
 
     @AppsAllowed({ Approle.SERVICE, Approle.WORKER })
-    @TokenRequired({ TokenValue.Role.USER, TokenValue.Role.BACKUP_JOB })
+    @TokenRequired({ Role.USER, Role.BACKUP_JOB })
     @POST
     @Path("/tokenUser/plugins/{pluginId}")
     public void updatePluginData(@PathParam("pluginId") String pluginId, @NotNull @FormParam("data") String data, @FormParam("create") @DefaultValue("false") boolean create) throws KeyserverException {
@@ -162,7 +180,7 @@ public class Users extends SecureBase {
     }
 
     @AppsAllowed({ Approle.SERVICE, Approle.WORKER })
-    @TokenRequired({ TokenValue.Role.USER, TokenValue.Role.BACKUP_JOB })
+    @TokenRequired({ Role.USER, Role.BACKUP_JOB })
     @DELETE
     @Path("/tokenUser/plugins/{pluginId}")
     public void removePluginData(@PathParam("pluginId") String pluginId) throws KeyserverException {
