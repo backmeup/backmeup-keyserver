@@ -60,9 +60,9 @@ public class AESEncryptionProvider implements SymmetricEncryptionProvider {
     }
 
     @Override
-    public synchronized byte[] decrypt(byte[] key, byte[] enrcypted) throws CryptoException {
+    public synchronized byte[] decrypt(byte[] key, byte[] encrypted) throws CryptoException {
         SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
-        byte[][] ivAndEncrypted = EncryptionUtils.split(enrcypted, IV_LENGTH);
+        byte[][] ivAndEncrypted = EncryptionUtils.split(encrypted, IV_LENGTH);
         try {
             this.cipher.init(Cipher.DECRYPT_MODE, keySpec, new IvParameterSpec(ivAndEncrypted[0]));
             return cipher.doFinal(ivAndEncrypted[1]);

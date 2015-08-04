@@ -74,10 +74,10 @@ public class DefaultUserLogic {
             this.keyserver.createEntry(fmtKey(SERVICE_USER_ID_ENTRY_FMT, serviceUserId), null);
             
             // generate accountKey, which is saved later in [UserId].Account or in [Hash(UserKey)].InternalToken
-            accountKey = generateKey(this.keyring);
+            accountKey = generateSymmetricKey(this.keyring);
             
             // [UserId].Account.PKey
-            byte[] pkkey = generateKey(this.keyring);
+            byte[] pkkey = generateSymmetricKey(this.keyring);
             byte[] payload = this.keyserver.encryptByteArray(accountKey, PepperApps.ACCOUNT_PUBK_KEY, pkkey);
             this.keyserver.createEntry(fmtKey(ACCOUNT_PUBKKEY_ENTRY_FMT, userId), payload);
             

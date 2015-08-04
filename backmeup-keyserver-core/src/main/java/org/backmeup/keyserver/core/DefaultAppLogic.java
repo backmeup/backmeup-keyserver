@@ -1,7 +1,7 @@
 package org.backmeup.keyserver.core;
 
 import static org.backmeup.keyserver.core.EncryptionUtils.fmtKey;
-import static org.backmeup.keyserver.core.EncryptionUtils.generateKey;
+import static org.backmeup.keyserver.core.EncryptionUtils.generateSymmetricKey;
 import static org.backmeup.keyserver.core.EncryptionUtils.hashByteArrayWithPepper;
 import static org.backmeup.keyserver.core.EncryptionUtils.stretchStringWithPepper;
 import static org.backmeup.keyserver.model.KeyserverUtils.fromBase64String;
@@ -85,7 +85,7 @@ public class DefaultAppLogic {
         try {
             boolean collission = false;
             do {
-                appKey = generateKey(this.keyring);
+                appKey = generateSymmetricKey(this.keyring);
                 appId = toBase64String(hashByteArrayWithPepper(this.keyring, appKey, PepperApps.APP));
 
                 List<KeyserverEntry> appIds = this.keyserver.db.searchByKey(appKey(appId), true, true);

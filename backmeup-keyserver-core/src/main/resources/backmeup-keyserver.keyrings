@@ -3,8 +3,10 @@
 		"keyringId": 1,
 		"hashAlgorithm": "SHA-256",
 		"keyStretchingAlgorithm": "SCRYPT",
-		"encryptionAlgorithm": "AES/CBC/PKCS5Padding",
-		"encryptionKeyLength": 256,
+		"symmetricEncryptionAlgorithm": "AES/CBC/PKCS5Padding",
+		"symmetricEncryptionKeyLength": 256,
+		"asymmetricEncryptionAlgorithm": "RSA",
+		"asymmetricEncryptionKeyLength": 2048,
 		"passwordAlgorithm": "ASCII",
 		"passwordLength": 64,
 		"peppers": {

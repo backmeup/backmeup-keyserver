@@ -1,9 +1,11 @@
 package org.backmeup.keyserver.core;
 
+import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.text.MessageFormat;
 import java.util.Arrays;
 
+import org.backmeup.keyserver.core.crypto.AsymmetricEncryptionProvider;
 import org.backmeup.keyserver.core.crypto.SymmetricEncryptionProvider;
 import org.backmeup.keyserver.core.crypto.HashProvider;
 import org.backmeup.keyserver.core.crypto.KeyStretchingProvider;
@@ -38,7 +40,7 @@ public class EncryptionUtils {
     public static byte[] decryptByteArray(Keyring k, byte[] key, byte[] message) throws CryptoException {
         SymmetricEncryptionProvider ep;
         try {
-            ep = ProviderRegistry.getEncryptionProvider(k.getEncryptionAlgorithm());
+            ep = ProviderRegistry.getSymmetricEncryptionProvider(k.getSymmetricEncryptionAlgorithm());
         } catch (NoSuchAlgorithmException e) {
             throw new CryptoException(e);
         }
@@ -48,7 +50,7 @@ public class EncryptionUtils {
     public static String decryptString(Keyring k, byte[] key, byte[] message) throws CryptoException {
         SymmetricEncryptionProvider ep;
         try {
-            ep = ProviderRegistry.getEncryptionProvider(k.getEncryptionAlgorithm());
+            ep = ProviderRegistry.getSymmetricEncryptionProvider(k.getSymmetricEncryptionAlgorithm());
         } catch (NoSuchAlgorithmException e) {
             throw new CryptoException(e);
         }
@@ -58,7 +60,7 @@ public class EncryptionUtils {
     public static byte[] encryptByteArray(Keyring k, byte[] key, byte[] message) throws CryptoException {
         SymmetricEncryptionProvider ep;
         try {
-            ep = ProviderRegistry.getEncryptionProvider(k.getEncryptionAlgorithm());
+            ep = ProviderRegistry.getSymmetricEncryptionProvider(k.getSymmetricEncryptionAlgorithm());
         } catch (NoSuchAlgorithmException e) {
             throw new CryptoException(e);
         }
@@ -68,7 +70,7 @@ public class EncryptionUtils {
     public static byte[] encryptString(Keyring k, byte[] key, String message) throws CryptoException {
         SymmetricEncryptionProvider ep;
         try {
-            ep = ProviderRegistry.getEncryptionProvider(k.getEncryptionAlgorithm());
+            ep = ProviderRegistry.getSymmetricEncryptionProvider(k.getSymmetricEncryptionAlgorithm());
         } catch (NoSuchAlgorithmException e) {
             throw new CryptoException(e);
         }
@@ -79,14 +81,24 @@ public class EncryptionUtils {
         return format.format(inputs);
     }
 
-    public static byte[] generateKey(Keyring k) throws CryptoException {
+    public static byte[] generateSymmetricKey(Keyring k) throws CryptoException {
         SymmetricEncryptionProvider ep;
         try {
-            ep = ProviderRegistry.getEncryptionProvider(k.getEncryptionAlgorithm());
+            ep = ProviderRegistry.getSymmetricEncryptionProvider(k.getSymmetricEncryptionAlgorithm());
         } catch (NoSuchAlgorithmException e) {
             throw new CryptoException(e);
         }
-        return ep.generateKey(k.getEncryptionKeyLength());
+        return ep.generateKey(k.getSymmetricEncryptionKeyLength());
+    }
+    
+    public static KeyPair generateAsymmetricKey(Keyring k) throws CryptoException {
+        AsymmetricEncryptionProvider ep;
+        try {
+            ep = ProviderRegistry.getAsymmetricEncryptionProvider(k.getAsymmetricEncryptionAlgorithm());
+        } catch (NoSuchAlgorithmException e) {
+            throw new CryptoException(e);
+        }
+        return ep.generateKey(k.getAsymmetricEncryptionKeyLength());
     }
 
     public static String generatePassword(Keyring k) throws CryptoException {

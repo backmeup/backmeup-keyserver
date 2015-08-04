@@ -1,7 +1,7 @@
 package org.backmeup.keyserver.core;
 
 import static org.backmeup.keyserver.core.EncryptionUtils.fmtKey;
-import static org.backmeup.keyserver.core.EncryptionUtils.generateKey;
+import static org.backmeup.keyserver.core.EncryptionUtils.generateSymmetricKey;
 
 import java.text.MessageFormat;
 
@@ -41,7 +41,7 @@ public class DefaultPluginDataLogic {
     public void create(String userId, String pluginId, byte[] accountKey, String data) throws KeyserverException {
         try {
             // [UserId].Plugin.[Id].Key
-            byte[] pluginKey = generateKey(this.keyring);
+            byte[] pluginKey = generateSymmetricKey(this.keyring);
             byte[] payload = this.keyserver.encryptByteArray(accountKey, PepperApps.PLUGIN, pluginKey);
             this.keyserver.createEntry(keyKey(userId, pluginId), payload);
             

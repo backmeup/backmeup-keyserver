@@ -7,12 +7,14 @@ import java.util.Map;
 import org.backmeup.keyserver.core.crypto.impl.AESEncryptionProvider;
 import org.backmeup.keyserver.core.crypto.impl.AsciiPasswordProvider;
 import org.backmeup.keyserver.core.crypto.impl.MessageDigestHashProvider;
+import org.backmeup.keyserver.core.crypto.impl.RSAEncryptionProvider;
 import org.backmeup.keyserver.core.crypto.impl.SCryptKeyStretchingProvider;
 
 public class ProviderRegistry {
     private static Map<String, HashProvider> hashProviders = new HashMap<>();
     private static Map<String, KeyStretchingProvider> keyStretchingProviders = new HashMap<>();
     private static Map<String, SymmetricEncryptionProvider> symmetricEncryptionProviders = new HashMap<>();
+    private static Map<String, AsymmetricEncryptionProvider> asymmetricEncryptionProviders = new HashMap<>();
     private static Map<String, PasswordProvider> passwordProviders = new HashMap<>();
 
     static {
@@ -29,7 +31,8 @@ public class ProviderRegistry {
         // TODO: how to handle dynamically/by configuration
         registerHashProvider("SHA-256", new MessageDigestHashProvider("SHA-256"));
         registerHashProvider("SHA-512", new MessageDigestHashProvider("SHA-512"));
-        registerEncryptionProvider("AES/CBC/PKCS5Padding", new AESEncryptionProvider("AES/CBC/PKCS5Padding"));
+        registerSymmetricEncryptionProvider("AES/CBC/PKCS5Padding", new AESEncryptionProvider("AES/CBC/PKCS5Padding"));
+        registerAsymmetricEncryptionProvider("RSA", new RSAEncryptionProvider());
         registerKeyStretchingProvider("SCRYPT", new SCryptKeyStretchingProvider());
         registerPasswordProvider("ASCII", new AsciiPasswordProvider());
     }
@@ -42,8 +45,12 @@ public class ProviderRegistry {
         keyStretchingProviders.put(algorithm, provider);
     }
 
-    public static void registerEncryptionProvider(String algorithm, SymmetricEncryptionProvider provider) {
+    public static void registerSymmetricEncryptionProvider(String algorithm, SymmetricEncryptionProvider provider) {
         symmetricEncryptionProviders.put(algorithm, provider);
+    }
+    
+    public static void registerAsymmetricEncryptionProvider(String algorithm, AsymmetricEncryptionProvider provider) {
+        asymmetricEncryptionProviders.put(algorithm, provider);
     }
 
     public static void registerPasswordProvider(String algorithm, PasswordProvider provider) {
@@ -66,8 +73,12 @@ public class ProviderRegistry {
         return getProvider(keyStretchingProviders, algorithm);
     }
 
-    public static SymmetricEncryptionProvider getEncryptionProvider(String algorithm) throws NoSuchAlgorithmException {
+    public static SymmetricEncryptionProvider getSymmetricEncryptionProvider(String algorithm) throws NoSuchAlgorithmException {
         return getProvider(symmetricEncryptionProviders, algorithm);
+    }
+    
+    public static AsymmetricEncryptionProvider getAsymmetricEncryptionProvider(String algorithm) throws NoSuchAlgorithmException {
+        return getProvider(asymmetricEncryptionProviders, algorithm);
     }
 
     public static PasswordProvider getPasswordProvider(String algorithm) throws NoSuchAlgorithmException {

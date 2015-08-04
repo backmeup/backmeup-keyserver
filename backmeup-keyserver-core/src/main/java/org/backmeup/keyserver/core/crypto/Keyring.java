@@ -9,8 +9,10 @@ public class Keyring {
     private Map<String, byte[]> peppers;
     private String hashAlgorithm;
     private String keyStretchingAlgorithm;
-    private String encryptionAlgorithm;
-    private int encryptionKeyLength;
+    private String symmetricEncryptionAlgorithm;
+    private int symmetricEncryptionKeyLength;
+    private String asymmetricEncryptionAlgorithm;
+    private int asymmetricEncryptionKeyLength;
     private String passwordAlgorithm;
     private int passwordLength;
 
@@ -20,15 +22,17 @@ public class Keyring {
     private Keyring() {
     }
 
-    public Keyring(int keyringId, Map<String, byte[]> peppers, String hashAlgorithm, String keyStretchingAlgorithm, String encryptionAlgorithm,
-            int encryptionKeyLength, String passwordAlgorithm, int passwordLength) {
+    public Keyring(int keyringId, Map<String, byte[]> peppers, String hashAlgorithm, String keyStretchingAlgorithm, String symmetricEncryptionAlgorithm,
+            int symmetricEncryptionKeyLength, String asymmetricEncryptionAlgorithm, int asymmetricEncryptionKeyLength, String passwordAlgorithm, int passwordLength) {
         this.keyringId = keyringId;
         this.peppers = new HashMap<>();
         this.peppers.putAll(peppers);
         this.hashAlgorithm = hashAlgorithm;
         this.keyStretchingAlgorithm = keyStretchingAlgorithm;
-        this.encryptionAlgorithm = encryptionAlgorithm;
-        this.encryptionKeyLength = encryptionKeyLength;
+        this.symmetricEncryptionAlgorithm = symmetricEncryptionAlgorithm;
+        this.symmetricEncryptionKeyLength = symmetricEncryptionKeyLength;
+        this.asymmetricEncryptionAlgorithm = asymmetricEncryptionAlgorithm;
+        this.asymmetricEncryptionKeyLength = asymmetricEncryptionKeyLength;
         this.passwordAlgorithm = passwordAlgorithm;
         this.passwordLength = passwordLength;
     }
@@ -45,12 +49,20 @@ public class Keyring {
         return keyStretchingAlgorithm;
     }
 
-    public String getEncryptionAlgorithm() {
-        return encryptionAlgorithm;
+    public String getSymmetricEncryptionAlgorithm() {
+        return symmetricEncryptionAlgorithm;
     }
 
-    public int getEncryptionKeyLength() {
-        return this.encryptionKeyLength;
+    public int getSymmetricEncryptionKeyLength() {
+        return this.symmetricEncryptionKeyLength;
+    }
+    
+    public String getAsymmetricEncryptionAlgorithm() {
+        return asymmetricEncryptionAlgorithm;
+    }
+
+    public int getAsymmetricEncryptionKeyLength() {
+        return this.asymmetricEncryptionKeyLength;
     }
 
     public String getPasswordAlgorithm() {

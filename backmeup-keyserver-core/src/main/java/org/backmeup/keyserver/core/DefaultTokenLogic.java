@@ -1,7 +1,7 @@
 package org.backmeup.keyserver.core;
 
 import static org.backmeup.keyserver.core.EncryptionUtils.fmtKey;
-import static org.backmeup.keyserver.core.EncryptionUtils.generateKey;
+import static org.backmeup.keyserver.core.EncryptionUtils.generateSymmetricKey;
 import static org.backmeup.keyserver.core.EncryptionUtils.hashByteArrayWithPepper;
 import static org.backmeup.keyserver.model.KeyserverUtils.*;
 
@@ -63,7 +63,7 @@ public class DefaultTokenLogic {
         try {
             boolean collission = false;
             do {
-                tokenKey = generateKey(this.keyring);
+                tokenKey = generateSymmetricKey(this.keyring);
                 tokenHash = toBase64String(hashByteArrayWithPepper(this.keyring, tokenKey, tokenKindApp));
 
                 List<KeyserverEntry> tokens = this.keyserver.db.searchByKey(tkKey(tokenHash, tokenKindApp), true, true);
