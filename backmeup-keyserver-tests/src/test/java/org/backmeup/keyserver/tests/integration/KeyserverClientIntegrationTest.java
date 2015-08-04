@@ -314,7 +314,7 @@ public class KeyserverClientIntegrationTest {
         //sharingToken should be saved into DB (-> sharing policy)
         //...
         
-        //now assume user1 is logged in/his backup is running in and 
+        //now assume user1 is logged in/his backup is running and 
         //we want to encrypt data for user2
         AuthResponseDTO u1 = client.authenticateUserWithPassword(USERNAME, PASSWORD);
         //here we should get sharingToken from DB
