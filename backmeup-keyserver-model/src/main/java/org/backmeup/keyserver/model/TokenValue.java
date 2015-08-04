@@ -15,7 +15,7 @@ import java.util.Set;
  */
 public class TokenValue {
     public static enum Role {
-        USER, BACKUP_JOB, AUTHENTICATION
+        USER, BACKUP_JOB, AUTHENTICATION, INHERITANCE
     }
 
     private String userId;

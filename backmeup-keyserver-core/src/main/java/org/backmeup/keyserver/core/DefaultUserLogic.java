@@ -45,17 +45,12 @@ public class DefaultUserLogic {
         this.keyring = this.keyserver.activeKeyring;
     }
 
-    protected Map<String, Object> createBaseUser(String username, String password) throws KeyserverException {
+    protected Map<String, Object> createBaseUser() throws KeyserverException {
         String userId;
         String serviceUserId;
         byte[] accountKey;
 
         try {
-            KeyserverEntry alreadyExistingUser = this.keyserver.searchForEntry(username, PepperApps.USERNAME, USERNAME_ENTRY_FMT.toPattern());
-            if (alreadyExistingUser != null) {
-                throw new KeyserverException("duplicate username");
-            }
-
             boolean collission = false;
             do {
                 byte[] userKey = new byte[32];
@@ -99,7 +94,16 @@ public class DefaultUserLogic {
     }
 
     public String register(String username, String password) throws KeyserverException {
-        Map<String, Object> baseUser = this.createBaseUser(username, password);
+        try {
+            KeyserverEntry alreadyExistingUser = this.keyserver.searchForEntry(username, PepperApps.USERNAME, USERNAME_ENTRY_FMT.toPattern());
+            if (alreadyExistingUser != null) {
+                throw new KeyserverException("duplicate username");
+            }
+        } catch (CryptoException | DatabaseException e) {
+            throw new KeyserverException(e);
+        }
+        
+        Map<String, Object> baseUser = this.createBaseUser();
         String userId = (String) baseUser.get(JsonKeys.USER_ID);
         String serviceUserId = (String) baseUser.get(JsonKeys.SERVICE_USER_ID);
         byte[] accountKey = (byte[]) baseUser.get(JsonKeys.ACCOUNT_KEY);
@@ -148,11 +152,13 @@ public class DefaultUserLogic {
         return serviceUserId;
     }
 
-    public String registerAnonoumys(String username, String password) throws KeyserverException {
-        Map<String, Object> baseUser = this.createBaseUser(username, password);
+    public AuthResponse registerAnonymous() throws KeyserverException {
+        Map<String, Object> baseUser = this.createBaseUser();
+        String userId = (String) baseUser.get(JsonKeys.USER_ID);
         String serviceUserId = (String) baseUser.get(JsonKeys.SERVICE_USER_ID);
-
-        return serviceUserId;
+        byte[] accountKey = (byte[]) baseUser.get(JsonKeys.ACCOUNT_KEY);
+        
+        return this.keyserver.tokenLogic.createInternalForInheritance(userId, serviceUserId, accountKey);
     }
 
     protected String getUserId(String username) throws KeyserverException {
@@ -173,7 +179,7 @@ public class DefaultUserLogic {
         return this.keyserver.db.getEntry(fmtKey(SERVICE_USER_ID_ENTRY_FMT, serviceUserId)) != null;
     }
 
-    public void remove(String serviceUserId, String username, byte[] accountKey) throws KeyserverException {
+    public void removeWithUsername(String serviceUserId, String username, byte[] accountKey) throws KeyserverException {
         try {
             //get and delete [Hash(Benutzername)].UserName
             KeyserverEntry usernameEntry = this.keyserver.checkedSearchForEntry(username, PepperApps.USERNAME, USERNAME_ENTRY_FMT.toPattern(), EntryNotFoundException.USERNAME, true);
@@ -181,6 +187,14 @@ public class DefaultUserLogic {
             String userId = this.decodeUserId(usernameEntry, username);
             this.keyserver.expireEntry(usernameEntry);
             
+            this.remove(serviceUserId, userId, accountKey);
+        } catch (DatabaseException | CryptoException e) {
+            throw new KeyserverException(e);
+        }
+    }
+    
+    public void remove(String serviceUserId, String userId, byte[] accountKey) throws KeyserverException {
+        try {            
             //get and delete [ServiceUserId].ServiceUserId
             KeyserverEntry serviceUserIdEntry = this.keyserver.checkedGetEntry(fmtKey(SERVICE_USER_ID_ENTRY_FMT, serviceUserId), EntryNotFoundException.SERVICE_USER_ID);
             this.keyserver.expireEntry(serviceUserIdEntry);
@@ -197,7 +211,7 @@ public class DefaultUserLogic {
             for (KeyserverEntry entry : userIdEntries) {
                 this.keyserver.expireEntry(entry);
             }
-        } catch (DatabaseException | CryptoException e) {
+        } catch (DatabaseException e) {
             throw new KeyserverException(e);
         }
 
@@ -235,9 +249,7 @@ public class DefaultUserLogic {
             byte[] accountKey = accountObj.get(JsonKeys.ACCOUNT_KEY).getBinaryValue();
 
             // create InternalToken for UI access
-            Token token = this.keyserver.tokenLogic.createInternal(userId, serviceUserId, username, accountKey);
-
-            return new AuthResponse(token);
+            return this.keyserver.tokenLogic.createInternal(userId, serviceUserId, username, accountKey);
         } catch (DatabaseException | CryptoException | IOException e) {
             throw new KeyserverException(e);
         }

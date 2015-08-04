@@ -21,7 +21,9 @@ public interface Keyserver {
     
     String registerUser(String username, String password) throws KeyserverException;
 
-    String registerAnonoumysUser(String username, String password) throws KeyserverException;
+    AuthResponse registerAnonymousUser() throws KeyserverException;
+    
+    void removeAnonymousUser(String serviceUserId, String userId, byte[] accountKey) throws KeyserverException;
     
     void removeUser(String serviceUserId, String username) throws KeyserverException;
     

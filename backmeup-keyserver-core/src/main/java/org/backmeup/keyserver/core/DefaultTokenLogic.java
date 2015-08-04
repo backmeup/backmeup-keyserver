@@ -279,7 +279,7 @@ public class DefaultTokenLogic {
         return value;
     }
     
-    public Token createInternal(String userId, String serviceUserId, String username, byte[] accountKey) throws KeyserverException {
+    public AuthResponse createInternal(String userId, String serviceUserId, String username, byte[] accountKey) throws KeyserverException {
         Token token = new Token(Token.Kind.INTERNAL);
         TokenValue tokenValue = new TokenValue(userId, serviceUserId, TokenValue.Role.USER);
         tokenValue.putValue(JsonKeys.USERNAME, username);
@@ -289,7 +289,17 @@ public class DefaultTokenLogic {
         token.setTTL(getActTimePlusMinuteOffset(this.keyserver.uiTokenTimeout));
         
         this.create(token, accountKey);
-        return token;
+        return new AuthResponse(token);
+    }
+    
+    public AuthResponse createInternalForInheritance(String userId, String serviceUserId, byte[] accountKey) throws KeyserverException {
+        Token token = new Token(Token.Kind.INTERNAL);
+        TokenValue tokenValue = new TokenValue(userId, serviceUserId, TokenValue.Role.INHERITANCE);
+        tokenValue.putValue(JsonKeys.ACCOUNT_KEY, accountKey);
+        token.setValue(tokenValue);
+        
+        this.create(token, accountKey);
+        return new AuthResponse(token);
     }
     
     public AuthResponse createOnetimeForBackup(String userId, String serviceUserId, String username, byte[] accountKey, String[] pluginIds, Calendar scheduledExecutionTime) throws KeyserverException {

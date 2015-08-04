@@ -317,6 +317,31 @@ public class DefaultKeyserverImplTest {
         }
     }
     
+    @Test
+    public void testRegisterAnonymousUser() throws KeyserverException {
+        AuthResponse u = ks.registerAnonymousUser();
+        assertNotNull(u.getServiceUserId());
+        assertNotNull(u.getUserId());
+        assertNull(u.getUsername());
+        assertTrue(u.getRoles().contains(TokenValue.Role.INHERITANCE));
+        assertNotNull(u.getB64Token());
+        
+        AuthResponse u2 = ks.authenticateWithInternalToken(u.getB64Token());
+        assertEquals(u.getServiceUserId(), u2.getServiceUserId());
+        assertEquals(u.getUserId(), u2.getUserId());
+        assertEquals(u.getRoles(), u2.getRoles());
+        
+        ks.removeAnonymousUser(u.getServiceUserId(), u.getUserId(), u.getAccountKey());
+        
+        try {
+            ks.authenticateWithInternalToken(u.getB64Token());
+            fail();
+        } catch(EntryNotFoundException e) {
+            //token still exists, but user not
+            assertEquals(EntryNotFoundException.TOKEN_USER_REMOVED, e.getMessage());
+        }
+    }
+    
     //=========================================================================
     // PluginData logic
     //=========================================================================
