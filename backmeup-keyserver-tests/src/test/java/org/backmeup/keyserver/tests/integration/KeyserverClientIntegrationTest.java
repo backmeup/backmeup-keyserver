@@ -1,6 +1,7 @@
 package org.backmeup.keyserver.tests.integration;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
@@ -300,6 +301,35 @@ public class KeyserverClientIntegrationTest {
         } catch (NoSuchAlgorithmException | InvalidKeySpecException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
             throw new KeyserverException(e);
         }
+    }
+    
+    @Test
+    public void testSharingUsage() throws KeyserverException {
+        client.registerUser(USERNAME, PASSWORD);
+        client.registerUser("rest-test2", "mypass2");
+        
+        //Assume user2 is logged in and accepts sharing from user1
+        AuthResponseDTO u2 = client.authenticateUserWithPassword("rest-test2", "mypass2");
+        TokenDTO sharingToken = client.createOnetimeForAuthentication(u2.getToken()).getToken();
+        //sharingToken should be saved into DB (-> sharing policy)
+        //...
+        
+        //now assume user1 is logged in/his backup is running in and 
+        //we want to encrypt data for user2
+        AuthResponseDTO u1 = client.authenticateUserWithPassword(USERNAME, PASSWORD);
+        //here we should get sharingToken from DB
+        //...
+        AuthResponseDTO sharingLogin = client.authenticateWithOnetime(sharingToken, true, null);
+        TokenDTO newSharingToken = sharingLogin.getNext().getToken();
+        //update sharingToken in DB with newSharingToken
+        //...
+        byte[] pubKey = client.getPublicKey(sharingLogin.getToken());
+        //use public key for encryption
+        //...
+        
+        assertArrayEquals(client.getPublicKey(u2.getToken()), pubKey);
+        
+        client.removeUser(u2.getToken());
     }
 
     @Test
