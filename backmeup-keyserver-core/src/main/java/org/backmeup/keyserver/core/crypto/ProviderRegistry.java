@@ -12,7 +12,7 @@ import org.backmeup.keyserver.core.crypto.impl.SCryptKeyStretchingProvider;
 public class ProviderRegistry {
     private static Map<String, HashProvider> hashProviders = new HashMap<>();
     private static Map<String, KeyStretchingProvider> keyStretchingProviders = new HashMap<>();
-    private static Map<String, EncryptionProvider> encryptionProviders = new HashMap<>();
+    private static Map<String, SymmetricEncryptionProvider> symmetricEncryptionProviders = new HashMap<>();
     private static Map<String, PasswordProvider> passwordProviders = new HashMap<>();
 
     static {
@@ -42,8 +42,8 @@ public class ProviderRegistry {
         keyStretchingProviders.put(algorithm, provider);
     }
 
-    public static void registerEncryptionProvider(String algorithm, EncryptionProvider provider) {
-        encryptionProviders.put(algorithm, provider);
+    public static void registerEncryptionProvider(String algorithm, SymmetricEncryptionProvider provider) {
+        symmetricEncryptionProviders.put(algorithm, provider);
     }
 
     public static void registerPasswordProvider(String algorithm, PasswordProvider provider) {
@@ -66,8 +66,8 @@ public class ProviderRegistry {
         return getProvider(keyStretchingProviders, algorithm);
     }
 
-    public static EncryptionProvider getEncryptionProvider(String algorithm) throws NoSuchAlgorithmException {
-        return getProvider(encryptionProviders, algorithm);
+    public static SymmetricEncryptionProvider getEncryptionProvider(String algorithm) throws NoSuchAlgorithmException {
+        return getProvider(symmetricEncryptionProviders, algorithm);
     }
 
     public static PasswordProvider getPasswordProvider(String algorithm) throws NoSuchAlgorithmException {

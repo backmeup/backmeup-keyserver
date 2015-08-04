@@ -2,7 +2,7 @@ package org.backmeup.keyserver.core.crypto;
 
 import org.backmeup.keyserver.model.CryptoException;
 
-public interface EncryptionProvider {
+public interface SymmetricEncryptionProvider {
     String getAlgorithm();
 
     byte[] generateKey(int length) throws CryptoException;

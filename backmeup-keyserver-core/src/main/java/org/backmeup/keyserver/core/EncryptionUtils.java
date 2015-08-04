@@ -4,7 +4,7 @@ import java.security.NoSuchAlgorithmException;
 import java.text.MessageFormat;
 import java.util.Arrays;
 
-import org.backmeup.keyserver.core.crypto.EncryptionProvider;
+import org.backmeup.keyserver.core.crypto.SymmetricEncryptionProvider;
 import org.backmeup.keyserver.core.crypto.HashProvider;
 import org.backmeup.keyserver.core.crypto.KeyStretchingProvider;
 import org.backmeup.keyserver.core.crypto.Keyring;
@@ -36,7 +36,7 @@ public class EncryptionUtils {
     }
 
     public static byte[] decryptByteArray(Keyring k, byte[] key, byte[] message) throws CryptoException {
-        EncryptionProvider ep;
+        SymmetricEncryptionProvider ep;
         try {
             ep = ProviderRegistry.getEncryptionProvider(k.getEncryptionAlgorithm());
         } catch (NoSuchAlgorithmException e) {
@@ -46,7 +46,7 @@ public class EncryptionUtils {
     }
 
     public static String decryptString(Keyring k, byte[] key, byte[] message) throws CryptoException {
-        EncryptionProvider ep;
+        SymmetricEncryptionProvider ep;
         try {
             ep = ProviderRegistry.getEncryptionProvider(k.getEncryptionAlgorithm());
         } catch (NoSuchAlgorithmException e) {
@@ -56,7 +56,7 @@ public class EncryptionUtils {
     }
 
     public static byte[] encryptByteArray(Keyring k, byte[] key, byte[] message) throws CryptoException {
-        EncryptionProvider ep;
+        SymmetricEncryptionProvider ep;
         try {
             ep = ProviderRegistry.getEncryptionProvider(k.getEncryptionAlgorithm());
         } catch (NoSuchAlgorithmException e) {
@@ -66,7 +66,7 @@ public class EncryptionUtils {
     }
 
     public static byte[] encryptString(Keyring k, byte[] key, String message) throws CryptoException {
-        EncryptionProvider ep;
+        SymmetricEncryptionProvider ep;
         try {
             ep = ProviderRegistry.getEncryptionProvider(k.getEncryptionAlgorithm());
         } catch (NoSuchAlgorithmException e) {
@@ -80,7 +80,7 @@ public class EncryptionUtils {
     }
 
     public static byte[] generateKey(Keyring k) throws CryptoException {
-        EncryptionProvider ep;
+        SymmetricEncryptionProvider ep;
         try {
             ep = ProviderRegistry.getEncryptionProvider(k.getEncryptionAlgorithm());
         } catch (NoSuchAlgorithmException e) {
