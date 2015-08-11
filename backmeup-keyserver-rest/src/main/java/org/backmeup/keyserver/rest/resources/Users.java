@@ -59,7 +59,15 @@ public class Users extends SecureBase {
     @Path("/")
     public String register(@NotNull @FormParam("username") String username, @NotNull @FormParam("password") String password)
             throws KeyserverException {
-        return getKeyserverLogic().registerUser(username, password);
+        return this.getKeyserverLogic().registerUser(username, password);
+    }
+    
+    @AppsAllowed(Approle.SERVICE)
+    @POST
+    @Path("/anonymousUser")
+    public AuthResponseDTO registerAnonymousUser() throws KeyserverException {
+        AuthResponse auth = this.getAuthResponse();
+        return this.map(this.getKeyserverLogic().registerAnonymousUser(auth.getServiceUserId(), auth.getUserId(), auth.getAccountKey()), AuthResponseDTO.class);
     }
 
     @AppsAllowed(Approle.SERVICE)
@@ -76,7 +84,11 @@ public class Users extends SecureBase {
     @Path("/tokenUser")
     public void remove() throws KeyserverException {
         AuthResponse auth = this.getAuthResponse();
-        getKeyserverLogic().removeUser(auth.getServiceUserId(), auth.getUsername(), auth.getAccountKey());
+        if (auth.getRoles().contains(Role.INHERITANCE)) {
+            this.getKeyserverLogic().removeAnonymousUser(auth.getServiceUserId(), auth.getUserId(), auth.getAccountKey());
+        } else {
+            this.getKeyserverLogic().removeUser(auth.getServiceUserId(), auth.getUsername(), auth.getAccountKey());
+        }
     }
 
     @AppsAllowed(Approle.SERVICE)
@@ -84,7 +96,7 @@ public class Users extends SecureBase {
     @Path("/adminRemove")
     public void adminRemove(@NotNull @QueryParam("serviceUserId") String serviceUserId, @NotNull @QueryParam("username") String username)
             throws KeyserverException {
-        getKeyserverLogic().removeUser(serviceUserId, username);
+        this.getKeyserverLogic().removeUser(serviceUserId, username);
     }
 
     @AppsAllowed({ Approle.SERVICE, Approle.INDEXER })

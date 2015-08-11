@@ -424,6 +424,56 @@ public class KeyserverClientIntegrationTest {
             client.removeUser(u2.getToken());
         }
     }
+    
+    @Test
+    public void testRegisterAnonymousUser() throws KeyserverException {
+        client.registerUser(USERNAME, PASSWORD);
+        AuthResponseDTO d = client.authenticateUserWithPassword(USERNAME, PASSWORD);
+        
+        AuthResponseDTO u = client.registerAnonymousUser(d.getToken());
+        TokenDTO t = u.getToken();
+        assertNotNull(u.getServiceUserId());
+        assertNull(u.getUsername());
+        assertTrue(u.getRoles().contains(TokenValue.Role.INHERITANCE));
+        assertEquals(1, u.getRoles().size());
+        assertNotNull(t);
+        assertNull(t.getTtl());
+        
+        List<TokenDTO> l = client.listTokens(d.getToken());
+        assertEquals(1, l.size());
+        assertEquals(l.get(0).getB64Token(), t.getB64Token());
+        
+        AuthResponseDTO u2 = client.authenticateWithInternalToken(t);
+        TokenDTO t2 = u2.getToken();
+        assertNotEquals(t.getB64Token(), t2.getB64Token());
+        assertEquals(u.getServiceUserId(), u2.getServiceUserId());
+        
+        assertTrue(u2.getRoles().contains(TokenValue.Role.INHERITANCE));
+        assertTrue(u2.getRoles().contains(TokenValue.Role.USER));
+        assertEquals(2, u2.getRoles().size());
+        assertNotNull(t2.getTtl());
+        
+        client.getPrivateKey(t2);
+        client.getPublicKey(t2);
+        client.getIndexKey(t2);
+        
+        try {
+            client.getProfile(t2);
+            fail();
+        } catch(EntryNotFoundException e) {
+            assertEquals(EntryNotFoundException.PROFILE, e.getMessage());
+        }
+        
+        client.removeUser(t);
+        
+        try {
+            client.authenticateWithInternalToken(t);
+            fail();
+        } catch(EntryNotFoundException e) {
+            //token still exists, but user not
+            assertEquals(EntryNotFoundException.TOKEN_USER_REMOVED, e.getMessage());
+        }
+    }
 
     // =========================================================================
     // PluginData logic

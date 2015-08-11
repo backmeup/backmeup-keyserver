@@ -247,6 +247,21 @@ public class KeyserverClient {
             throw this.parseException(exception);
         }
     }
+    
+    /**
+     * Register an anonymous user at keyserver.
+     * Only a keyserver client which is authenticated as SERVICE app can use this method.
+     * @param token the authentication token that identifies the decedant user.
+     * @return an AuthResponse - including an activation token - for the anonymous user
+     * @throws KeyserverException
+     */
+    public AuthResponseDTO registerAnonymousUser(TokenDTO token) throws KeyserverException {
+        try {
+            return this.createRequest(this.users.path("/anonymousUser")).header("Token", token.toTokenString()).post(Entity.form(new Form()), AuthResponseDTO.class);
+        } catch (WebApplicationException | ProcessingException exception) {
+            throw this.parseException(exception);
+        }
+    }
 
     /**
      * Authenticate user with username and password.
