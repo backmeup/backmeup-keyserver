@@ -295,8 +295,8 @@ public class DefaultKeyserverImpl implements Keyserver {
     }
 
     @Override
-    public AuthResponse registerAnonymousUser() throws KeyserverException {
-        return this.userLogic.registerAnonymous();
+    public AuthResponse registerAnonymousUser(String decedantServiceUserId, String decedantUserId, byte[] decedantAccountKey) throws KeyserverException {
+        return this.userLogic.registerAnonymous(decedantServiceUserId, decedantUserId, decedantAccountKey);
     }
     
     @Override

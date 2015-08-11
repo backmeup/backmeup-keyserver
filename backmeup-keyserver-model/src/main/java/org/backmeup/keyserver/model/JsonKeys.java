@@ -17,6 +17,8 @@ public final class JsonKeys {
     public static final String EARLIEST_START_TIME = "earliestStartTime";
     public static final String LATEST_START_TIME = "latestStartTime";
     public static final String PLUGIN_KEYS = "pluginKeys";
+    public static final String DECEDENT_USER_ID = "decedentUserId";
+    public static final String DECEDENT_SERVICE_USER_ID = "decedentServiceUserId";
     
     private JsonKeys() {
     }

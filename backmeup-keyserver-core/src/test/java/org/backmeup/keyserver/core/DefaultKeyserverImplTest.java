@@ -190,7 +190,7 @@ public class DefaultKeyserverImplTest {
         //see below
         Token t = u.getToken();
         t.setAnnotation("Test");
-        ks.tokenLogic.createAnnotaton(t, null, u.getAccountKey());
+        ks.tokenLogic.createAnnotaton(t, null, u.getUserId(), u.getAccountKey());
         
         ks.removeUser(u.getServiceUserId(), u.getUsername(), u.getAccountKey());
         
@@ -241,7 +241,7 @@ public class DefaultKeyserverImplTest {
         //see below
         Token t = u.getToken();
         t.setAnnotation("Test");
-        ks.tokenLogic.createAnnotaton(t, null, u.getAccountKey());
+        ks.tokenLogic.createAnnotaton(t, null, u.getUserId(), u.getAccountKey());
         
         ks.removeUser(u.getServiceUserId(), u.getUsername());
         
@@ -319,17 +319,42 @@ public class DefaultKeyserverImplTest {
     
     @Test
     public void testRegisterAnonymousUser() throws KeyserverException {
-        AuthResponse u = ks.registerAnonymousUser();
+        ks.registerUser(USERNAME, PASSWORD);
+        AuthResponse d = ks.authenticateUserWithPassword(USERNAME, PASSWORD);
+        
+        AuthResponse u = ks.registerAnonymousUser(d.getServiceUserId(), d.getUserId(), d.getAccountKey());
         assertNotNull(u.getServiceUserId());
         assertNotNull(u.getUserId());
         assertNull(u.getUsername());
         assertTrue(u.getRoles().contains(TokenValue.Role.INHERITANCE));
+        assertEquals(1, u.getRoles().size());
         assertNotNull(u.getB64Token());
+        assertNull(u.getTtl());
+        
+        List<Token> l = ks.listTokens(d.getUserId(), d.getAccountKey(), Token.Kind.INTERNAL);
+        assertEquals(1, l.size());
+        assertEquals(l.get(0).getB64Token(), u.getB64Token());
         
         AuthResponse u2 = ks.authenticateWithInternalToken(u.getB64Token());
+        assertNotEquals(u.getB64Token(), u2.getB64Token());
         assertEquals(u.getServiceUserId(), u2.getServiceUserId());
         assertEquals(u.getUserId(), u2.getUserId());
-        assertEquals(u.getRoles(), u2.getRoles());
+        
+        assertTrue(u2.getRoles().contains(TokenValue.Role.INHERITANCE));
+        assertTrue(u2.getRoles().contains(TokenValue.Role.USER));
+        assertEquals(2, u2.getRoles().size());
+        assertNotNull(u2.getTtl());
+        
+        ks.getPrivateKey(u2.getUserId(), u2.getAccountKey());
+        ks.getPublicKey(u2.getUserId());
+        ks.getIndexKey(u2.getUserId(), u2.getAccountKey());
+        
+        try {
+            ks.getProfile(u2.getUserId(), u2.getAccountKey());
+            fail();
+        } catch(EntryNotFoundException e) {
+            assertEquals(EntryNotFoundException.PROFILE, e.getMessage());
+        }
         
         ks.removeAnonymousUser(u.getServiceUserId(), u.getUserId(), u.getAccountKey());
         

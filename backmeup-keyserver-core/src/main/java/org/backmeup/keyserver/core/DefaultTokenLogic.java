@@ -25,7 +25,9 @@ import org.backmeup.keyserver.model.JsonKeys;
 import org.backmeup.keyserver.model.KeyserverEntry;
 import org.backmeup.keyserver.model.KeyserverException;
 import org.backmeup.keyserver.model.Token;
+import org.backmeup.keyserver.model.Token.Kind;
 import org.backmeup.keyserver.model.TokenValue;
+import org.backmeup.keyserver.model.TokenValue.Role;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.node.ObjectNode;
@@ -54,8 +56,12 @@ public class DefaultTokenLogic {
     private static String annKey(String userId, String tokenKindApp, String tokenHash) {
         return fmtKey(ANN_ENTRY_FORMAT, userId, tokenKindApp, tokenHash);
     }
-
+    
     public void create(Token token, byte[] accountKey) throws KeyserverException {
+        this.create(token, token.getValue().getUserId(), accountKey);
+    }
+    
+    public void create(Token token, String userId, byte[] accountKey) throws KeyserverException {
         String tokenHash = null;
         byte[] tokenKey = null;
         String tokenKindApp = token.getKind().getApplication();
@@ -75,16 +81,16 @@ public class DefaultTokenLogic {
             // e.g. [Hash(Token)].InternalToken
             byte[] payload = this.keyserver.encryptString(tokenKey, tokenKindApp, this.mapTokenValueToJson(token.getValue()));
             this.keyserver.createEntry(tkKey(tokenHash, tokenKindApp), payload, token.getTTL());
- 
+
             if (token.getAnnotation() != null && accountKey != null) {
-                this.createAnnotaton(token, tokenHash, accountKey);
+                this.createAnnotaton(token, tokenHash, userId, accountKey);
             }
         } catch (CryptoException | DatabaseException e) {
             throw new KeyserverException(e);
         }
     }
     
-    protected void createAnnotaton(Token token, String tokenHash, byte[] accountKey) throws KeyserverException {
+    protected void createAnnotaton(Token token, String tokenHash, String userId, byte[] accountKey) throws KeyserverException {
         try {
             String tokenKindApp = token.getKind().getApplication();
             String theHash = tokenHash;
@@ -94,7 +100,7 @@ public class DefaultTokenLogic {
             
             // e.g. [UserId].Account.InternalToken.[Hash(Token)]
             byte[] payload = this.keyserver.encryptString(accountKey, tokenKindApp, this.mapTokenToJson(token));
-            this.keyserver.createEntry(annKey(token.getValue().getUserId(), tokenKindApp, theHash), payload, token.getTTL());
+            this.keyserver.createEntry(annKey(userId, tokenKindApp, theHash), payload, token.getTTL());
         } catch (CryptoException | DatabaseException e) {
             throw new KeyserverException(e);
         }
@@ -142,12 +148,12 @@ public class DefaultTokenLogic {
         }
     }
     
-    private Token retrieveTokenAnnotation(KeyserverEntry tokenAnnotationEntry, byte[] accountKey, Token.Kind kind) throws CryptoException, KeyserverException {
+    private Token retrieveTokenAnnotation(KeyserverEntry tokenAnnotationEntry, byte[] accountKey, Kind kind) throws CryptoException, KeyserverException {
         String tokenAnnotationJson = this.keyserver.decryptString(accountKey, kind.getApplication(), tokenAnnotationEntry.getValue());
         return this.mapJsonToToken(tokenAnnotationJson, kind);
     }
     
-    protected Token retrieveToken(String userId, Token.Kind kind, String tokenHash, byte[] accountKey, boolean includeValue) throws KeyserverException {
+    protected Token retrieveToken(String userId, Kind kind, String tokenHash, byte[] accountKey, boolean includeValue) throws KeyserverException {
         Token token = null;
         String tokenKindApp = kind.getApplication();
         
@@ -166,7 +172,7 @@ public class DefaultTokenLogic {
         return token;
     }
 
-    public List<Token> listTokens(String userId, byte[] accountKey, Token.Kind kind) throws KeyserverException {
+    public List<Token> listTokens(String userId, byte[] accountKey, Kind kind) throws KeyserverException {
         try {
             List<Token> tokens = new LinkedList<>();
             List<KeyserverEntry> tokenEntries = this.keyserver.db.searchByKey(annKey(userId, kind.getApplication(), "%"), false, false);
@@ -201,12 +207,12 @@ public class DefaultTokenLogic {
     }
     
     public void removeTokens(String userId, byte[] accountKey) throws KeyserverException {
-        for (Token.Kind kind : Token.Kind.values()) {
+        for (Kind kind : Kind.values()) {
             this.removeTokens(userId, accountKey, kind);
         }
     }
     
-    public void removeTokens(String userId, byte[] accountKey, Token.Kind kind) throws KeyserverException {
+    public void removeTokens(String userId, byte[] accountKey, Kind kind) throws KeyserverException {
         List<Token> tokens = this.listTokens(userId, accountKey, kind);
         for (Token token : tokens) {
             this.revoke(token);
@@ -220,7 +226,7 @@ public class DefaultTokenLogic {
         return node.toString();
     }
     
-    private Token mapJsonToToken(String json, Token.Kind kind) throws KeyserverException {
+    private Token mapJsonToToken(String json, Kind kind) throws KeyserverException {
         Token token = new Token(kind);
 
         try {
@@ -242,7 +248,7 @@ public class DefaultTokenLogic {
         
         // roles
         ArrayNode roles = node.arrayNode();
-        for (TokenValue.Role r : value.getRoles()) {
+        for (Role r : value.getRoles()) {
             roles.add(r.name());
         }
         node.put(JsonKeys.ROLES, roles);
@@ -264,9 +270,9 @@ public class DefaultTokenLogic {
             
             // roles
             ArrayNode rolesNode = (ArrayNode) tokenValueObject.get(JsonKeys.ROLES);
-            Set<TokenValue.Role> roles = new HashSet<>();
+            Set<Role> roles = new HashSet<>();
             for (JsonNode n : rolesNode) {
-                roles.add(TokenValue.Role.valueOf(n.asText()));
+                roles.add(Role.valueOf(n.asText()));
             }
             
             value = new TokenValue(userId, serviceUserId, roles);
@@ -280,8 +286,8 @@ public class DefaultTokenLogic {
     }
     
     public AuthResponse createInternal(String userId, String serviceUserId, String username, byte[] accountKey) throws KeyserverException {
-        Token token = new Token(Token.Kind.INTERNAL);
-        TokenValue tokenValue = new TokenValue(userId, serviceUserId, TokenValue.Role.USER);
+        Token token = new Token(Kind.INTERNAL);
+        TokenValue tokenValue = new TokenValue(userId, serviceUserId, Role.USER);
         tokenValue.putValue(JsonKeys.USERNAME, username);
         tokenValue.putValue(JsonKeys.ACCOUNT_KEY, accountKey);
         token.setValue(tokenValue);
@@ -292,19 +298,22 @@ public class DefaultTokenLogic {
         return new AuthResponse(token);
     }
     
-    public AuthResponse createInternalForInheritance(String userId, String serviceUserId, byte[] accountKey) throws KeyserverException {
-        Token token = new Token(Token.Kind.INTERNAL);
-        TokenValue tokenValue = new TokenValue(userId, serviceUserId, TokenValue.Role.INHERITANCE);
+    public AuthResponse createInternalForInheritance(String userId, String serviceUserId, byte[] accountKey, String decedentUserId, String decedentServiceUserId, byte[] decedentAccountKey) throws KeyserverException {
+        Token token = new Token(Kind.INTERNAL);
+        TokenValue tokenValue = new TokenValue(userId, serviceUserId, Role.INHERITANCE);
         tokenValue.putValue(JsonKeys.ACCOUNT_KEY, accountKey);
+        tokenValue.putValue(JsonKeys.DECEDENT_USER_ID, decedentUserId);
+        tokenValue.putValue(JsonKeys.DECEDENT_SERVICE_USER_ID, decedentServiceUserId);
         token.setValue(tokenValue);
+        token.setAnnotation("Inheritance");
         
-        this.create(token, accountKey);
+        this.create(token, decedentUserId, decedentAccountKey);
         return new AuthResponse(token);
     }
     
     public AuthResponse createOnetimeForBackup(String userId, String serviceUserId, String username, byte[] accountKey, String[] pluginIds, Calendar scheduledExecutionTime) throws KeyserverException {
-        Token token = new Token(Token.Kind.ONETIME);
-        TokenValue tokenValue = new TokenValue(userId, serviceUserId, TokenValue.Role.BACKUP_JOB);
+        Token token = new Token(Kind.ONETIME);
+        TokenValue tokenValue = new TokenValue(userId, serviceUserId, Role.BACKUP_JOB);
         tokenValue.putValue(JsonKeys.USERNAME, username);
         
         Map<String, String> pluginKeys = new HashMap<>();
@@ -321,8 +330,8 @@ public class DefaultTokenLogic {
     }
     
     public AuthResponse createOnetimeForAuthentication(String userId, String serviceUserId, String username, byte[] accountKey) throws KeyserverException {
-        Token token = new Token(Token.Kind.ONETIME);
-        TokenValue tokenValue = new TokenValue(userId, serviceUserId, TokenValue.Role.AUTHENTICATION);
+        Token token = new Token(Kind.ONETIME);
+        TokenValue tokenValue = new TokenValue(userId, serviceUserId, Role.AUTHENTICATION);
         tokenValue.putValue(JsonKeys.USERNAME, username);
         
         token.setValue(tokenValue);
@@ -346,8 +355,8 @@ public class DefaultTokenLogic {
     }
     
     public AuthResponse authenticateWithInternal(String tokenHash) throws KeyserverException {
-        Token token = new Token(Token.Kind.INTERNAL, tokenHash);
-        String tokenKindApp = Token.Kind.INTERNAL.getApplication();
+        Token token = new Token(Kind.INTERNAL, tokenHash);
+        String tokenKindApp = Kind.INTERNAL.getApplication();
         
         KeyserverEntry tokenEntry;
         try {
@@ -360,18 +369,29 @@ public class DefaultTokenLogic {
                 throw new EntryNotFoundException(EntryNotFoundException.TOKEN_USER_REMOVED);
             }
             
+            if (value.hasRole(Role.INHERITANCE)) {
+                //"convert" to internal token
+                Token internalToken = new Token(token);
+                Set<Role> roles = new HashSet<>();
+                roles.add(Role.INHERITANCE);
+                roles.add(Role.USER);
+                internalToken.getValue().setRoles(roles);
+                this.create(internalToken, null);
+                
+                token = internalToken;
+            } 
+            
             token.setTTL(getActTimePlusMinuteOffset(this.keyserver.uiTokenTimeout));
-            this.keyserver.updateEntryTTL(tokenEntry);
+            this.keyserver.updateEntryTTL(tokenEntry);  
+            return new AuthResponse(token);
         } catch (CryptoException | DatabaseException e) {
             throw new KeyserverException(e);
         }
-        
-        return new AuthResponse(token);
     }
     
     public AuthResponse authenticateWithOnetime(String tokenHash, boolean renew, Calendar scheduledExecutionTime) throws KeyserverException {
-        Token onetimeToken = new Token(Token.Kind.ONETIME, tokenHash);
-        String tokenKindApp = Token.Kind.ONETIME.getApplication();
+        Token onetimeToken = new Token(Kind.ONETIME, tokenHash);
+        String tokenKindApp = Kind.ONETIME.getApplication();
         Token internalToken = null;
         AuthResponse nextAuth = null;
         
@@ -388,14 +408,14 @@ public class DefaultTokenLogic {
                 throw new EntryNotFoundException(EntryNotFoundException.TOKEN_USER_REMOVED);
             }
             
-            if(value.hasRole(TokenValue.Role.BACKUP_JOB) && getActTime().before(value.getValueAsCalendar(JsonKeys.EARLIEST_START_TIME))) {
+            if(value.hasRole(Role.BACKUP_JOB) && getActTime().before(value.getValueAsCalendar(JsonKeys.EARLIEST_START_TIME))) {
                 this.revoke(onetimeToken);
                 throw new EntryNotFoundException(EntryNotFoundException.TOKEN_USED_TO_EARLY);
             }
             
             //"convert" to internal token
             internalToken = new Token(onetimeToken);
-            internalToken.setKind(Token.Kind.INTERNAL);
+            internalToken.setKind(Kind.INTERNAL);
             this.create(internalToken, null);
             
             //re-schedule token

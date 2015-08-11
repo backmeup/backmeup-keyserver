@@ -19,7 +19,6 @@ import org.backmeup.keyserver.model.EntryNotFoundException;
 import org.backmeup.keyserver.model.JsonKeys;
 import org.backmeup.keyserver.model.KeyserverEntry;
 import org.backmeup.keyserver.model.KeyserverException;
-import org.backmeup.keyserver.model.Token;
 import org.codehaus.jackson.node.ObjectNode;
 
 /**
@@ -82,6 +81,10 @@ public class DefaultUserLogic {
             byte[] payload = this.keyserver.encryptByteArray(accountKey, PepperApps.PRIVATE_KEY, kp.getPrivate().getEncoded());
             this.keyserver.createEntry(fmtKey(PRIVATE_KEY_ENTRY_FMT, userId), payload);
             
+            //[UserId].Index
+            String indexKey = generatePassword(this.keyring);
+            payload = this.keyserver.encryptString(accountKey, PepperApps.INDEX, indexKey);
+            this.keyserver.createEntry(fmtKey(INDEX_ENTRY_FMT, userId), payload);
         } catch (CryptoException | DatabaseException e) {
             throw new KeyserverException(e);
         }
@@ -140,11 +143,6 @@ public class DefaultUserLogic {
             String profile = this.keyserver.defaultProfile;
             payload = this.keyserver.encryptString(accountKey, PepperApps.PROFILE, profile);
             this.keyserver.createEntry(fmtKey(PROFILE_ENTRY_FMT, userId), payload);
-            
-            //[UserId].Index
-            String indexKey = generatePassword(this.keyring);
-            payload = this.keyserver.encryptString(accountKey, PepperApps.INDEX, indexKey);
-            this.keyserver.createEntry(fmtKey(INDEX_ENTRY_FMT, userId), payload);
         } catch (CryptoException | DatabaseException e) {
             throw new KeyserverException(e);
         }
@@ -152,13 +150,13 @@ public class DefaultUserLogic {
         return serviceUserId;
     }
 
-    public AuthResponse registerAnonymous() throws KeyserverException {
+    public AuthResponse registerAnonymous(String decedantServiceUserId, String decedantUserId, byte[] decedantAccountKey) throws KeyserverException {
         Map<String, Object> baseUser = this.createBaseUser();
         String userId = (String) baseUser.get(JsonKeys.USER_ID);
         String serviceUserId = (String) baseUser.get(JsonKeys.SERVICE_USER_ID);
         byte[] accountKey = (byte[]) baseUser.get(JsonKeys.ACCOUNT_KEY);
         
-        return this.keyserver.tokenLogic.createInternalForInheritance(userId, serviceUserId, accountKey);
+        return this.keyserver.tokenLogic.createInternalForInheritance(userId, serviceUserId, accountKey, decedantUserId, decedantServiceUserId, decedantAccountKey);
     }
 
     protected String getUserId(String username) throws KeyserverException {
