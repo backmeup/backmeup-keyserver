@@ -73,7 +73,8 @@ public class KeyserverClient {
         this.thePlugin = this.users.path("/tokenUser/plugins/{pluginId}");
         this.theToken = this.client.target(base).path("/tokens/{kind}/{token}");
 
-        this.setAuthorization(appId, appSecret);
+        this.appId = appId;
+        this.authorizationHeader = appId + ";" + appSecret;
     }
 
     public String getAppId() {
