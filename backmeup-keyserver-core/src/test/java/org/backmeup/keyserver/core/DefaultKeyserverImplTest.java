@@ -331,7 +331,7 @@ public class DefaultKeyserverImplTest {
         assertNotNull(u.getB64Token());
         assertNull(u.getTtl());
         
-        List<Token> l = ks.listTokens(d.getUserId(), d.getAccountKey(), Token.Kind.INTERNAL);
+        List<Token> l = ks.listTokens(d.getUserId(), d.getAccountKey(), Token.Kind.INTERNAL, false);
         assertEquals(1, l.size());
         assertEquals(l.get(0).getB64Token(), u.getB64Token());
         

@@ -443,6 +443,12 @@ public class KeyserverClientIntegrationTest {
         assertEquals(1, l.size());
         assertEquals(l.get(0).getB64Token(), t.getB64Token());
         
+        TokenDTO it = client.getInheritanceToken(d.getToken(), u.getServiceUserId());
+        assertEquals(t.getB64Token(), it.getB64Token());
+        assertEquals(t.getKind(), it.getKind());
+        assertNull(it.getTtl());
+        assertEquals(t.getAnnotation(), it.getAnnotation());
+        
         AuthResponseDTO u2 = client.authenticateWithInternalToken(t);
         TokenDTO t2 = u2.getToken();
         assertNotEquals(t.getB64Token(), t2.getB64Token());

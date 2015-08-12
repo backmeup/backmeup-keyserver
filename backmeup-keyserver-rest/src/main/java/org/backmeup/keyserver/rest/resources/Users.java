@@ -23,6 +23,8 @@ import org.backmeup.keyserver.model.KeyserverException;
 import org.backmeup.keyserver.model.KeyserverUtils;
 import org.backmeup.keyserver.model.Token;
 import org.backmeup.keyserver.model.App.Approle;
+import org.backmeup.keyserver.model.Token.Kind;
+import org.backmeup.keyserver.model.TokenValue;
 import org.backmeup.keyserver.model.TokenValue.Role;
 import org.backmeup.keyserver.model.dto.AuthResponseDTO;
 import org.backmeup.keyserver.model.dto.TokenDTO;
@@ -236,14 +238,33 @@ public class Users extends SecureBase {
         List<Token> tokens = null;
 
         if (kind != null) {
-            tokens = this.getKeyserverLogic().listTokens(auth.getUserId(), auth.getAccountKey(), kind);
+            tokens = this.getKeyserverLogic().listTokens(auth.getUserId(), auth.getAccountKey(), kind, false);
         } else {
             tokens = new ArrayList<Token>();
             for (Token.Kind k : Token.Kind.values()) {
-                tokens.addAll(this.getKeyserverLogic().listTokens(auth.getUserId(), auth.getAccountKey(), k));
+                tokens.addAll(this.getKeyserverLogic().listTokens(auth.getUserId(), auth.getAccountKey(), k, false));
             }
         }
 
         return this.map(tokens, TokenDTO.class);
+    }
+    
+    @AppsAllowed(Approle.SERVICE)
+    @TokenRequired
+    @GET
+    @Path("/tokenUser/inheritanceToken")
+    public TokenDTO getInheritanceTokens(@NotNull @QueryParam("serviceUserId") String serviceUserId) throws KeyserverException {
+        AuthResponse auth = this.getAuthResponse();
+        List<Token> tokens = null;
+
+        tokens = this.getKeyserverLogic().listTokens(auth.getUserId(), auth.getAccountKey(), Kind.INTERNAL, true);
+        for (Token t: tokens) {
+            TokenValue v = t.getValue();
+            if (v != null && v.hasRole(Role.INHERITANCE) && serviceUserId.equals(v.getServiceUserId())) {
+                return this.map(t, TokenDTO.class);
+            }
+        }
+
+        return null;
     }
 }

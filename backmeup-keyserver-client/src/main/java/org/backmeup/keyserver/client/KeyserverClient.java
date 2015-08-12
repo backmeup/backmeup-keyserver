@@ -1,7 +1,9 @@
 package org.backmeup.keyserver.client;
 
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.WebApplicationException;
@@ -218,13 +220,22 @@ public class KeyserverClient {
     // =========================================================================
 
     private Builder createUserSpecificRequest(TokenDTO t) {
-        return this.createUserSpecificRequest(null, t);
+        return this.createUserSpecificRequest(null, t, null);
+    }
+    
+    private Builder createUserSpecificRequest(String path, TokenDTO t) {
+        return this.createUserSpecificRequest(path, t, null);
     }
 
-    private Builder createUserSpecificRequest(String path, TokenDTO t) {
+    private Builder createUserSpecificRequest(String path, TokenDTO t, Map<String, Object> queryParams) {
         WebTarget target = this.theUser;
         if (path != null) {
             target = target.path(path);
+        }
+        if (queryParams != null) {
+            for(Map.Entry<String, Object> param : queryParams.entrySet()) {
+                target = target.queryParam(param.getKey(), param.getValue());
+            }
         }
 
         return target.request().header(AUTHORIZATION_HEADER_KEY, authorizationHeader).header("Token", t.toTokenString());
@@ -611,7 +622,7 @@ public class KeyserverClient {
     }
 
     /**
-     * List tokens of specified user. Only tokens with annotation get listed (this excludes internal and onetime tokens).
+     * List tokens of specified user. Only tokens with annotation get listed (this excludes most internal and onetime tokens).
      * @param token the authentication token that identifies the user.
      * @return a list of user tokens as TokenDTO objects.
      * @throws KeyserverException
@@ -619,6 +630,23 @@ public class KeyserverClient {
     public List<TokenDTO> listTokens(TokenDTO token) throws KeyserverException {
         try {
             return this.createUserSpecificRequest("/tokens/", token).get(TOKENDTO_LIST_TYPE);
+        } catch (WebApplicationException | ProcessingException exception) {
+            throw this.parseException(exception);
+        }
+    }
+    
+    /**
+     * Get token for inheritance.
+     * @param token the authentication token that identifies the decedent user.
+     * @param serviceUserId serviceUserId of the anonymous user that the token should be retrieved for.
+     * @return the inheritance token of the anonymous user with the given serviceUserId.
+     * @throws KeyserverException
+     */
+    public TokenDTO getInheritanceToken(TokenDTO token, String serviceUserId) throws KeyserverException {
+        try {
+            Map<String, Object> queryParams = new HashMap<>();
+            queryParams.put("serviceUserId", serviceUserId);
+            return this.createUserSpecificRequest("/inheritanceToken", token, queryParams).get(TokenDTO.class);
         } catch (WebApplicationException | ProcessingException exception) {
             throw this.parseException(exception);
         }

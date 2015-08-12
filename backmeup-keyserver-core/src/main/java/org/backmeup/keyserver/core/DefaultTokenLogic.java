@@ -172,13 +172,17 @@ public class DefaultTokenLogic {
         return token;
     }
 
-    public List<Token> listTokens(String userId, byte[] accountKey, Kind kind) throws KeyserverException {
+    public List<Token> listTokens(String userId, byte[] accountKey, Kind kind, boolean includeValues) throws KeyserverException {
         try {
             List<Token> tokens = new LinkedList<>();
             List<KeyserverEntry> tokenEntries = this.keyserver.db.searchByKey(annKey(userId, kind.getApplication(), "%"), false, false);
             
-            for(KeyserverEntry entry : tokenEntries) {
-                tokens.add(this.retrieveTokenAnnotation(entry, accountKey, kind));
+            for(KeyserverEntry tokenEntry : tokenEntries) {
+                Token token = this.retrieveTokenAnnotation(tokenEntry, accountKey, kind);
+                if(includeValues) {
+                    this.retrieveTokenValue(token);
+                }
+                tokens.add(token);
             }
             return tokens;
         } catch (DatabaseException | CryptoException e) {
@@ -213,7 +217,7 @@ public class DefaultTokenLogic {
     }
     
     public void removeTokens(String userId, byte[] accountKey, Kind kind) throws KeyserverException {
-        List<Token> tokens = this.listTokens(userId, accountKey, kind);
+        List<Token> tokens = this.listTokens(userId, accountKey, kind, false);
         for (Token token : tokens) {
             this.revoke(token);
         }

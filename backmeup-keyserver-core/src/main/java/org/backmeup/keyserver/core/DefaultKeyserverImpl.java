@@ -388,8 +388,8 @@ public class DefaultKeyserverImpl implements Keyserver {
     }
     
     @Override
-    public List<Token> listTokens(String userId, byte[] accountKey, Token.Kind kind) throws KeyserverException {
-        return this.tokenLogic.listTokens(userId, accountKey, kind);
+    public List<Token> listTokens(String userId, byte[] accountKey, Token.Kind kind, boolean includeValues) throws KeyserverException {
+        return this.tokenLogic.listTokens(userId, accountKey, kind, includeValues);
     }
     
     @Override

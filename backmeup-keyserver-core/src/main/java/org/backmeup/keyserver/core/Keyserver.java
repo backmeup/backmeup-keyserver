@@ -69,7 +69,7 @@ public interface Keyserver {
 
     AuthResponse authenticateWithOnetime(String tokenHash, boolean renew, Calendar scheduledExecutionTime) throws KeyserverException;
         
-    List<Token> listTokens(String userId, byte[] accountKey, Token.Kind kind) throws KeyserverException;
+    List<Token> listTokens(String userId, byte[] accountKey, Token.Kind kind, boolean includeValues) throws KeyserverException;
     
     void revokeToken(Token.Kind kind, String tokenHash) throws KeyserverException;
 
