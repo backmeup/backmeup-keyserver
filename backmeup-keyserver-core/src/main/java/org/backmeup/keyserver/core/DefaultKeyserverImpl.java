@@ -1,7 +1,7 @@
 package org.backmeup.keyserver.core;
 
-import static org.backmeup.keyserver.core.EncryptionUtils.hashByteArrayWithPepper;
-import static org.backmeup.keyserver.core.EncryptionUtils.hashStringWithPepper;
+import static org.backmeup.keyserver.crypto.EncryptionUtils.hashByteArrayWithPepper;
+import static org.backmeup.keyserver.crypto.EncryptionUtils.hashStringWithPepper;
 import static org.backmeup.keyserver.model.KeyserverUtils.toBase64String;
 
 import java.io.IOException;
@@ -17,9 +17,10 @@ import javax.enterprise.context.ApplicationScoped;
 
 import org.backmeup.keyserver.core.config.Configuration;
 import org.backmeup.keyserver.core.config.KeyringConfiguration;
-import org.backmeup.keyserver.core.crypto.Keyring;
 import org.backmeup.keyserver.core.db.Database;
 import org.backmeup.keyserver.core.db.DatabaseException;
+import org.backmeup.keyserver.crypto.EncryptionUtils;
+import org.backmeup.keyserver.crypto.Keyring;
 import org.backmeup.keyserver.model.App;
 import org.backmeup.keyserver.model.App.Approle;
 import org.backmeup.keyserver.model.AuthResponse;

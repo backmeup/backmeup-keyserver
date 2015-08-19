@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
-import org.backmeup.keyserver.core.crypto.Keyring;
+import org.backmeup.keyserver.crypto.Keyring;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 

@@ -1,4 +1,4 @@
-package org.backmeup.keyserver.core.crypto.impl;
+package org.backmeup.keyserver.crypto.impl;
 
 import java.security.AlgorithmParameters;
 import java.security.InvalidAlgorithmParameterException;
@@ -14,8 +14,8 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
-import org.backmeup.keyserver.core.EncryptionUtils;
-import org.backmeup.keyserver.core.crypto.SymmetricEncryptionProvider;
+import org.backmeup.keyserver.crypto.EncryptionUtils;
+import org.backmeup.keyserver.crypto.SymmetricEncryptionProvider;
 import org.backmeup.keyserver.model.CryptoException;
 
 public class AESEncryptionProvider implements SymmetricEncryptionProvider {

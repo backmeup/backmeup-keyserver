@@ -1,4 +1,4 @@
-package org.backmeup.keyserver.core.crypto.impl;
+package org.backmeup.keyserver.crypto.impl;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -9,7 +9,7 @@ import java.security.PublicKey;
 import javax.crypto.Cipher;
 import javax.crypto.NoSuchPaddingException;
 
-import org.backmeup.keyserver.core.crypto.AsymmetricEncryptionProvider;
+import org.backmeup.keyserver.crypto.AsymmetricEncryptionProvider;
 import org.backmeup.keyserver.model.CryptoException;
 
 public class RSAEncryptionProvider implements AsymmetricEncryptionProvider {

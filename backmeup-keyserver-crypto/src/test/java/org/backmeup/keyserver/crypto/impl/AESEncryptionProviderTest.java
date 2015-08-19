@@ -1,10 +1,10 @@
-package org.backmeup.keyserver.core.crypto.impl;
+package org.backmeup.keyserver.crypto.impl;
 
 import static org.junit.Assert.*;
 
 import org.apache.commons.codec.binary.StringUtils;
-import org.backmeup.keyserver.core.crypto.SymmetricEncryptionProvider;
-import org.backmeup.keyserver.core.crypto.impl.AESEncryptionProvider;
+import org.backmeup.keyserver.crypto.SymmetricEncryptionProvider;
+import org.backmeup.keyserver.crypto.impl.AESEncryptionProvider;
 import org.backmeup.keyserver.model.CryptoException;
 import org.junit.Test;
 

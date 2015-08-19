@@ -1,13 +1,13 @@
 package org.backmeup.keyserver.core;
 
-import static org.backmeup.keyserver.core.EncryptionUtils.fmtKey;
-import static org.backmeup.keyserver.core.EncryptionUtils.generateSymmetricKey;
+import static org.backmeup.keyserver.crypto.EncryptionUtils.fmtKey;
+import static org.backmeup.keyserver.crypto.EncryptionUtils.generateSymmetricKey;
 
 import java.text.MessageFormat;
 
-import org.backmeup.keyserver.core.crypto.Keyring;
-import org.backmeup.keyserver.core.crypto.PepperApps;
 import org.backmeup.keyserver.core.db.DatabaseException;
+import org.backmeup.keyserver.crypto.Keyring;
+import org.backmeup.keyserver.crypto.PepperApps;
 import org.backmeup.keyserver.model.CryptoException;
 import org.backmeup.keyserver.model.EntryNotFoundException;
 import org.backmeup.keyserver.model.KeyserverEntry;

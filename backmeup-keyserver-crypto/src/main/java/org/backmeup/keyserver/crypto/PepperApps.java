@@ -1,4 +1,4 @@
-package org.backmeup.keyserver.core.crypto;
+package org.backmeup.keyserver.crypto;
 
 public final class PepperApps {
     public static final String USER_ID = "UserId";

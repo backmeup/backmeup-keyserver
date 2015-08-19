@@ -1,6 +1,6 @@
 package org.backmeup.keyserver.core;
 
-import static org.backmeup.keyserver.core.EncryptionUtils.*;
+import static org.backmeup.keyserver.crypto.EncryptionUtils.*;
 import static org.backmeup.keyserver.model.KeyserverUtils.toBase64String;
 
 import java.io.IOException;
@@ -10,9 +10,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.backmeup.keyserver.core.crypto.Keyring;
-import org.backmeup.keyserver.core.crypto.PepperApps;
 import org.backmeup.keyserver.core.db.DatabaseException;
+import org.backmeup.keyserver.crypto.Keyring;
+import org.backmeup.keyserver.crypto.PepperApps;
 import org.backmeup.keyserver.model.AuthResponse;
 import org.backmeup.keyserver.model.CryptoException;
 import org.backmeup.keyserver.model.EntryNotFoundException;

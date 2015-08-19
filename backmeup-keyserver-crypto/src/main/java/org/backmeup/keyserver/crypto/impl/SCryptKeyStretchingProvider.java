@@ -1,8 +1,8 @@
-package org.backmeup.keyserver.core.crypto.impl;
+package org.backmeup.keyserver.crypto.impl;
 
 import java.security.GeneralSecurityException;
 
-import org.backmeup.keyserver.core.crypto.KeyStretchingProvider;
+import org.backmeup.keyserver.crypto.KeyStretchingProvider;
 import org.backmeup.keyserver.model.CryptoException;
 
 import com.lambdaworks.crypto.SCrypt;

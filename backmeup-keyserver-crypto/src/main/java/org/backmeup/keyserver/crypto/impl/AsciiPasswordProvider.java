@@ -1,7 +1,7 @@
-package org.backmeup.keyserver.core.crypto.impl;
+package org.backmeup.keyserver.crypto.impl;
 
 import org.apache.commons.lang3.RandomStringUtils;
-import org.backmeup.keyserver.core.crypto.PasswordProvider;
+import org.backmeup.keyserver.crypto.PasswordProvider;
 
 public class AsciiPasswordProvider implements PasswordProvider {
     private static final String ASCII_LOWERCASE_CHARS = "abcdefghijklmnopqrstuvwxyz";

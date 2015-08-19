@@ -1,4 +1,4 @@
-package org.backmeup.keyserver.core.crypto.impl;
+package org.backmeup.keyserver.crypto.impl;
 
 import static org.junit.Assert.*;
 
@@ -7,7 +7,8 @@ import java.security.KeyPair;
 import javax.crypto.BadPaddingException;
 
 import org.apache.commons.codec.binary.StringUtils;
-import org.backmeup.keyserver.core.crypto.AsymmetricEncryptionProvider;
+import org.backmeup.keyserver.crypto.AsymmetricEncryptionProvider;
+import org.backmeup.keyserver.crypto.impl.RSAEncryptionProvider;
 import org.backmeup.keyserver.model.CryptoException;
 import org.junit.Test;
 

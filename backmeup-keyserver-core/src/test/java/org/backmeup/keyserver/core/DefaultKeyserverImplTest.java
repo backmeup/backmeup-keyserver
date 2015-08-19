@@ -23,8 +23,8 @@ import java.util.Map;
 
 import org.apache.commons.codec.binary.StringUtils;
 import org.backmeup.keyserver.core.config.Configuration;
-import org.backmeup.keyserver.core.crypto.AsymmetricEncryptionProvider;
-import org.backmeup.keyserver.core.crypto.impl.RSAEncryptionProvider;
+import org.backmeup.keyserver.crypto.AsymmetricEncryptionProvider;
+import org.backmeup.keyserver.crypto.impl.RSAEncryptionProvider;
 import org.backmeup.keyserver.model.App;
 import org.backmeup.keyserver.model.App.Approle;
 import org.backmeup.keyserver.model.AuthResponse;

@@ -1,4 +1,4 @@
-package org.backmeup.keyserver.core.crypto;
+package org.backmeup.keyserver.crypto;
 
 import java.util.HashMap;
 import java.util.Map;

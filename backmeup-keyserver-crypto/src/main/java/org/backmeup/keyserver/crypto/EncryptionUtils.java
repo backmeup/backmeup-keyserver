@@ -1,17 +1,10 @@
-package org.backmeup.keyserver.core;
+package org.backmeup.keyserver.crypto;
 
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.text.MessageFormat;
 import java.util.Arrays;
 
-import org.backmeup.keyserver.core.crypto.AsymmetricEncryptionProvider;
-import org.backmeup.keyserver.core.crypto.SymmetricEncryptionProvider;
-import org.backmeup.keyserver.core.crypto.HashProvider;
-import org.backmeup.keyserver.core.crypto.KeyStretchingProvider;
-import org.backmeup.keyserver.core.crypto.Keyring;
-import org.backmeup.keyserver.core.crypto.PasswordProvider;
-import org.backmeup.keyserver.core.crypto.ProviderRegistry;
 import org.backmeup.keyserver.model.CryptoException;
 import org.backmeup.keyserver.model.KeyserverUtils;
 import org.apache.commons.codec.binary.StringUtils;

@@ -1,7 +1,7 @@
 package org.backmeup.keyserver.core;
 
-import static org.backmeup.keyserver.core.EncryptionUtils.concat;
-import static org.backmeup.keyserver.core.EncryptionUtils.split;
+import static org.backmeup.keyserver.crypto.EncryptionUtils.concat;
+import static org.backmeup.keyserver.crypto.EncryptionUtils.split;
 import static org.junit.Assert.assertArrayEquals;
 
 import org.junit.Test;

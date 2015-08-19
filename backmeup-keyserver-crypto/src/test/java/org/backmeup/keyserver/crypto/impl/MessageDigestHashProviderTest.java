@@ -1,10 +1,10 @@
-package org.backmeup.keyserver.core.crypto.impl;
+package org.backmeup.keyserver.crypto.impl;
 
 import static org.junit.Assert.*;
 
 import org.apache.commons.codec.binary.StringUtils;
-import org.backmeup.keyserver.core.crypto.HashProvider;
-import org.backmeup.keyserver.core.crypto.impl.MessageDigestHashProvider;
+import org.backmeup.keyserver.crypto.HashProvider;
+import org.backmeup.keyserver.crypto.impl.MessageDigestHashProvider;
 import org.backmeup.keyserver.model.CryptoException;
 import org.backmeup.keyserver.model.KeyserverUtils;
 import org.junit.Test;

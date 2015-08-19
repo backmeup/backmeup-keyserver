@@ -1,4 +1,4 @@
-package org.backmeup.keyserver.core.crypto;
+package org.backmeup.keyserver.crypto;
 
 import org.backmeup.keyserver.model.CryptoException;
 
