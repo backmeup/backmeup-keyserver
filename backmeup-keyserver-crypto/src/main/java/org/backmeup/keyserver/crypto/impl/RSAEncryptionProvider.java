@@ -27,10 +27,15 @@ public class RSAEncryptionProvider implements AsymmetricEncryptionProvider {
             throw new IllegalArgumentException(e);
         }
     }
-
+    
     @Override
     public String getAlgorithm() {
         return this.algorithm;
+    }
+    
+    @Override
+    public Cipher getCipher() {
+        return this.cipher;
     }
 
     @Override
