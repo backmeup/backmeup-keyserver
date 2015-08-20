@@ -13,6 +13,12 @@
 			<artifactId>commons-codec</artifactId>
 			<version>${version.commons-codec}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.backmeup</groupId>
+			<artifactId>backmeup-keyserver-crypto</artifactId>
+			<version>${version.backmeup.keyserver.crypto}</version>
+			<type>bundle</type>
+		</dependency>
 	</dependencies>
 	<packaging>bundle</packaging>
 	<name>BackMeUp Keyserver Fileencryption</name>
