@@ -5,7 +5,6 @@ import static org.junit.Assert.*;
 import java.io.File;
 import java.io.IOException;
 import java.security.KeyPair;
-import java.util.Arrays;
 import java.util.List;
 
 import javax.crypto.BadPaddingException;
@@ -19,10 +18,13 @@ import org.junit.Test;
 
 public class KeystoreTest {
 
-    public Keystore prepareKeystore() throws CryptoException, IOException {
-        SymmetricEncryptionProvider symmetricEncryption = new AESEncryptionProvider("AES/CBC/PKCS5Padding");
+    private static final String AES_MODE = "AES/CBC/PKCS5Padding";
+    private static final int AES_KEY_LENGTH = 256;
+    
+    public FileKeystore prepareKeystore() throws CryptoException, IOException {
+        SymmetricEncryptionProvider symmetricEncryption = new AESEncryptionProvider(AES_MODE);
         AsymmetricEncryptionProvider asymmetricEncryption = new RSAEncryptionProvider();
-        Keystore ks = new Keystore(symmetricEncryption, 256, asymmetricEncryption, File.createTempFile("themis_", ".keys"));
+        FileKeystore ks = new FileKeystore(symmetricEncryption.generateKey(AES_KEY_LENGTH), asymmetricEncryption, File.createTempFile("themis_", ".keys"));
         assertEquals(0, ks.listReceivers().size());
         return ks;
     }
@@ -106,8 +108,8 @@ public class KeystoreTest {
         ks.addReceiver("user2", kp2.getPublic());
         assertTrue(ks.hasReceiver("user2"));
         
-        byte[] fileKey1 = ks.getFileKey("user1", kp1.getPrivate());
-        byte[] fileKey2 = ks.getFileKey("user2", kp2.getPrivate());
+        byte[] fileKey1 = ks.getSecretKey("user1", kp1.getPrivate());
+        byte[] fileKey2 = ks.getSecretKey("user2", kp2.getPrivate());
         assertNotNull(fileKey1);
         assertNotNull(fileKey2);
         assertArrayEquals(fileKey1, fileKey2);
@@ -120,7 +122,7 @@ public class KeystoreTest {
         
         KeyPair kp1 = asymmetricEncryption.generateKey(2048);
         try {
-            ks.getFileKey("user1", kp1.getPrivate());
+            ks.getSecretKey("user1", kp1.getPrivate());
             fail();
         } catch(CryptoException e) {
             assertTrue(e.getMessage().startsWith("no keystore entry"));
@@ -138,7 +140,7 @@ public class KeystoreTest {
         
         KeyPair kp2 = asymmetricEncryption.generateKey(2048);
         try {
-            ks.getFileKey("user1", kp2.getPrivate());
+            ks.getSecretKey("user1", kp2.getPrivate());
             fail();
         } catch(CryptoException e) {
             assertTrue(e.getCause() instanceof BadPaddingException);
@@ -158,8 +160,8 @@ public class KeystoreTest {
         ks.addReceiver("user2", kp2.getPublic());
         assertTrue(ks.hasReceiver("user2"));
         
-        byte[] fileKey1 = ks.getFileKey(kp1.getPrivate());
-        byte[] fileKey2 = ks.getFileKey(kp2.getPrivate());
+        byte[] fileKey1 = ks.getSecretKey(kp1.getPrivate());
+        byte[] fileKey2 = ks.getSecretKey(kp2.getPrivate());
         assertNotNull(fileKey1);
         assertNotNull(fileKey2);
         assertArrayEquals(fileKey1, fileKey2);
@@ -178,7 +180,7 @@ public class KeystoreTest {
         assertFalse(ks.hasReceiver("user2"));
         
         try {
-            ks.getFileKey(kp2.getPrivate());
+            ks.getSecretKey(kp2.getPrivate());
             fail();
         } catch(CryptoException e) {
             assertTrue(e.getMessage().startsWith("no keystore entry matching given private key"));
@@ -187,12 +189,12 @@ public class KeystoreTest {
     
     @Test
     public void testSaveAndLoadKeystore() throws CryptoException, IOException {
-        Keystore ks = prepareKeystore();
+        FileKeystore ks = prepareKeystore();
         AsymmetricEncryptionProvider asymmetricEncryption = ks.getAsymmetricEncryption();
         
         KeyPair kp1 = asymmetricEncryption.generateKey(2048);
         ks.addReceiver("user1", kp1.getPublic());
-        byte[] fileKey1 = ks.getFileKey("user1", kp1.getPrivate());
+        byte[] fileKey1 = ks.getSecretKey("user1", kp1.getPrivate());
         
         KeyPair kp2 = asymmetricEncryption.generateKey(2048);
         ks.addReceiver("user2", kp2.getPublic());
@@ -201,14 +203,14 @@ public class KeystoreTest {
         ks.save();
         File keystore = ks.getKeystore();
         
-        ks = new Keystore(ks.getSymmetricEncryption(), 256, ks.getAsymmetricEncryption(), keystore);
+        ks = new FileKeystore(ks.getAsymmetricEncryption(), keystore);
         assertEquals(0, ks.listReceivers().size());
         ks.load();     
         assertEquals(2, ks.listReceivers().size());
         ks.hasReceiver("user1");
         ks.hasReceiver("user2");
         
-        byte[] fileKey2 = ks.getFileKey("user1", kp1.getPrivate());
+        byte[] fileKey2 = ks.getSecretKey("user1", kp1.getPrivate());
         assertArrayEquals(fileKey1, fileKey2);
     }
 }
