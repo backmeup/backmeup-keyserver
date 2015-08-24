@@ -17,10 +17,8 @@
 			<groupId>org.backmeup</groupId>
 			<artifactId>backmeup-keyserver-crypto</artifactId>
 			<version>${version.backmeup.keyserver.crypto}</version>
-			<type>bundle</type>
 		</dependency>
 	</dependencies>
-	<packaging>bundle</packaging>
 	<name>BackMeUp Keyserver Fileencryption</name>
 
 	<build>

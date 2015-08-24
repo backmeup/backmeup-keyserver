@@ -7,7 +7,6 @@
 		<version>1.1-SNAPSHOT</version>
 	</parent>
 	<artifactId>backmeup-keyserver-client</artifactId>
-	<packaging>bundle</packaging>
 	<name>BackMeUp Keyserver Client</name>
 
 	<dependencies>

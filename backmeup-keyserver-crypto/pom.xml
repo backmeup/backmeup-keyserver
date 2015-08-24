@@ -30,7 +30,6 @@
 			<version>${version.com.lambdaworks.scrypt}</version>
 		</dependency>
 	</dependencies>
-	<packaging>bundle</packaging>
 	<name>BackMeUp Keyserver Cryptographic</name>
 
 	<build>
