@@ -28,42 +28,50 @@ public class EncryptionOutputStream extends FilterOutputStream {
     private Keystore keystore;
     private Writer keystoreWriter;
     
-    public EncryptionOutputStream(String path, String ownerId, PublicKey ownerPublicKey) throws CryptoException, IOException {
+    public EncryptionOutputStream(String path, String ownerId, PublicKey ownerPublicKey) throws IOException {
         this(new File(path), ownerId, ownerPublicKey);
     }
     
-    public EncryptionOutputStream(File file, String ownerId, PublicKey ownerPublicKey) throws CryptoException, IOException {
+    public EncryptionOutputStream(File file, String ownerId, PublicKey ownerPublicKey) throws IOException {
         super(new FileOutputStream(file));
-        this.initEncryption();
-        
-        this.keystore = new FileKeystore(this.fileKey, asymmetricEncryption, new File(file.getAbsolutePath()+Configuration.KEYSTORE_SUFFIX));
-        this.keystore.addReceiver(ownerId, ownerPublicKey);
-        
-        this.initCipherStream();
+        try {
+            this.initEncryption();
+            
+            this.keystore = new FileKeystore(this.fileKey, asymmetricEncryption, new File(file.getAbsolutePath()+Configuration.KEYSTORE_SUFFIX));
+            this.keystore.addReceiver(ownerId, ownerPublicKey);
+            
+            this.initCipherStream();
+        } catch (CryptoException e) {
+            throw new IOException(e);
+        }
     }
     
-    public EncryptionOutputStream(OutputStream out, Keystore keystore, String ownerId, PublicKey ownerPublicKey) throws CryptoException, IOException {
+    public EncryptionOutputStream(OutputStream out, Keystore keystore, String ownerId, PublicKey ownerPublicKey) throws IOException {
         this(out, keystore, null, ownerId, ownerPublicKey);
     }
     
-    public EncryptionOutputStream(OutputStream out, Writer keystoreWriter, String ownerId, PublicKey ownerPublicKey) throws CryptoException, IOException {
+    public EncryptionOutputStream(OutputStream out, Writer keystoreWriter, String ownerId, PublicKey ownerPublicKey) throws IOException {
         this(out, null, keystoreWriter, ownerId, ownerPublicKey);
     }
     
-    private EncryptionOutputStream(OutputStream out, Keystore keystore, Writer keystoreWriter, String ownerId, PublicKey ownerPublicKey) throws CryptoException, IOException {
+    private EncryptionOutputStream(OutputStream out, Keystore keystore, Writer keystoreWriter, String ownerId, PublicKey ownerPublicKey) throws IOException {
         super(out);
-        this.initEncryption();
-        
-        if (keystore == null) {
-            this.keystore = new Keystore(this.fileKey, asymmetricEncryption);
-        } else {
-            this.keystore = keystore;
-            this.keystore.setSecretKey(this.fileKey);
+        try {
+            this.initEncryption();
+            
+            if (keystore == null) {
+                this.keystore = new Keystore(this.fileKey, asymmetricEncryption);
+            } else {
+                this.keystore = keystore;
+                this.keystore.setSecretKey(this.fileKey);
+            }
+            this.keystore.addReceiver(ownerId, ownerPublicKey);
+            this.keystoreWriter = keystoreWriter;
+            
+            this.initCipherStream();
+        } catch (CryptoException e) {
+            throw new IOException(e);
         }
-        this.keystore.addReceiver(ownerId, ownerPublicKey);
-        this.keystoreWriter = keystoreWriter;
-        
-        this.initCipherStream();
     }
     
     private void initEncryption() throws CryptoException {

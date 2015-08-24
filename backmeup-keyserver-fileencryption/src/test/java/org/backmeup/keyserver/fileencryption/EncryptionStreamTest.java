@@ -84,8 +84,8 @@ public class EncryptionStreamTest {
         try {
             readTestfile(tf.file, USER2_ID, kp2.getPrivate());
             fail();
-        } catch(CryptoException e) {
-            assertEquals("no keystore entry for " + USER2_ID, e.getMessage());
+        } catch(IOException e) {
+            assertEquals("no keystore entry for " + USER2_ID, e.getCause().getMessage());
         }
     }
     
@@ -97,8 +97,8 @@ public class EncryptionStreamTest {
         try {
             readTestfile(tf.file, USER1_ID, kp2.getPrivate());
             fail();
-        } catch(CryptoException e) {
-            assertTrue(e.getCause() instanceof BadPaddingException);
+        } catch(IOException e) {
+            assertTrue(e.getCause() instanceof CryptoException);
         }
     }
     
@@ -131,8 +131,8 @@ public class EncryptionStreamTest {
         try {
             readTestfile(tf.file, USER2_ID, kp2.getPrivate());
             fail();
-        } catch(CryptoException e) {
-            assertEquals("no keystore entry for " + USER2_ID, e.getMessage());
+        } catch(IOException e) {
+            assertEquals("no keystore entry for " + USER2_ID, e.getCause().getMessage());
         }
         
         EncryptionInputStream ein = new EncryptionInputStream(tf.file, USER1_ID, tf.kp.getPrivate());
@@ -181,8 +181,8 @@ public class EncryptionStreamTest {
         try {
             readTestfile(tf.file, USER2_ID, kp2.getPrivate());
             fail();
-        } catch(CryptoException e) {
-            assertEquals("no keystore entry for " + USER2_ID, e.getMessage());
+        } catch(IOException e) {
+            assertEquals("no keystore entry for " + USER2_ID, e.getCause().getMessage());
         }
     }
 

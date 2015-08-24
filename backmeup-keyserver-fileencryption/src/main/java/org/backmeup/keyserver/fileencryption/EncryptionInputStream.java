@@ -30,42 +30,50 @@ public class EncryptionInputStream extends FilterInputStream {
     
     private Keystore keystore;
     
-    public EncryptionInputStream(String path, String userId, PrivateKey userPrivateKey) throws CryptoException, IOException {
+    public EncryptionInputStream(String path, String userId, PrivateKey userPrivateKey) throws IOException {
         this(new File(path), userId, userPrivateKey);
     }
     
-    public EncryptionInputStream(File file, String userId, PrivateKey userPrivateKey) throws CryptoException, IOException {
+    public EncryptionInputStream(File file, String userId, PrivateKey userPrivateKey) throws IOException {
         super(new FileInputStream(file));
-        this.initEncryption();
-        
-        this.keystore = new FileKeystore(asymmetricEncryption, new File(file.getAbsolutePath()+Configuration.KEYSTORE_SUFFIX));
-        ((FileKeystore) this.keystore).load();
-        this.fileKey = this.keystore.getSecretKey(userId, userPrivateKey);
-        
-        this.initCipherStream();
+        try {
+            this.initEncryption();
+            
+            this.keystore = new FileKeystore(asymmetricEncryption, new File(file.getAbsolutePath()+Configuration.KEYSTORE_SUFFIX));
+            ((FileKeystore) this.keystore).load();
+            this.fileKey = this.keystore.getSecretKey(userId, userPrivateKey);
+
+            this.initCipherStream();
+        } catch (CryptoException e) {
+            throw new IOException(e);
+        }
     }
     
-    public EncryptionInputStream(InputStream in, Keystore keystore, String userId, PrivateKey userPrivateKey) throws CryptoException, IOException {
+    public EncryptionInputStream(InputStream in, Keystore keystore, String userId, PrivateKey userPrivateKey) throws IOException {
         this(in, keystore, null, userId, userPrivateKey);
     }
     
-    public EncryptionInputStream(InputStream in, Reader keystoreReader, String userId, PrivateKey userPrivateKey) throws CryptoException, IOException {
+    public EncryptionInputStream(InputStream in, Reader keystoreReader, String userId, PrivateKey userPrivateKey) throws IOException {
         this(in, null, keystoreReader, userId, userPrivateKey);
     }
     
-    private EncryptionInputStream(InputStream in, Keystore keystore, Reader keystoreReader, String userId, PrivateKey userPrivateKey) throws CryptoException, IOException {
+    private EncryptionInputStream(InputStream in, Keystore keystore, Reader keystoreReader, String userId, PrivateKey userPrivateKey) throws IOException {
         super(in);
-        this.initEncryption();
-        
-        if (keystore == null) {
-            this.keystore = new Keystore(asymmetricEncryption);
-            this.keystore.load(keystoreReader);
-        } else {
-            this.keystore = keystore;
+        try {
+            this.initEncryption();
+            
+            if (keystore == null) {
+                this.keystore = new Keystore(asymmetricEncryption);
+                this.keystore.load(keystoreReader);
+            } else {
+                this.keystore = keystore;
+            }
+            this.fileKey = this.keystore.getSecretKey(userId, userPrivateKey);
+            
+            this.initCipherStream();
+        } catch (CryptoException e) {
+            throw new IOException(e);
         }
-        this.fileKey = this.keystore.getSecretKey(userId, userPrivateKey);
-        
-        this.initCipherStream();
     }
     
     private void initEncryption() throws CryptoException {

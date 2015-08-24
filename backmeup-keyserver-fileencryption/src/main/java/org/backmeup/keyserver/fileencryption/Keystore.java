@@ -84,12 +84,12 @@ public class Keystore {
     private Map<String, Entry> receivers;
     private byte[] secretKey;
     
-    public Keystore(AsymmetricEncryptionProvider asymmetricEncryption) throws CryptoException, IOException {
+    public Keystore(AsymmetricEncryptionProvider asymmetricEncryption) {
         this.asymmetricEncryption = asymmetricEncryption;
         this.receivers = new HashMap<>();
     }
     
-    public Keystore(byte[] secretKey, AsymmetricEncryptionProvider asymmetricEncryption) throws CryptoException, IOException {
+    public Keystore(byte[] secretKey, AsymmetricEncryptionProvider asymmetricEncryption) {
         this(asymmetricEncryption);
         this.secretKey = secretKey.clone();
     }
@@ -157,7 +157,7 @@ public class Keystore {
         return this.receivers.containsKey(id);
     }
     
-    public void save(Writer out) throws IOException, CryptoException {
+    public void save(Writer out) throws IOException, CryptoException { //NOSONAR
         if (this.secretKey == null) {
             throw new IllegalStateException(EXC_SECRET_KEY_NOT_LOADED);
         }
@@ -171,7 +171,7 @@ public class Keystore {
         }
     }
     
-    public void load(Reader in) throws IOException, CryptoException {
+    public void load(Reader in) throws IOException, CryptoException { //NOSONAR
         this.receivers = new HashMap<String, Entry>();
         try (BufferedReader bin = new BufferedReader(in)) {
             String line = null;

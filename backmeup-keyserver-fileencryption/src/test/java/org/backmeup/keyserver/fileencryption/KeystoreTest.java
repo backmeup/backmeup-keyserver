@@ -33,6 +33,46 @@ public class KeystoreTest {
     }
     
     @Test
+    public void testEntry() throws CryptoException, IOException {
+        Keystore ks = prepareKeystore();
+        AsymmetricEncryptionProvider asymmetricEncryption = ks.getAsymmetricEncryption();
+        KeyPair kp1 = asymmetricEncryption.generateKey(RSA_KEY_LENGTH);
+        
+        Keystore.Entry e1 = ks.new Entry(USER1_ID);
+        assertEquals(USER1_ID, e1.getId());
+        byte[] key = new byte[]{1,2,3,4};
+        
+        e1.setSecretKey(kp1.getPublic(), key);
+        assertArrayEquals(key, e1.getSecretKey(kp1.getPrivate()));
+        
+        String encoded = e1.save();
+        Keystore.Entry loaded = ks.new Entry();
+        loaded.load(encoded);
+        assertEquals(e1, loaded);
+        assertArrayEquals(key, loaded.getSecretKey(kp1.getPrivate()));
+        
+        try {
+            loaded = ks.new Entry();
+            loaded.load("fail");
+            fail();
+        } catch(CryptoException e) {
+            assertEquals("cannot parse keystore entry: fail", e.getMessage());
+        }
+        
+        Keystore.Entry e2 = ks.new Entry(USER1_ID);
+        e2.setSecretKey(kp1.getPublic(), new byte[]{5,6,7,8});
+        Keystore.Entry e3 = ks.new Entry(USER2_ID);
+        e3.setSecretKey(kp1.getPublic(), new byte[]{1,2,3,4});
+        
+        assertEquals(USER1_ID.hashCode(), e1.hashCode());
+        assertEquals(e1.hashCode(), e2.hashCode());
+        assertNotEquals(e1.hashCode(), e3.hashCode());
+        assertEquals(e1, e1);
+        assertEquals(e1, e2);
+        assertNotEquals(e1, e3);
+    }
+    
+    @Test
     public void testAddReceiver() throws CryptoException, IOException {
         Keystore ks = prepareKeystore();
         AsymmetricEncryptionProvider asymmetricEncryption = ks.getAsymmetricEncryption();
