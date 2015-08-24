@@ -17,14 +17,15 @@ import org.backmeup.keyserver.model.CryptoException;
 import org.junit.Test;
 
 public class KeystoreTest {
-
-    private static final String AES_MODE = "AES/CBC/PKCS5Padding";
-    private static final int AES_KEY_LENGTH = 256;
     
+    private static final int RSA_KEY_LENGTH = 2048;
+    private static final String USER1_ID = "user1";
+    private static final String USER2_ID = "user2";
+
     public FileKeystore prepareKeystore() throws CryptoException, IOException {
-        SymmetricEncryptionProvider symmetricEncryption = new AESEncryptionProvider(AES_MODE);
+        SymmetricEncryptionProvider symmetricEncryption = new AESEncryptionProvider(Configuration.AES_MODE);
         AsymmetricEncryptionProvider asymmetricEncryption = new RSAEncryptionProvider();
-        FileKeystore ks = new FileKeystore(symmetricEncryption.generateKey(AES_KEY_LENGTH), asymmetricEncryption, File.createTempFile("themis_", ".keys"));
+        FileKeystore ks = new FileKeystore(symmetricEncryption.generateKey(Configuration.AES_KEY_LENGTH), asymmetricEncryption, File.createTempFile("themis_", Configuration.KEYSTORE_SUFFIX));
         assertEquals(0, ks.listReceivers().size());
         return ks;
     }
@@ -34,19 +35,19 @@ public class KeystoreTest {
         Keystore ks = prepareKeystore();
         AsymmetricEncryptionProvider asymmetricEncryption = ks.getAsymmetricEncryption();
        
-        KeyPair kp1 = asymmetricEncryption.generateKey(2048);
-        ks.addReceiver("user1", kp1.getPublic());
+        KeyPair kp1 = asymmetricEncryption.generateKey(RSA_KEY_LENGTH);
+        ks.addReceiver(USER1_ID, kp1.getPublic());
         assertEquals(1, ks.listReceivers().size());
-        assertTrue(ks.hasReceiver("user1"));
+        assertTrue(ks.hasReceiver(USER1_ID));
         
-        KeyPair kp2 = asymmetricEncryption.generateKey(2048);
-        ks.addReceiver("user2", kp2.getPublic());
+        KeyPair kp2 = asymmetricEncryption.generateKey(RSA_KEY_LENGTH);
+        ks.addReceiver(USER2_ID, kp2.getPublic());
         assertEquals(2, ks.listReceivers().size());
-        assertTrue(ks.hasReceiver("user2"));
+        assertTrue(ks.hasReceiver(USER2_ID));
         
         List<String> ids = ks.listReceivers();
-        ids.contains("user1");
-        ids.contains("user2");
+        ids.contains(USER1_ID);
+        ids.contains(USER2_ID);
     }
     
     @Test
@@ -54,16 +55,16 @@ public class KeystoreTest {
         Keystore ks = prepareKeystore();
         AsymmetricEncryptionProvider asymmetricEncryption = ks.getAsymmetricEncryption();
         
-        KeyPair kp1 = asymmetricEncryption.generateKey(2048);
-        ks.addReceiver("user1", kp1.getPublic());
-        assertTrue(ks.hasReceiver("user1"));
+        KeyPair kp1 = asymmetricEncryption.generateKey(RSA_KEY_LENGTH);
+        ks.addReceiver(USER1_ID, kp1.getPublic());
+        assertTrue(ks.hasReceiver(USER1_ID));
         try {
-            ks.addReceiver("user1", kp1.getPublic());
+            ks.addReceiver(USER1_ID, kp1.getPublic());
             fail();
         } catch(CryptoException e) {
             assertTrue(e.getMessage().startsWith("keystore entry already exists"));
         }
-        assertTrue(ks.hasReceiver("user1"));
+        assertTrue(ks.hasReceiver(USER1_ID));
         assertEquals(1, ks.listReceivers().size());
     }
     
@@ -72,13 +73,13 @@ public class KeystoreTest {
         Keystore ks = prepareKeystore();
         AsymmetricEncryptionProvider asymmetricEncryption = ks.getAsymmetricEncryption();
         
-        KeyPair kp1 = asymmetricEncryption.generateKey(2048);
-        ks.addReceiver("user1", kp1.getPublic());
+        KeyPair kp1 = asymmetricEncryption.generateKey(RSA_KEY_LENGTH);
+        ks.addReceiver(USER1_ID, kp1.getPublic());
         assertEquals(1, ks.listReceivers().size());
-        assertTrue(ks.hasReceiver("user1"));
-        assertTrue(ks.removeReceiver("user1"));
+        assertTrue(ks.hasReceiver(USER1_ID));
+        assertTrue(ks.removeReceiver(USER1_ID));
         assertEquals(0, ks.listReceivers().size());
-        assertFalse(ks.hasReceiver("user1"));
+        assertFalse(ks.hasReceiver(USER1_ID));
     }
     
     @Test
@@ -86,13 +87,13 @@ public class KeystoreTest {
         Keystore ks = prepareKeystore();
         AsymmetricEncryptionProvider asymmetricEncryption = ks.getAsymmetricEncryption();
         
-        KeyPair kp1 = asymmetricEncryption.generateKey(2048);
-        ks.addReceiver("user1", kp1.getPublic());
+        KeyPair kp1 = asymmetricEncryption.generateKey(RSA_KEY_LENGTH);
+        ks.addReceiver(USER1_ID, kp1.getPublic());
         assertEquals(1, ks.listReceivers().size());
-        assertTrue(ks.hasReceiver("user1"));
-        assertFalse(ks.removeReceiver("user2"));
+        assertTrue(ks.hasReceiver(USER1_ID));
+        assertFalse(ks.removeReceiver(USER2_ID));
         assertEquals(1, ks.listReceivers().size());
-        assertTrue(ks.hasReceiver("user1"));
+        assertTrue(ks.hasReceiver(USER1_ID));
     }
     
     @Test
@@ -100,16 +101,16 @@ public class KeystoreTest {
         Keystore ks = prepareKeystore();
         AsymmetricEncryptionProvider asymmetricEncryption = ks.getAsymmetricEncryption();
         
-        KeyPair kp1 = asymmetricEncryption.generateKey(2048);
-        ks.addReceiver("user1", kp1.getPublic());
-        assertTrue(ks.hasReceiver("user1"));
+        KeyPair kp1 = asymmetricEncryption.generateKey(RSA_KEY_LENGTH);
+        ks.addReceiver(USER1_ID, kp1.getPublic());
+        assertTrue(ks.hasReceiver(USER1_ID));
         
-        KeyPair kp2 = asymmetricEncryption.generateKey(2048);
-        ks.addReceiver("user2", kp2.getPublic());
-        assertTrue(ks.hasReceiver("user2"));
+        KeyPair kp2 = asymmetricEncryption.generateKey(RSA_KEY_LENGTH);
+        ks.addReceiver(USER2_ID, kp2.getPublic());
+        assertTrue(ks.hasReceiver(USER2_ID));
         
-        byte[] fileKey1 = ks.getSecretKey("user1", kp1.getPrivate());
-        byte[] fileKey2 = ks.getSecretKey("user2", kp2.getPrivate());
+        byte[] fileKey1 = ks.getSecretKey(USER1_ID, kp1.getPrivate());
+        byte[] fileKey2 = ks.getSecretKey(USER2_ID, kp2.getPrivate());
         assertNotNull(fileKey1);
         assertNotNull(fileKey2);
         assertArrayEquals(fileKey1, fileKey2);
@@ -120,9 +121,9 @@ public class KeystoreTest {
         Keystore ks = prepareKeystore();
         AsymmetricEncryptionProvider asymmetricEncryption = ks.getAsymmetricEncryption();
         
-        KeyPair kp1 = asymmetricEncryption.generateKey(2048);
+        KeyPair kp1 = asymmetricEncryption.generateKey(RSA_KEY_LENGTH);
         try {
-            ks.getSecretKey("user1", kp1.getPrivate());
+            ks.getSecretKey(USER1_ID, kp1.getPrivate());
             fail();
         } catch(CryptoException e) {
             assertTrue(e.getMessage().startsWith("no keystore entry"));
@@ -134,13 +135,13 @@ public class KeystoreTest {
         Keystore ks = prepareKeystore();
         AsymmetricEncryptionProvider asymmetricEncryption = ks.getAsymmetricEncryption();
         
-        KeyPair kp1 = asymmetricEncryption.generateKey(2048);
-        ks.addReceiver("user1", kp1.getPublic());
-        assertTrue(ks.hasReceiver("user1"));
+        KeyPair kp1 = asymmetricEncryption.generateKey(RSA_KEY_LENGTH);
+        ks.addReceiver(USER1_ID, kp1.getPublic());
+        assertTrue(ks.hasReceiver(USER1_ID));
         
-        KeyPair kp2 = asymmetricEncryption.generateKey(2048);
+        KeyPair kp2 = asymmetricEncryption.generateKey(RSA_KEY_LENGTH);
         try {
-            ks.getSecretKey("user1", kp2.getPrivate());
+            ks.getSecretKey(USER1_ID, kp2.getPrivate());
             fail();
         } catch(CryptoException e) {
             assertTrue(e.getCause() instanceof BadPaddingException);
@@ -152,13 +153,13 @@ public class KeystoreTest {
         Keystore ks = prepareKeystore();
         AsymmetricEncryptionProvider asymmetricEncryption = ks.getAsymmetricEncryption();
         
-        KeyPair kp1 = asymmetricEncryption.generateKey(2048);
-        ks.addReceiver("user1", kp1.getPublic());
-        assertTrue(ks.hasReceiver("user1"));
+        KeyPair kp1 = asymmetricEncryption.generateKey(RSA_KEY_LENGTH);
+        ks.addReceiver(USER1_ID, kp1.getPublic());
+        assertTrue(ks.hasReceiver(USER1_ID));
         
-        KeyPair kp2 = asymmetricEncryption.generateKey(2048);
-        ks.addReceiver("user2", kp2.getPublic());
-        assertTrue(ks.hasReceiver("user2"));
+        KeyPair kp2 = asymmetricEncryption.generateKey(RSA_KEY_LENGTH);
+        ks.addReceiver(USER2_ID, kp2.getPublic());
+        assertTrue(ks.hasReceiver(USER2_ID));
         
         byte[] fileKey1 = ks.getSecretKey(kp1.getPrivate());
         byte[] fileKey2 = ks.getSecretKey(kp2.getPrivate());
@@ -172,12 +173,12 @@ public class KeystoreTest {
         Keystore ks = prepareKeystore();
         AsymmetricEncryptionProvider asymmetricEncryption = ks.getAsymmetricEncryption();
         
-        KeyPair kp1 = asymmetricEncryption.generateKey(2048);
-        ks.addReceiver("user1", kp1.getPublic());
-        assertTrue(ks.hasReceiver("user1"));
+        KeyPair kp1 = asymmetricEncryption.generateKey(RSA_KEY_LENGTH);
+        ks.addReceiver(USER1_ID, kp1.getPublic());
+        assertTrue(ks.hasReceiver(USER1_ID));
         
-        KeyPair kp2 = asymmetricEncryption.generateKey(2048);
-        assertFalse(ks.hasReceiver("user2"));
+        KeyPair kp2 = asymmetricEncryption.generateKey(RSA_KEY_LENGTH);
+        assertFalse(ks.hasReceiver(USER2_ID));
         
         try {
             ks.getSecretKey(kp2.getPrivate());
@@ -192,13 +193,13 @@ public class KeystoreTest {
         FileKeystore ks = prepareKeystore();
         AsymmetricEncryptionProvider asymmetricEncryption = ks.getAsymmetricEncryption();
         
-        KeyPair kp1 = asymmetricEncryption.generateKey(2048);
-        ks.addReceiver("user1", kp1.getPublic());
-        byte[] fileKey1 = ks.getSecretKey("user1", kp1.getPrivate());
+        KeyPair kp1 = asymmetricEncryption.generateKey(RSA_KEY_LENGTH);
+        ks.addReceiver(USER1_ID, kp1.getPublic());
+        byte[] fileKey1 = ks.getSecretKey(USER1_ID, kp1.getPrivate());
         
-        KeyPair kp2 = asymmetricEncryption.generateKey(2048);
-        ks.addReceiver("user2", kp2.getPublic());
-        assertTrue(ks.hasReceiver("user2"));
+        KeyPair kp2 = asymmetricEncryption.generateKey(RSA_KEY_LENGTH);
+        ks.addReceiver(USER2_ID, kp2.getPublic());
+        assertTrue(ks.hasReceiver(USER2_ID));
         
         ks.save();
         File keystore = ks.getKeystore();
@@ -207,10 +208,10 @@ public class KeystoreTest {
         assertEquals(0, ks.listReceivers().size());
         ks.load();     
         assertEquals(2, ks.listReceivers().size());
-        ks.hasReceiver("user1");
-        ks.hasReceiver("user2");
+        ks.hasReceiver(USER1_ID);
+        ks.hasReceiver(USER2_ID);
         
-        byte[] fileKey2 = ks.getSecretKey("user1", kp1.getPrivate());
+        byte[] fileKey2 = ks.getSecretKey(USER1_ID, kp1.getPrivate());
         assertArrayEquals(fileKey1, fileKey2);
     }
 }
