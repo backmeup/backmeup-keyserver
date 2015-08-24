@@ -8,7 +8,6 @@ import java.io.OutputStream;
 import java.io.Writer;
 import java.security.InvalidKeyException;
 import java.security.PublicKey;
-import java.util.List;
 
 import javax.crypto.Cipher;
 import javax.crypto.CipherOutputStream;
@@ -104,21 +103,5 @@ public class EncryptionOutputStream extends FilterOutputStream {
         } catch (CryptoException e) {
             throw new IOException(e);
         }
-    }
-    
-    public void addReceiver(String id, PublicKey publicKey) throws CryptoException {
-        this.keystore.addReceiver(id, publicKey);
-    }
-    
-    public List<String> listReceivers() {
-        return this.keystore.listReceivers();
-    }
-    
-    public boolean removeReceiver(String id) {
-        return this.keystore.removeReceiver(id);
-    }
-    
-    public boolean hasReceiver(String id) {
-        return this.keystore.hasReceiver(id);
     }
 }

@@ -26,6 +26,7 @@ public class EncryptionStreamTest {
     private static class Testfile {
         public File file;
         public EncryptionOutputStream out;
+        public Keystore keystore;
         public KeyPair kp;
     }
     
@@ -37,6 +38,7 @@ public class EncryptionStreamTest {
         
         tf.file = File.createTempFile("themis_", ".dat");
         tf.out = new EncryptionOutputStream(tf.file, USER1_ID, tf.kp.getPublic());
+        tf.keystore = tf.out.getKeystore();
         tf.out.write(TEST_MSG.getBytes());
         tf.out.close();
         
@@ -60,8 +62,8 @@ public class EncryptionStreamTest {
     public void testEncrypt() throws CryptoException, IOException {
         Testfile tf = writeTestfile();
         
-        assertEquals(1, tf.out.listReceivers().size());
-        assertTrue(tf.out.hasReceiver(USER1_ID));
+        assertEquals(1, tf.keystore.listReceivers().size());
+        assertTrue(tf.keystore.hasReceiver(USER1_ID));
         
         assertNotEquals(TEST_MSG, Files.readAllBytes(tf.file.toPath()));
     }
@@ -104,12 +106,12 @@ public class EncryptionStreamTest {
     public void testMultiUserDecrypt() throws CryptoException, IOException {
         Testfile tf = writeTestfile();
         KeyPair kp2 = new RSAEncryptionProvider().generateKey(RSA_KEY_LENGTH);
-        tf.out.addReceiver(USER2_ID, kp2.getPublic());
+        tf.keystore.addReceiver(USER2_ID, kp2.getPublic());
         tf.out.saveKeystore();
         
-        assertEquals(2, tf.out.listReceivers().size());
-        assertTrue(tf.out.hasReceiver(USER1_ID));
-        assertTrue(tf.out.hasReceiver(USER2_ID));
+        assertEquals(2, tf.keystore.listReceivers().size());
+        assertTrue(tf.keystore.hasReceiver(USER1_ID));
+        assertTrue(tf.keystore.hasReceiver(USER2_ID));
         
         String message = readTestfile(tf.file, USER1_ID, tf.kp.getPrivate());
         assertEquals(TEST_MSG, message);
@@ -136,12 +138,13 @@ public class EncryptionStreamTest {
         EncryptionInputStream ein = new EncryptionInputStream(tf.file, USER1_ID, tf.kp.getPrivate());
         //...
         ein.close();
-        ein.addReceiver(USER2_ID, kp2.getPublic());
+        Keystore keystore = ein.getKeystore();
+        keystore.addReceiver(USER2_ID, kp2.getPublic());
         ein.saveKeystore();
         
-        assertEquals(2, ein.listReceivers().size());
-        assertTrue(ein.hasReceiver(USER1_ID));
-        assertTrue(ein.hasReceiver(USER2_ID));
+        assertEquals(2, keystore.listReceivers().size());
+        assertTrue(keystore.hasReceiver(USER1_ID));
+        assertTrue(keystore.hasReceiver(USER2_ID));
                 
         message = readTestfile(tf.file, USER2_ID, kp2.getPrivate());
         assertEquals(TEST_MSG, message);
@@ -151,12 +154,12 @@ public class EncryptionStreamTest {
     public void testUserRemoveAfterRead() throws CryptoException, IOException {
         Testfile tf = writeTestfile();
         KeyPair kp2 = new RSAEncryptionProvider().generateKey(RSA_KEY_LENGTH);
-        tf.out.addReceiver(USER2_ID, kp2.getPublic());
+        tf.keystore.addReceiver(USER2_ID, kp2.getPublic());
         tf.out.saveKeystore();
         
-        assertEquals(2, tf.out.listReceivers().size());
-        assertTrue(tf.out.hasReceiver(USER1_ID));
-        assertTrue(tf.out.hasReceiver(USER2_ID));
+        assertEquals(2, tf.keystore.listReceivers().size());
+        assertTrue(tf.keystore.hasReceiver(USER1_ID));
+        assertTrue(tf.keystore.hasReceiver(USER2_ID));
         
         String message = readTestfile(tf.file, USER1_ID, tf.kp.getPrivate());
         assertEquals(TEST_MSG, message);
@@ -167,12 +170,13 @@ public class EncryptionStreamTest {
         EncryptionInputStream ein = new EncryptionInputStream(tf.file, USER1_ID, tf.kp.getPrivate());
         //...
         ein.close();
-        ein.removeReceiver(USER2_ID);
+        Keystore keystore = ein.getKeystore();
+        keystore.removeReceiver(USER2_ID);
         ein.saveKeystore();
         
-        assertEquals(1, ein.listReceivers().size());
-        assertTrue(ein.hasReceiver(USER1_ID));
-        assertFalse(ein.hasReceiver(USER2_ID));
+        assertEquals(1, keystore.listReceivers().size());
+        assertTrue(keystore.hasReceiver(USER1_ID));
+        assertFalse(keystore.hasReceiver(USER2_ID));
         
         try {
             readTestfile(tf.file, USER2_ID, kp2.getPrivate());

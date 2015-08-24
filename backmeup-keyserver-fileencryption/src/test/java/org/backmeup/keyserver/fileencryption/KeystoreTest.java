@@ -2,7 +2,10 @@ package org.backmeup.keyserver.fileencryption;
 
 import static org.junit.Assert.*;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.security.KeyPair;
 import java.util.List;
 
@@ -185,5 +188,46 @@ public class KeystoreTest {
         } catch(CryptoException e) {
             assertTrue(e.getMessage().startsWith("no keystore entry matching given private key"));
         }
+    }
+    
+    @Test
+    public void testUnloadedKeystore() throws CryptoException, IOException {
+        AsymmetricEncryptionProvider asymmetricEncryption = new RSAEncryptionProvider();
+        Keystore ks = new Keystore(asymmetricEncryption);
+        assertEquals(0, ks.listReceivers().size());
+        
+        KeyPair kp1 = asymmetricEncryption.generateKey(RSA_KEY_LENGTH);
+        
+        try {
+            ks.addReceiver(USER1_ID, kp1.getPublic());
+            fail();
+        } catch(IllegalStateException e) {
+            assertEquals(Keystore.EXC_SECRET_KEY_NOT_LOADED, e.getMessage());
+        }
+        try {
+            ks.removeReceiver(USER1_ID);
+            fail();
+        } catch(IllegalStateException e) {
+            assertEquals(Keystore.EXC_SECRET_KEY_NOT_LOADED, e.getMessage());
+        }
+        try {
+            ks.save(new OutputStreamWriter(new FileOutputStream(File.createTempFile("themis_", Configuration.KEYSTORE_SUFFIX)), "UTF-8"));
+            fail();
+        } catch(IllegalStateException e) {
+            assertEquals(Keystore.EXC_SECRET_KEY_NOT_LOADED, e.getMessage());
+        }
+        
+        SymmetricEncryptionProvider symmetricEncryption = new AESEncryptionProvider(Configuration.AES_MODE);
+        ks.setSecretKey(symmetricEncryption.generateKey(Configuration.AES_KEY_LENGTH));
+        ks.addReceiver(USER1_ID, kp1.getPublic());
+        assertTrue(ks.hasReceiver(USER1_ID));
+        
+        try {
+            ks.setSecretKey(symmetricEncryption.generateKey(Configuration.AES_KEY_LENGTH));
+            fail();
+        } catch(IllegalStateException e) {
+            assertEquals("cannot set secret key if receivers already exist", e.getMessage());
+        }
+        
     }
 }

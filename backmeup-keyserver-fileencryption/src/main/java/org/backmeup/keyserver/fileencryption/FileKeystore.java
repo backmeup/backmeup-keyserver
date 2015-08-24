@@ -11,6 +11,7 @@ import org.backmeup.keyserver.crypto.AsymmetricEncryptionProvider;
 import org.backmeup.keyserver.model.CryptoException;
 
 public class FileKeystore extends Keystore {
+    private static final String DEFAULT_ENCODING = "UTF-8";
     private File keystore;
     
     public FileKeystore(AsymmetricEncryptionProvider asymmetricEncryption, File keystore) throws CryptoException, IOException {
@@ -24,11 +25,11 @@ public class FileKeystore extends Keystore {
     }
         
     public void save() throws IOException, CryptoException {
-        super.save(new OutputStreamWriter(new FileOutputStream(this.keystore), "UTF-8"));
+        super.save(new OutputStreamWriter(new FileOutputStream(this.keystore), DEFAULT_ENCODING));
     }
     
     public void load() throws IOException, CryptoException {
-        super.load(new InputStreamReader(new FileInputStream(this.keystore), "UTF-8"));
+        super.load(new InputStreamReader(new FileInputStream(this.keystore), DEFAULT_ENCODING));
     }
     
     public File getKeystore() {

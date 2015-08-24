@@ -18,7 +18,7 @@ import org.backmeup.keyserver.model.KeyserverUtils;
 
 public class Keystore {
     
-    private static final String EXC_SECRET_KEY_NOT_LOADED = "secret key has to be set or loaded first";
+    protected static final String EXC_SECRET_KEY_NOT_LOADED = "secret key has to be set or loaded first";
 
     protected class Entry {
         private static final String SEPARATOR = ";";
@@ -38,19 +38,11 @@ public class Keystore {
         }
 
         protected byte[] getSecretKey(PrivateKey privateKey) throws CryptoException {
-            if (privateKey == null) {
-                throw new CryptoException("need private key to decode entry");
-            }
-
             byte[] encryptedSecretKey = KeyserverUtils.fromBase64String(this.encodedSecretKey);
             return asymmetricEncryption.decrypt(privateKey, encryptedSecretKey);
         }
 
         protected void setSecretKey(PublicKey publicKey, byte[] secretKey) throws CryptoException {
-            if (publicKey == null) {
-                throw new CryptoException("need public key to encode entry");
-            }
-            
             byte[] encryptedSecretKey = asymmetricEncryption.encrypt(publicKey, secretKey);
             this.encodedSecretKey = KeyserverUtils.toBase64String(encryptedSecretKey);
         }
