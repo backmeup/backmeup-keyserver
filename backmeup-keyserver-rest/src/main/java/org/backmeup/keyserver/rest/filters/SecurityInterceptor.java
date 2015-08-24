@@ -39,6 +39,7 @@ import org.slf4j.LoggerFactory;
 public class SecurityInterceptor implements ContainerRequestFilter {
     private static final ServerResponse ACCESS_FORBIDDEN = new ServerResponse("Access forbidden", 403, new Headers<>());
     private static final ServerResponse ACCESS_DENIED = new ServerResponse("Access denied for this resource", 401, new Headers<>());
+    private static final ServerResponse UNKNOWN_TOKEN_KIND = new ServerResponse("Unkown token kind", 400, new Headers<>());
     private static final String AUTHORIZATION_PROPERTY = "Authorization";
     private static final String TOKEN_PROPERTY = "Token";
 
@@ -92,8 +93,8 @@ public class SecurityInterceptor implements ContainerRequestFilter {
                 }
             }
         } catch (IllegalArgumentException e) {
-            requestContext.abortWith(new ServerResponse("Unkown token kind", 400, new Headers<>()));
-            LOGGER.info("Unkown token kind", e);
+            requestContext.abortWith(UNKNOWN_TOKEN_KIND);
+            LOGGER.info("Unkown token kind:", e);
             return;
         } catch (KeyserverException e) {
             requestContext.abortWith(ACCESS_DENIED);

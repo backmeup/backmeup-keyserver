@@ -36,6 +36,13 @@ public class KeyserverClient {
     protected static final GenericType<List<TokenDTO>> TOKENDTO_LIST_TYPE = new GenericType<List<TokenDTO>>() {
     };
     
+    private static final String SERVICE_USER_ID_PARAM = "serviceUserId";
+    private static final String USERNAME_PARAM = "username";
+    private static final String PASSWORD_PARAM = "password";
+    private static final String PLUGIN_ID_PARAM = "pluginId";
+    private static final String SCHEDULED_EXECUTION_TIME_PARAM = "scheduledExecutionTime";
+    private static final String NEXT_SCHEDULED_EXECUTION_TIME_PARAM = "nextScheduledExecutionTime";
+    private static final String TOKEN_HEADER_KEY = "Token";
     private static final String AUTHORIZATION_HEADER_KEY = "Authorization";
 
     @SuppressWarnings("PMD.SingularField")
@@ -126,7 +133,7 @@ public class KeyserverClient {
                     return response.readEntity(KeyserverException.class);
                 }
             } else {
-                return new KeyserverException("unparsable/-known rest response", exception);
+                return new KeyserverException("unparsable/-known rest entity", exception);
             }
         } catch (ProcessingException | IllegalStateException e) {
             if (status == Response.Status.NOT_FOUND) {
@@ -239,7 +246,7 @@ public class KeyserverClient {
             }
         }
 
-        return target.request().header(AUTHORIZATION_HEADER_KEY, authorizationHeader).header("Token", t.toTokenString());
+        return target.request().header(AUTHORIZATION_HEADER_KEY, authorizationHeader).header(TOKEN_HEADER_KEY, t.toTokenString());
     }
 
     /**
@@ -252,7 +259,7 @@ public class KeyserverClient {
      */
     public String registerUser(String username, String password) throws KeyserverException {
         try {
-            Form f = new Form().param("username", username).param("password", password);
+            Form f = new Form().param(USERNAME_PARAM, username).param(PASSWORD_PARAM, password);
 
             return this.createRequest(this.users).post(Entity.form(f), String.class);
         } catch (WebApplicationException | ProcessingException exception) {
@@ -269,7 +276,7 @@ public class KeyserverClient {
      */
     public AuthResponseDTO registerAnonymousUser(TokenDTO token) throws KeyserverException {
         try {
-            return this.createRequest(this.users.path("/anonymousUser")).header("Token", token.toTokenString()).post(Entity.form(new Form()), AuthResponseDTO.class);
+            return this.createRequest(this.users.path("/anonymousUser")).header(TOKEN_HEADER_KEY, token.toTokenString()).post(Entity.form(new Form()), AuthResponseDTO.class);
         } catch (WebApplicationException | ProcessingException exception) {
             throw this.parseException(exception);
         }
@@ -285,7 +292,7 @@ public class KeyserverClient {
      */
     public AuthResponseDTO authenticateUserWithPassword(String username, String password) throws KeyserverException {
         try {
-            Form f = new Form().param("username", username).param("password", password);
+            Form f = new Form().param(USERNAME_PARAM, username).param(PASSWORD_PARAM, password);
 
             return this.createRequest(this.theUser).post(Entity.form(f), AuthResponseDTO.class);
         } catch (WebApplicationException | ProcessingException exception) {
@@ -392,7 +399,7 @@ public class KeyserverClient {
      */
     public void removeUserByAdmin(String serviceUserId, String username) throws KeyserverException {
         try {
-            Response r = this.createRequest(this.users.path("/adminRemove").queryParam("serviceUserId", serviceUserId).queryParam("username", username)).delete();
+            Response r = this.createRequest(this.users.path("/adminRemove").queryParam(SERVICE_USER_ID_PARAM, serviceUserId).queryParam(USERNAME_PARAM, username)).delete();
             this.parsePostResponse(r);
         } catch (WebApplicationException | ProcessingException exception) {
             throw this.parseException(exception);
@@ -423,8 +430,8 @@ public class KeyserverClient {
     // =========================================================================
 
     private Builder createPluginSpecificRequest(String pluginId, TokenDTO t) {
-        return this.thePlugin.resolveTemplate("pluginId", pluginId).request().header(AUTHORIZATION_HEADER_KEY, authorizationHeader)
-                .header("Token", t.toTokenString());
+        return this.thePlugin.resolveTemplate(PLUGIN_ID_PARAM, pluginId).request().header(AUTHORIZATION_HEADER_KEY, authorizationHeader)
+                .header(TOKEN_HEADER_KEY, t.toTokenString());
     }
 
     /**
@@ -436,7 +443,7 @@ public class KeyserverClient {
      * @throws KeyserverException
      */
     public void createPluginData(TokenDTO token, String pluginId, String data) throws KeyserverException {
-        Form f = new Form().param("pluginId", pluginId).param("data", data);
+        Form f = new Form().param(PLUGIN_ID_PARAM, pluginId).param("data", data);
 
         try {
             Response r = this.createUserSpecificRequest("/plugins/", token).post(Entity.form(f));
@@ -556,9 +563,9 @@ public class KeyserverClient {
      * @throws KeyserverException
      */
     public AuthResponseDTO createOnetimeForBackup(TokenDTO token, String[] pluginIds, Calendar scheduledExecutionTime) throws KeyserverException {
-        Form f = new Form().param("scheduledExecutionTime", "" + scheduledExecutionTime.getTime().getTime());
+        Form f = new Form().param(SCHEDULED_EXECUTION_TIME_PARAM, "" + scheduledExecutionTime.getTime().getTime());
         for (String pluginId : pluginIds) {
-            f.param("pluginId", pluginId);
+            f.param(PLUGIN_ID_PARAM, pluginId);
         }
 
         try {
@@ -609,10 +616,10 @@ public class KeyserverClient {
             boolean shouldRenew = renew;
 
             if (nextScheduledExecutionTime == null) {
-                f.param("nextScheduledExecutionTime", null);
+                f.param(NEXT_SCHEDULED_EXECUTION_TIME_PARAM, null);
             } else {
                 shouldRenew = true;
-                f.param("nextScheduledExecutionTime", Long.toString(nextScheduledExecutionTime.getTime().getTime()));
+                f.param(NEXT_SCHEDULED_EXECUTION_TIME_PARAM, Long.toString(nextScheduledExecutionTime.getTime().getTime()));
             }
             f.param("renew", Boolean.toString(shouldRenew));
             
@@ -646,7 +653,7 @@ public class KeyserverClient {
     public TokenDTO getInheritanceToken(TokenDTO token, String serviceUserId) throws KeyserverException {
         try {
             Map<String, Object> queryParams = new HashMap<>();
-            queryParams.put("serviceUserId", serviceUserId);
+            queryParams.put(SERVICE_USER_ID_PARAM, serviceUserId);
             return this.createUserSpecificRequest("/inheritanceToken", token, queryParams).get(TokenDTO.class);
         } catch (WebApplicationException | ProcessingException exception) {
             throw this.parseException(exception);
