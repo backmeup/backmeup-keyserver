@@ -4,7 +4,7 @@
 
 	<groupId>org.backmeup</groupId>
 	<artifactId>backmeup-keyserver</artifactId>
-	<version>1.0-SNAPSHOT</version>
+	<version>1.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>backmeup-keyserver</name>
@@ -22,11 +22,11 @@
 		<config.integrationTestCategory>org.backmeup.keyserver.tests.IntegrationTest</config.integrationTestCategory>
 		<config.tomcat.context.path>/backmeup-keyserver-rest</config.tomcat.context.path>
 
-		<version.backmeup.keyserver.crypto>1.0-SNAPSHOT</version.backmeup.keyserver.crypto>
-		<version.backmeup.keyserver.model>1.0-SNAPSHOT</version.backmeup.keyserver.model>
-		<version.backmeup.keyserver.core>1.0-SNAPSHOT</version.backmeup.keyserver.core>
-		<version.backmeup.keyserver.client>1.0-SNAPSHOT</version.backmeup.keyserver.client>
-		<version.backmeup.keyserver.fileencryption>1.0-SNAPSHOT</version.backmeup.keyserver.fileencryption>
+		<version.backmeup.keyserver.crypto>1.1-SNAPSHOT</version.backmeup.keyserver.crypto>
+		<version.backmeup.keyserver.model>1.1-SNAPSHOT</version.backmeup.keyserver.model>
+		<version.backmeup.keyserver.core>1.1-SNAPSHOT</version.backmeup.keyserver.core>
+		<version.backmeup.keyserver.client>1.1-SNAPSHOT</version.backmeup.keyserver.client>
+		<version.backmeup.keyserver.fileencryption>1.1-SNAPSHOT</version.backmeup.keyserver.fileencryption>
 
 		<version.junit>4.11</version.junit>
 		<version.javax.servlet>3.0.1</version.javax.servlet>
