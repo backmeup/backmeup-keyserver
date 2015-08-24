@@ -21,6 +21,12 @@ import org.backmeup.keyserver.core.db.Database;
 import org.backmeup.keyserver.core.db.DatabaseException;
 import org.backmeup.keyserver.crypto.EncryptionUtils;
 import org.backmeup.keyserver.crypto.Keyring;
+import org.backmeup.keyserver.crypto.ProviderRegistry;
+import org.backmeup.keyserver.crypto.impl.AESEncryptionProvider;
+import org.backmeup.keyserver.crypto.impl.AsciiPasswordProvider;
+import org.backmeup.keyserver.crypto.impl.MessageDigestHashProvider;
+import org.backmeup.keyserver.crypto.impl.RSAEncryptionProvider;
+import org.backmeup.keyserver.crypto.impl.SCryptKeyStretchingProvider;
 import org.backmeup.keyserver.model.App;
 import org.backmeup.keyserver.model.App.Approle;
 import org.backmeup.keyserver.model.AuthResponse;
@@ -66,11 +72,25 @@ public class DefaultKeyserverImpl implements Keyserver {
     protected DefaultPluginDataLogic pluglinDataLogic;
 
     public DefaultKeyserverImpl() throws KeyserverException {
+        this.loadEncryptionProviders();
         this.loadConfig();
         this.connectDB();
         this.registerLogic();
         this.registerDefaultApps();
     }
+    
+    @SuppressWarnings("all")
+    private void loadEncryptionProviders() {
+        // load default providers
+        // TODO: how to handle dynamically/by configuration
+        ProviderRegistry.registerHashProvider("SHA-256", new MessageDigestHashProvider("SHA-256"));
+        ProviderRegistry.registerHashProvider("SHA-512", new MessageDigestHashProvider("SHA-512"));
+        ProviderRegistry.registerSymmetricEncryptionProvider("AES/CBC/PKCS5Padding", new AESEncryptionProvider("AES/CBC/PKCS5Padding"));
+        ProviderRegistry.registerAsymmetricEncryptionProvider("RSA", new RSAEncryptionProvider());
+        ProviderRegistry.registerKeyStretchingProvider("SCRYPT", new SCryptKeyStretchingProvider());
+        ProviderRegistry.registerPasswordProvider("ASCII", new AsciiPasswordProvider());
+    }
+
 
     private void loadConfig() {
         this.defaultProfile = Configuration.getProperty("backmeup.keyserver.defaultProfile");

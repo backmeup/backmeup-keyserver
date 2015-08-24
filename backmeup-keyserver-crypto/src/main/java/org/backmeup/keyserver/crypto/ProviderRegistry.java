@@ -17,24 +17,7 @@ public class ProviderRegistry {
     private static Map<String, AsymmetricEncryptionProvider> asymmetricEncryptionProviders = new HashMap<>();
     private static Map<String, PasswordProvider> passwordProviders = new HashMap<>();
 
-    static {
-        loadProviders();
-    }
-
     private ProviderRegistry() {
-
-    }
-
-    @SuppressWarnings("all")
-    private static void loadProviders() {
-        // load default providers
-        // TODO: how to handle dynamically/by configuration
-        registerHashProvider("SHA-256", new MessageDigestHashProvider("SHA-256"));
-        registerHashProvider("SHA-512", new MessageDigestHashProvider("SHA-512"));
-        registerSymmetricEncryptionProvider("AES/CBC/PKCS5Padding", new AESEncryptionProvider("AES/CBC/PKCS5Padding"));
-        registerAsymmetricEncryptionProvider("RSA", new RSAEncryptionProvider());
-        registerKeyStretchingProvider("SCRYPT", new SCryptKeyStretchingProvider());
-        registerPasswordProvider("ASCII", new AsciiPasswordProvider());
     }
 
     public static void registerHashProvider(String algorithm, HashProvider provider) {
