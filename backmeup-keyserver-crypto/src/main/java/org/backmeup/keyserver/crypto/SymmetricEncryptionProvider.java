@@ -9,6 +9,8 @@ public interface SymmetricEncryptionProvider {
 
     Cipher getCipher();
     
+    byte[] getIV() throws CryptoException;
+    
     byte[] generateKey(int length) throws CryptoException;
 
     byte[] encrypt(byte[] key, byte[] message) throws CryptoException;

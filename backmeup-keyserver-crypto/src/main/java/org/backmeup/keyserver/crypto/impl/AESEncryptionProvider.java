@@ -51,7 +51,8 @@ public class AESEncryptionProvider implements SymmetricEncryptionProvider {
         return keyGen.generateKey().getEncoded();
     }
     
-    public byte[] createIV() throws CryptoException {
+    @Override
+    public byte[] getIV() throws CryptoException {
         AlgorithmParameters params = cipher.getParameters();
         try {
             return params.getParameterSpec(IvParameterSpec.class).getIV();
@@ -65,7 +66,7 @@ public class AESEncryptionProvider implements SymmetricEncryptionProvider {
         SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
         try {
             this.cipher.init(Cipher.ENCRYPT_MODE, keySpec);
-            byte[] ivBytes = this.createIV();
+            byte[] ivBytes = this.getIV();
             return EncryptionUtils.concat(ivBytes, cipher.doFinal(message));
         } catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
             throw new CryptoException(e);
