@@ -1,5 +1,12 @@
 package org.backmeup.keyserver.client;
 
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
@@ -45,6 +52,15 @@ public class KeyserverClient {
     private static final String TOKEN_HEADER_KEY = "Token";
     private static final String AUTHORIZATION_HEADER_KEY = "Authorization";
 
+    private static KeyFactory KEY_FACTORY;
+    static {
+        try {
+            KEY_FACTORY = KeyFactory.getInstance("RSA");
+        } catch (NoSuchAlgorithmException e) {
+            throw new ExceptionInInitializerError(e);
+        }
+    }
+    
     @SuppressWarnings("PMD.SingularField")
     private Client client;
     private WebTarget apps;
@@ -372,6 +388,35 @@ public class KeyserverClient {
             return KeyserverUtils.fromBase64String(this.createUserSpecificRequest("/private_key", token).get(String.class));
         } catch (WebApplicationException | ProcessingException exception) {
             throw this.parseException(exception);
+        }
+    }
+    
+    /**
+     * Decodes an encoded public key.
+     * @param publicKey the byte array with the encoded public key.
+     * @return the decoded PublicKey object.
+     * @throws KeyserverException
+     */
+    public static PublicKey decodePublicKey(byte[] publicKey) throws KeyserverException {
+        try {
+            return KEY_FACTORY.generatePublic(new X509EncodedKeySpec(publicKey));
+        } catch (InvalidKeySpecException e) {
+            throw new KeyserverException(e);
+        }
+    }
+    
+    /**
+     * Decodes an encoded private key.
+     * @param privateKey the byte array with the encoded private key.
+     * @return the decoded PrivateKey object.
+     * @throws KeyserverException
+     */
+    public static PrivateKey decodePrivateKey(byte[] privateKey) throws KeyserverException {
+        
+        try {
+            return KEY_FACTORY.generatePrivate(new PKCS8EncodedKeySpec(privateKey));
+        } catch (InvalidKeySpecException e) {
+            throw new KeyserverException(e);
         }
     }
 

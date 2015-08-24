@@ -1,7 +1,7 @@
 package org.backmeup.keyserver.tests.integration;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
@@ -10,13 +10,9 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.security.InvalidKeyException;
-import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.X509EncodedKeySpec;
 import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.List;
@@ -284,13 +280,10 @@ public class KeyserverClientIntegrationTest {
         assertNotNull(pubKey);
         byte[] privKey = client.getPrivateKey(u.getToken());
         assertNotNull(privKey);
-        
-        KeyFactory keyFactory;
-        try {
-            keyFactory = KeyFactory.getInstance("RSA");
-            PublicKey publicKey = keyFactory.generatePublic(new X509EncodedKeySpec(pubKey));
-            PrivateKey privateKey = keyFactory.generatePrivate(new PKCS8EncodedKeySpec(privKey));
-            
+
+        PublicKey publicKey = KeyserverClient.decodePublicKey(pubKey);
+        PrivateKey privateKey = KeyserverClient.decodePrivateKey(privKey);
+        try {           
             Cipher cipher = Cipher.getInstance("RSA");
             cipher.init(Cipher.ENCRYPT_MODE, publicKey);
             byte[] encrypted = cipher.doFinal(StringUtils.getBytesUtf8("mysecrettext"));
@@ -298,7 +291,7 @@ public class KeyserverClientIntegrationTest {
             cipher.init(Cipher.DECRYPT_MODE, privateKey);
             String message = StringUtils.newStringUtf8(cipher.doFinal(encrypted));
             assertEquals("mysecrettext", message);
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
             throw new KeyserverException(e);
         }
     }
