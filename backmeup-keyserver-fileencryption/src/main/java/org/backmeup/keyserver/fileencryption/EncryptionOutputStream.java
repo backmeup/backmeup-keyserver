@@ -35,7 +35,7 @@ public class EncryptionOutputStream extends FilterOutputStream {
         this.fileKey = this.symmetricEncryption.generateKey(Configuration.AES_KEY_LENGTH);
     }
     
-    private void initCipherStream() throws CryptoException {
+    private void initCipherStream() throws CryptoException, IOException {
         Cipher c = this.symmetricEncryption.getCipher();
         try {
             c.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(this.fileKey, "AES"));
@@ -43,6 +43,7 @@ public class EncryptionOutputStream extends FilterOutputStream {
             throw new CryptoException(e);
         }
         this.out = new CipherOutputStream(out, c);
+        this.out.write(this.symmetricEncryption.getIV());
     }
     
     public EncryptionOutputStream(String path, String ownerId, PublicKey ownerPublicKey) throws CryptoException, IOException {

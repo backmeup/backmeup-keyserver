@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.Writer;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -14,6 +15,7 @@ import java.util.List;
 
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
+import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.backmeup.keyserver.crypto.AsymmetricEncryptionProvider;
@@ -35,11 +37,14 @@ public class EncryptionInputStream extends FilterInputStream {
         this.asymmetricEncryption = new RSAEncryptionProvider();
     }
     
-    private void initCipherStream() throws CryptoException {
+    private void initCipherStream() throws CryptoException, IOException {
+        byte[] iv = new byte[AESEncryptionProvider.IV_LENGTH];
+        this.in.read(iv);
+        
         Cipher c = this.symmetricEncryption.getCipher();
         try {
-            c.init(Cipher.DECRYPT_MODE, new SecretKeySpec(this.fileKey, "AES"));
-        } catch (InvalidKeyException e) {
+            c.init(Cipher.DECRYPT_MODE, new SecretKeySpec(this.fileKey, "AES"), new IvParameterSpec(iv));
+        } catch (InvalidKeyException | InvalidAlgorithmParameterException e) {
             throw new CryptoException(e);
         }
         this.in = new CipherInputStream(this.in, c);
