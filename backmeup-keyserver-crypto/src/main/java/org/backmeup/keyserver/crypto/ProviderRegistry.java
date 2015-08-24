@@ -4,12 +4,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.backmeup.keyserver.crypto.impl.AESEncryptionProvider;
-import org.backmeup.keyserver.crypto.impl.AsciiPasswordProvider;
-import org.backmeup.keyserver.crypto.impl.MessageDigestHashProvider;
-import org.backmeup.keyserver.crypto.impl.RSAEncryptionProvider;
-import org.backmeup.keyserver.crypto.impl.SCryptKeyStretchingProvider;
-
 public class ProviderRegistry {
     private static Map<String, HashProvider> hashProviders = new HashMap<>();
     private static Map<String, KeyStretchingProvider> keyStretchingProviders = new HashMap<>();

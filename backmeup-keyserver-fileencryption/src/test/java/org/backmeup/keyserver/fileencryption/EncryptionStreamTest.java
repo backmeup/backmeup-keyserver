@@ -9,8 +9,6 @@ import java.nio.file.Files;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 
-import javax.crypto.BadPaddingException;
-
 import org.backmeup.keyserver.crypto.AsymmetricEncryptionProvider;
 import org.backmeup.keyserver.crypto.impl.RSAEncryptionProvider;
 import org.backmeup.keyserver.model.CryptoException;
