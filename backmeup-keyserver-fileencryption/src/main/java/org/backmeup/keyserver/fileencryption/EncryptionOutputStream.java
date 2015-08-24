@@ -29,23 +29,6 @@ public class EncryptionOutputStream extends FilterOutputStream {
     private Keystore keystore;
     private Writer keystoreWriter;
     
-    private void initEncryption() throws CryptoException {
-        this.symmetricEncryption = new AESEncryptionProvider(Configuration.AES_MODE);
-        this.asymmetricEncryption = new RSAEncryptionProvider();
-        this.fileKey = this.symmetricEncryption.generateKey(Configuration.AES_KEY_LENGTH);
-    }
-    
-    private void initCipherStream() throws CryptoException, IOException {
-        Cipher c = this.symmetricEncryption.getCipher();
-        try {
-            c.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(this.fileKey, "AES"));
-        } catch (InvalidKeyException e) {
-            throw new CryptoException(e);
-        }
-        this.out = new CipherOutputStream(out, c);
-        this.out.write(this.symmetricEncryption.getIV());
-    }
-    
     public EncryptionOutputStream(String path, String ownerId, PublicKey ownerPublicKey) throws CryptoException, IOException {
         this(new File(path), ownerId, ownerPublicKey);
     }
@@ -84,6 +67,23 @@ public class EncryptionOutputStream extends FilterOutputStream {
         this.initCipherStream();
     }
     
+    private void initEncryption() throws CryptoException {
+        this.symmetricEncryption = new AESEncryptionProvider(Configuration.AES_MODE);
+        this.asymmetricEncryption = new RSAEncryptionProvider();
+        this.fileKey = this.symmetricEncryption.generateKey(Configuration.AES_KEY_LENGTH);
+    }
+    
+    private void initCipherStream() throws CryptoException, IOException {
+        Cipher c = this.symmetricEncryption.getCipher();
+        try {
+            c.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(this.fileKey, "AES"));
+        } catch (InvalidKeyException e) {
+            throw new CryptoException(e);
+        }
+        this.out = new CipherOutputStream(out, c);
+        this.out.write(this.symmetricEncryption.getIV());
+    }
+        
     @Override
     public void close() throws IOException {
         super.close();

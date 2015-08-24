@@ -32,24 +32,6 @@ public class EncryptionInputStream extends FilterInputStream {
     
     private Keystore keystore;
     
-    private void initEncryption() throws CryptoException {
-        this.symmetricEncryption = new AESEncryptionProvider(Configuration.AES_MODE);
-        this.asymmetricEncryption = new RSAEncryptionProvider();
-    }
-    
-    private void initCipherStream() throws CryptoException, IOException {
-        byte[] iv = new byte[AESEncryptionProvider.IV_LENGTH];
-        this.in.read(iv);
-        
-        Cipher c = this.symmetricEncryption.getCipher();
-        try {
-            c.init(Cipher.DECRYPT_MODE, new SecretKeySpec(this.fileKey, "AES"), new IvParameterSpec(iv));
-        } catch (InvalidKeyException | InvalidAlgorithmParameterException e) {
-            throw new CryptoException(e);
-        }
-        this.in = new CipherInputStream(this.in, c);
-    }
-    
     public EncryptionInputStream(String path, String userId, PrivateKey userPrivateKey) throws CryptoException, IOException {
         this(new File(path), userId, userPrivateKey);
     }
@@ -88,6 +70,26 @@ public class EncryptionInputStream extends FilterInputStream {
         this.initCipherStream();
     }
     
+    private void initEncryption() throws CryptoException {
+        this.symmetricEncryption = new AESEncryptionProvider(Configuration.AES_MODE);
+        this.asymmetricEncryption = new RSAEncryptionProvider();
+    }
+    
+    private void initCipherStream() throws CryptoException, IOException {
+        byte[] iv = new byte[AESEncryptionProvider.IV_LENGTH];
+        if (this.in.read(iv) != AESEncryptionProvider.IV_LENGTH) {
+            throw new CryptoException("cannot read AES IV");
+        }
+        
+        Cipher c = this.symmetricEncryption.getCipher();
+        try {
+            c.init(Cipher.DECRYPT_MODE, new SecretKeySpec(this.fileKey, "AES"), new IvParameterSpec(iv));
+        } catch (InvalidKeyException | InvalidAlgorithmParameterException e) {
+            throw new CryptoException(e);
+        }
+        this.in = new CipherInputStream(this.in, c);
+    }
+        
     public Keystore getKeystore() {
         return this.keystore;
     }

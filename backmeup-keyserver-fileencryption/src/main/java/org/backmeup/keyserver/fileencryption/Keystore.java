@@ -18,6 +18,8 @@ import org.backmeup.keyserver.model.KeyserverUtils;
 
 public class Keystore {
     
+    private static final String EXC_SECRET_KEY_NOT_LOADED = "secret key has to be set or loaded first";
+
     protected class Entry {
         private static final String SEPARATOR = ";";
         
@@ -74,7 +76,7 @@ public class Keystore {
         
         @Override
         public boolean equals(Object other) {
-            if (other == null || !(other instanceof Entry)) {
+            if (!(other instanceof Entry)) {
                 return false;
             }
             
@@ -97,7 +99,7 @@ public class Keystore {
     
     public Keystore(byte[] secretKey, AsymmetricEncryptionProvider asymmetricEncryption) throws CryptoException, IOException {
         this(asymmetricEncryption);
-        this.secretKey = secretKey;
+        this.secretKey = secretKey.clone();
     }
     
     public AsymmetricEncryptionProvider getAsymmetricEncryption() {
@@ -105,10 +107,10 @@ public class Keystore {
     }
     
     public void setSecretKey(byte[] secretKey) {
-        if (this.receivers.size() > 0) {
+        if (!this.receivers.isEmpty()) {
             throw new IllegalStateException("cannot set secret key if receivers already exist");
         }
-        this.secretKey = secretKey;
+        this.secretKey = secretKey.clone();
     }
     
     public byte[] getSecretKey(String id, PrivateKey privateKey) throws CryptoException {
@@ -118,14 +120,14 @@ public class Keystore {
         }
         
         this.secretKey = e.getSecretKey(privateKey);
-        return this.secretKey;
+        return this.secretKey.clone();
     }
     
     public byte[] getSecretKey(PrivateKey privateKey) throws CryptoException {
         for (Entry e : this.receivers.values()) {
             try {
                 this.secretKey = e.getSecretKey(privateKey);
-                return this.secretKey;
+                return this.secretKey.clone();
             } catch(CryptoException ex) {
                 continue;
             }
@@ -136,7 +138,7 @@ public class Keystore {
 
     public void addReceiver(String id, PublicKey publicKey) throws CryptoException {
         if (this.secretKey == null) {
-            throw new IllegalStateException("secret key has to be set or loaded first");
+            throw new IllegalStateException(EXC_SECRET_KEY_NOT_LOADED);
         }
         if (this.receivers.containsKey(id)) {
             throw new CryptoException("keystore entry already exists for " + id);
@@ -149,11 +151,10 @@ public class Keystore {
     
     public boolean removeReceiver(String id) {
         if (this.secretKey == null) {
-            throw new IllegalStateException("secret key has to be set or loaded first");
+            throw new IllegalStateException(EXC_SECRET_KEY_NOT_LOADED);
         }
         
-        boolean found = this.receivers.remove(id) != null;
-        return found;
+        return this.receivers.remove(id) != null;
     }
     
     public List<String> listReceivers() {
@@ -166,7 +167,7 @@ public class Keystore {
     
     public void save(Writer out) throws IOException, CryptoException {
         if (this.secretKey == null) {
-            throw new IllegalStateException("secret key has to be set or loaded first");
+            throw new IllegalStateException(EXC_SECRET_KEY_NOT_LOADED);
         }
         
         try (BufferedWriter bout = new BufferedWriter(out)) {

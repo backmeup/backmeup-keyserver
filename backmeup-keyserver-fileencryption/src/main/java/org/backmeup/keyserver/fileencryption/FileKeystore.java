@@ -1,9 +1,11 @@
 package org.backmeup.keyserver.fileencryption;
 
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 
 import org.backmeup.keyserver.crypto.AsymmetricEncryptionProvider;
 import org.backmeup.keyserver.model.CryptoException;
@@ -22,11 +24,11 @@ public class FileKeystore extends Keystore {
     }
         
     public void save() throws IOException, CryptoException {
-        super.save(new FileWriter(this.keystore));
+        super.save(new OutputStreamWriter(new FileOutputStream(this.keystore), "UTF-8"));
     }
     
     public void load() throws IOException, CryptoException {
-        super.load(new FileReader(this.keystore));
+        super.load(new InputStreamReader(new FileInputStream(this.keystore), "UTF-8"));
     }
     
     public File getKeystore() {
