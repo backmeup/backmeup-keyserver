@@ -100,38 +100,15 @@ public class Keystore {
         this.secretKey = secretKey;
     }
     
+    public AsymmetricEncryptionProvider getAsymmetricEncryption() {
+        return asymmetricEncryption;
+    }
+    
     public void setSecretKey(byte[] secretKey) {
         if (this.receivers.size() > 0) {
             throw new IllegalStateException("cannot set secret key if receivers already exist");
         }
         this.secretKey = secretKey;
-    }
-
-    public void addReceiver(String id, PublicKey publicKey) throws CryptoException {
-        if (this.secretKey == null) {
-            throw new IllegalStateException("secret key has to be set or loaded first");
-        }
-        if (this.receivers.containsKey(id)) {
-            throw new CryptoException("keystore entry already exists for " + id);
-        }
-        Entry e = new Entry(id);
-        e.setSecretKey(publicKey, secretKey);
-        this.receivers.put(id, e);
-    }
-    
-    public List<String> listReceivers() {
-        return new ArrayList<String>(this.receivers.keySet());
-    }
-    
-    public boolean removeReceiver(String id) {
-        if (this.secretKey == null) {
-            throw new IllegalStateException("secret key has to be set or loaded first");
-        }
-        return this.receivers.remove(id) != null;
-    }
-    
-    public boolean hasReceiver(String id) {
-        return this.receivers.containsKey(id);
     }
     
     public byte[] getSecretKey(String id, PrivateKey privateKey) throws CryptoException {
@@ -156,11 +133,42 @@ public class Keystore {
         
         throw new CryptoException("no keystore entry matching given private key");
     }
+
+    public void addReceiver(String id, PublicKey publicKey) throws CryptoException {
+        if (this.secretKey == null) {
+            throw new IllegalStateException("secret key has to be set or loaded first");
+        }
+        if (this.receivers.containsKey(id)) {
+            throw new CryptoException("keystore entry already exists for " + id);
+        }
+        
+        Entry e = new Entry(id);
+        e.setSecretKey(publicKey, secretKey);
+        this.receivers.put(id, e);
+    }
+    
+    public boolean removeReceiver(String id) {
+        if (this.secretKey == null) {
+            throw new IllegalStateException("secret key has to be set or loaded first");
+        }
+        
+        boolean found = this.receivers.remove(id) != null;
+        return found;
+    }
+    
+    public List<String> listReceivers() {
+        return new ArrayList<String>(this.receivers.keySet());
+    }
+    
+    public boolean hasReceiver(String id) {
+        return this.receivers.containsKey(id);
+    }
     
     public void save(Writer out) throws IOException, CryptoException {
         if (this.secretKey == null) {
             throw new IllegalStateException("secret key has to be set or loaded first");
         }
+        
         try (BufferedWriter bout = new BufferedWriter(out)) {
             for (Entry e : this.receivers.values()) {
                 bout.write(e.save());
@@ -180,9 +188,5 @@ public class Keystore {
                 this.receivers.put(e.id, e);
             }
         }
-    }
-
-    public AsymmetricEncryptionProvider getAsymmetricEncryption() {
-        return asymmetricEncryption;
     }
 }
