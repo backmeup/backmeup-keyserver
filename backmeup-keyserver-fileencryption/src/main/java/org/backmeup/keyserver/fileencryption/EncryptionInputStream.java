@@ -100,6 +100,20 @@ public class EncryptionInputStream extends FilterInputStream {
         return this.keystore;
     }
     
+    public static Keystore getKeystore(String path) throws IOException {
+        return getKeystore(new File(path));
+    }
+    
+    public static Keystore getKeystore(File file) throws IOException {
+        try {
+            Keystore keystore = new FileKeystore(new RSAEncryptionProvider(), new File(file.getAbsolutePath()+Configuration.KEYSTORE_SUFFIX));
+            ((FileKeystore) keystore).load();
+            return keystore;
+        } catch (CryptoException e) {
+            throw new IOException(e);
+        }
+    }
+    
     public void saveKeystore() throws IOException {
         try {
             if(this.keystore instanceof FileKeystore) {
