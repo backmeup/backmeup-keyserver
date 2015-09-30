@@ -18,6 +18,11 @@
 			<artifactId>backmeup-keyserver-crypto</artifactId>
 			<version>${version.backmeup.keyserver.crypto}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.backmeup</groupId>
+			<artifactId>backmeup-keyserver-model</artifactId>
+			<version>${version.backmeup.keyserver.model}</version>
+		</dependency>
 	</dependencies>
 	<name>BackMeUp Keyserver Fileencryption</name>
 

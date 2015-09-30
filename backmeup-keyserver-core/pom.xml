@@ -17,7 +17,6 @@
 			<groupId>org.backmeup</groupId>
 			<artifactId>backmeup-keyserver-model</artifactId>
 			<version>${version.backmeup.keyserver.model}</version>
-			<type>bundle</type>
 		</dependency>
 		<dependency>
 			<groupId>org.backmeup</groupId>
