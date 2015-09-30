@@ -361,8 +361,18 @@ public class DefaultKeyserverImpl implements Keyserver {
     }
     
     @Override
+    public void setIndexKey(String userId, byte[] accountKey, String indexKey) throws KeyserverException {
+        this.userLogic.setIndexKey(userId, accountKey, indexKey);
+    }
+    
+    @Override
     public byte[] getPublicKey(String userId) throws KeyserverException {
         return this.userLogic.getPublicKey(userId);
+    }
+    
+    @Override
+    public byte[] getPublicKeyByUsername(String username) throws KeyserverException {
+        return this.userLogic.getPublicKey(this.userLogic.getUserId(username));
     }
     
     @Override

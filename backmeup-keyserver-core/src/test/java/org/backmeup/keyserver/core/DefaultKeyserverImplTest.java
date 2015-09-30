@@ -156,6 +156,21 @@ public class DefaultKeyserverImplTest {
         assertNotNull(indexKey);
         assertEquals(ks.activeKeyring.getPasswordLength(), indexKey.length());
     }
+    
+    @Test
+    public void testAlterIndexKey() throws KeyserverException {
+        ks.registerUser(USERNAME, PASSWORD);
+        AuthResponse u = ks.authenticateUserWithPassword(USERNAME, PASSWORD);
+
+        String indexKey = ks.getIndexKey(u.getUserId(), u.getAccountKey());
+        assertNotNull(indexKey);
+        assertEquals(ks.activeKeyring.getPasswordLength(), indexKey.length());
+        String newIndexKey = "myNewIndexKey";
+        ks.setIndexKey(u.getUserId(), u.getAccountKey(), newIndexKey);
+        String indexKey2 = ks.getIndexKey(u.getUserId(), u.getAccountKey());
+        assertNotEquals(indexKey, indexKey2);
+        assertEquals(newIndexKey, indexKey2);
+    }
  
     @Test
     public void testRemoveUserWithLogin() throws KeyserverException {
@@ -299,6 +314,9 @@ public class DefaultKeyserverImplTest {
         assertNotNull(accountKey);
         byte[] pubKey = ks.userLogic.getPublicKey(u.getUserId());
         assertNotNull(pubKey);
+        byte[] pubKey2 = ks.getPublicKeyByUsername(u.getUsername());
+        assertNotNull(pubKey2);
+        assertArrayEquals(pubKey, pubKey2);
         byte[] privKey = ks.userLogic.getPrivateKey(u.getUserId(), accountKey);
         assertNotNull(privKey);
         

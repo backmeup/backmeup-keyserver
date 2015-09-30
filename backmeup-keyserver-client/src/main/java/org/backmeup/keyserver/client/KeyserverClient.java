@@ -360,6 +360,22 @@ public class KeyserverClient {
             throw this.parseException(exception);
         }
     }
+    
+    /**
+     * Sets the key for index en-/decryption.
+     * Only a keyserver client which is authenticated as SERVICE or INDEXER app can use this method.
+     * @param token the authentication token that identifies the user.
+     * @param indexKey the new encryption key to set
+     * @throws KeyserverException
+     */
+    public void setIndexKey(TokenDTO token, String indexKey) throws KeyserverException {
+        try {
+            Response r =  this.createUserSpecificRequest("/index_key", token).post(Entity.form(new Form("indexKey", indexKey)));
+            this.parsePostResponse(r);
+        } catch (WebApplicationException | ProcessingException exception) {
+            throw this.parseException(exception);
+        }
+    }
 
     /**
      * Gets the public key of user for data encryption.
@@ -371,6 +387,24 @@ public class KeyserverClient {
     public byte[] getPublicKey(TokenDTO token) throws KeyserverException {
         try {
             return KeyserverUtils.fromBase64String(this.createUserSpecificRequest("/public_key", token).get(String.class));
+        } catch (WebApplicationException | ProcessingException exception) {
+            throw this.parseException(exception);
+        }
+    }
+    
+    /**
+     * Gets the public key of user for data encryption.
+     * Only a keyserver client which is authenticated as SERVICE, STORAGE or INDEXER app can use this method.
+     * @param token a valid authentication token
+     * @param username  username of the user the public key should be retrieved for 
+     * @return the public key.
+     * @throws KeyserverException
+     */
+    public byte[] getPublicKey(TokenDTO token, String username) throws KeyserverException {
+        try {
+            Map<String, Object> queryParams = new HashMap<>();
+            queryParams.put(USERNAME_PARAM, username);
+            return KeyserverUtils.fromBase64String(this.createUserSpecificRequest("/public_key", token, queryParams).get(String.class));
         } catch (WebApplicationException | ProcessingException exception) {
             throw this.parseException(exception);
         }

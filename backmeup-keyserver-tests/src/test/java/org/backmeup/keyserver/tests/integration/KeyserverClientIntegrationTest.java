@@ -259,6 +259,19 @@ public class KeyserverClientIntegrationTest {
         String indexKey = client.getIndexKey(u.getToken());
         assertNotNull(indexKey);
     }
+    
+    @Test
+    public void testAlterIndexKey() throws KeyserverException {
+        client.registerUser(USERNAME, PASSWORD);
+        AuthResponseDTO u = client.authenticateUserWithPassword(USERNAME, PASSWORD);
+
+        String indexKey = client.getIndexKey(u.getToken());
+        String newIndexKey = "myNewKey";
+        client.setIndexKey(u.getToken(), newIndexKey);
+        String indexKey2 = client.getIndexKey(u.getToken());
+        assertNotEquals(indexKey, indexKey2);
+        assertEquals(newIndexKey, indexKey2);
+    }
 
     @Test
     public void testIndexKey2() throws KeyserverException {
@@ -278,6 +291,9 @@ public class KeyserverClientIntegrationTest {
 
         byte[] pubKey = client.getPublicKey(u.getToken());
         assertNotNull(pubKey);
+        byte[] pubKey2 = client.getPublicKey(u.getToken(), u.getUsername());
+        assertNotNull(pubKey2);
+        assertArrayEquals(pubKey, pubKey2);
         byte[] privKey = client.getPrivateKey(u.getToken());
         assertNotNull(privKey);
 
@@ -302,7 +318,8 @@ public class KeyserverClientIntegrationTest {
         client.registerUser("rest-test2", "mypass2");
         
         //Assume user2 is logged in and accepts sharing from user1
-        AuthResponseDTO u2 = client.authenticateUserWithPassword("rest-test2", "mypass2");
+        String username2 = "rest-test2";
+        AuthResponseDTO u2 = client.authenticateUserWithPassword(username2, "mypass2");
         TokenDTO sharingToken = client.createOnetimeForAuthentication(u2.getToken()).getToken();
         //sharingToken should be saved into DB (-> sharing policy)
         //...
@@ -321,6 +338,10 @@ public class KeyserverClientIntegrationTest {
         //...
         
         assertArrayEquals(client.getPublicKey(u2.getToken()), pubKey);
+        
+        //test get public key of user2 with username
+        byte[] pubKey2 = client.getPublicKey(u1.getToken(), username2);
+        assertArrayEquals(pubKey, pubKey2);
         
         client.removeUser(u2.getToken());
     }

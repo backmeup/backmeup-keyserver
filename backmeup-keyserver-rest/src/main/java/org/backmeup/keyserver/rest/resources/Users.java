@@ -110,13 +110,26 @@ public class Users extends SecureBase {
         return this.getKeyserverLogic().getIndexKey(auth.getUserId(), auth.getAccountKey());
     }
     
+    @AppsAllowed({ Approle.SERVICE, Approle.INDEXER })
+    @TokenRequired
+    @POST
+    @Path("/tokenUser/index_key")
+    public void setIndexKey(@NotNull @FormParam("indexKey") String indexKey) throws KeyserverException {
+        AuthResponse auth = this.getAuthResponse();
+        this.getKeyserverLogic().setIndexKey(auth.getUserId(), auth.getAccountKey(), indexKey);
+    }
+    
     @AppsAllowed({ Approle.SERVICE, Approle.STORAGE, Approle.INDEXER })
     @TokenRequired({ Role.USER, Role.BACKUP_JOB, Role.AUTHENTICATION })
     @GET
     @Path("/tokenUser/public_key")
-    public String getPublicKey() throws KeyserverException {
+    public String getPublicKey(@QueryParam("username") String username) throws KeyserverException {
         AuthResponse auth = this.getAuthResponse();
-        return KeyserverUtils.toBase64String(this.getKeyserverLogic().getPublicKey(auth.getUserId()));
+        if (username != null && username.trim() != "") {
+            return KeyserverUtils.toBase64String(this.getKeyserverLogic().getPublicKeyByUsername(username));
+        } else {
+            return KeyserverUtils.toBase64String(this.getKeyserverLogic().getPublicKey(auth.getUserId()));
+        }
     }
     
     @AppsAllowed({ Approle.SERVICE, Approle.STORAGE, Approle.INDEXER })

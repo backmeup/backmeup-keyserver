@@ -282,6 +282,15 @@ public class DefaultUserLogic {
         }
     }
     
+    public void setIndexKey(String userId, byte[] accountKey, String indexKey) throws KeyserverException {      
+        try {
+            KeyserverEntry indexEntry = this.keyserver.checkedGetEntry(fmtKey(INDEX_ENTRY_FMT, userId), EntryNotFoundException.INDEX);
+            this.keyserver.updateEntry(indexEntry, this.keyserver.encryptString(accountKey, PepperApps.INDEX, indexKey));
+        } catch (DatabaseException | CryptoException e) {
+            throw new KeyserverException(e);
+        }
+    }
+    
     protected byte[] getPublicKey(String userId) throws KeyserverException {
         try {
             KeyserverEntry pubkeyEntry = this.keyserver.checkedGetEntry(fmtKey(PUBLIC_KEY_ENTRY_FMT, userId), EntryNotFoundException.PUBLIC_KEY);

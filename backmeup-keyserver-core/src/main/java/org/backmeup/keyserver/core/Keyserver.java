@@ -39,7 +39,11 @@ public interface Keyserver {
     
     String getIndexKey(String userId, byte[] accountKey) throws KeyserverException;
     
+    void setIndexKey(String userId, byte[] accountKey, String indexKey) throws KeyserverException;
+    
     byte[] getPublicKey(String userId) throws KeyserverException;
+    
+    byte[] getPublicKeyByUsername(String username) throws KeyserverException;
     
     byte[] getPrivateKey(String userId, byte[] accountKey) throws KeyserverException;
     
@@ -84,5 +88,4 @@ public interface Keyserver {
     void removeApp(String appId) throws KeyserverException;
 
     App authenticateApp(String appId, String appKey) throws KeyserverException;
-
 }
