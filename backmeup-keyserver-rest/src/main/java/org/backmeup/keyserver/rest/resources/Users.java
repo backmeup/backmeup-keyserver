@@ -124,7 +124,7 @@ public class Users extends SecureBase {
     @Path("/tokenUser/public_key")
     public String getPublicKey(@QueryParam("username") String username) throws KeyserverException {
         AuthResponse auth = this.getAuthResponse();
-        if (username != null && username.trim() != "") {
+        if (username != null && !"".equals(username.trim())) {
             return KeyserverUtils.toBase64String(this.getKeyserverLogic().getPublicKeyByUsername(username));
         } else {
             return KeyserverUtils.toBase64String(this.getKeyserverLogic().getPublicKey(auth.getUserId()));
