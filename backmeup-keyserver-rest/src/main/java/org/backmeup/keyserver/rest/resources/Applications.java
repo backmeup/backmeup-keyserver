@@ -16,6 +16,7 @@ import org.backmeup.keyserver.model.App;
 import org.backmeup.keyserver.model.KeyserverException;
 import org.backmeup.keyserver.model.App.Approle;
 import org.backmeup.keyserver.model.dto.AppDTO;
+import org.backmeup.keyserver.model.dto.AuthResponseDTO;
 import org.backmeup.keyserver.rest.auth.AppsAllowed;
 
 /**
@@ -51,7 +52,7 @@ public class Applications extends SecureBase {
     @AppsAllowed({ Approle.SERVICE, Approle.WORKER, Approle.STORAGE, Approle.INDEXER })
     @POST
     @Path("/{appId}")
-    public AppDTO authenticate(@PathParam("appId") String appId, @NotNull @FormParam("key") String appKey) throws KeyserverException {
-        return this.map(this.getKeyserverLogic().authenticateApp(appId, appKey), AppDTO.class);
+    public AuthResponseDTO authenticate(@PathParam("appId") String appId, @NotNull @FormParam("key") String appKey) throws KeyserverException {
+        return this.map(this.getKeyserverLogic().authenticateApp(appId, appKey), AuthResponseDTO.class);
     }
 }

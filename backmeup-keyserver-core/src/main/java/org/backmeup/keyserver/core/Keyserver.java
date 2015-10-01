@@ -87,5 +87,5 @@ public interface Keyserver {
 
     void removeApp(String appId) throws KeyserverException;
 
-    App authenticateApp(String appId, String appKey) throws KeyserverException;
+    AuthResponse authenticateApp(String appId, String appKey) throws KeyserverException;
 }

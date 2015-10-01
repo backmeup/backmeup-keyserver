@@ -163,7 +163,7 @@ public class SecurityInterceptor implements ContainerRequestFilter {
 
     private App resolveApp(final String appId, final String password) {
         try {
-            return keyserverLogic.authenticateApp(appId, password);
+            return App.fromAuthResponse(keyserverLogic.authenticateApp(appId, password));
         } catch (KeyserverException e) {
             LOGGER.info("Login failed. Appid \"{}\" or password wrong.", appId, e);
             return null;

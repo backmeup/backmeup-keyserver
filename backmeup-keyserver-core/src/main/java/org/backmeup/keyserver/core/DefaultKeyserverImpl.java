@@ -448,7 +448,7 @@ public class DefaultKeyserverImpl implements Keyserver {
     //=========================================================================
     
     @Override
-    public App registerApp(App.Approle role) throws KeyserverException {
+    public App registerApp(Approle role) throws KeyserverException {
         return this.appLogic.register(role);
     }
     
@@ -463,7 +463,7 @@ public class DefaultKeyserverImpl implements Keyserver {
     }
 
     @Override
-    public App authenticateApp(String appId, String appKey) throws KeyserverException {
+    public AuthResponse authenticateApp(String appId, String appKey) throws KeyserverException {
         return this.appLogic.authenticate(appId, appKey);
     }
 }

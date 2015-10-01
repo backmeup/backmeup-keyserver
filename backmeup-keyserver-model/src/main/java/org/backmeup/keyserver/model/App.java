@@ -1,5 +1,7 @@
 package org.backmeup.keyserver.model;
 
+import java.util.Set;
+
 /**
  * Application User will be used for applications that are allowed to connect to
  * the keyserver
@@ -9,7 +11,7 @@ package org.backmeup.keyserver.model;
  */
 public class App {
 
-    public static enum Approle {
+    public static enum Approle implements AppOrTokenRole {
         SERVICE, WORKER, STORAGE, INDEXER
     }
 
@@ -55,5 +57,15 @@ public class App {
     @Override
     public String toString() {
         return this.appId + " (" + this.appRole.toString() + ")";
+    }
+    
+    public static App fromAuthResponse(AuthResponse auth) {
+        Set<AppOrTokenRole> roles = auth.getRoles();
+        for (AppOrTokenRole role : roles) {
+            if (role instanceof App.Approle) {
+                return new App(auth.getServiceUserId(), KeyserverUtils.toBase64String(auth.getAccountKey()), (App.Approle) role);
+            }
+        }
+        throw new IllegalArgumentException("AuthResponse has no valid app role");
     }
 }

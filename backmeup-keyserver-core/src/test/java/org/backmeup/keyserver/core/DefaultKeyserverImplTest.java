@@ -648,11 +648,11 @@ public class DefaultKeyserverImplTest {
     @Test
     public void testAuthenticateApp() throws KeyserverException {
         App u = ks.registerApp(App.Approle.WORKER);
-        App u2 = ks.authenticateApp(u.getAppId(), u.getPassword());
-        assertEquals(u.getAppId(), u2.getAppId());
-        assertEquals(u.getPassword(), u2.getPassword());
+        AuthResponse u2 = ks.authenticateApp(u.getAppId(), u.getPassword());
+        assertEquals(u.getAppId(), u2.getServiceUserId());
         assertEquals(App.Approle.WORKER, u.getAppRole());
-        assertEquals(App.Approle.WORKER, u2.getAppRole());
+        assertEquals(u.getPassword(), KeyserverUtils.toBase64String(u2.getAccountKey()));
+        assertTrue(u2.getRoles().contains(App.Approle.WORKER));
         ks.removeApp(u.getAppId());
     }
 
@@ -660,10 +660,10 @@ public class DefaultKeyserverImplTest {
     public void testAuthenticateCoreApp() throws KeyserverException {
         String appId = SERVICE_APPID;
         String appKey = SERVICE_SECRET;
-        App u = ks.authenticateApp(appId, appKey);
-        assertEquals(u.getAppId(), appId);
-        assertEquals(u.getPassword(), appKey);
-        assertEquals(App.Approle.SERVICE, u.getAppRole());
+        AuthResponse u = ks.authenticateApp(appId, appKey);
+        assertEquals(u.getServiceUserId(), appId);
+        assertEquals(SERVICE_SECRET, KeyserverUtils.toBase64String(u.getAccountKey()));
+        assertTrue(u.getRoles().contains(App.Approle.SERVICE));
     }
 
     @Test

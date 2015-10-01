@@ -14,25 +14,25 @@ import java.util.Set;
  *
  */
 public class TokenValue {
-    public static enum Role {
+    public static enum Role implements AppOrTokenRole {
         USER, BACKUP_JOB, AUTHENTICATION, INHERITANCE
     }
 
     private String userId;
     private String serviceUserId;
-    private Set<Role> roles = new HashSet<>();
+    private Set<AppOrTokenRole> roles = new HashSet<>();
     private Map<String, Object> values = new HashMap<>();
 
     public TokenValue() {
     }
 
-    public TokenValue(String userId, String serviceUserId, Role role) {
+    public TokenValue(String userId, String serviceUserId, AppOrTokenRole role) {
         this.userId = userId;
         this.serviceUserId = serviceUserId;
         this.roles.add(role);
     }
 
-    public TokenValue(String userId, String serviceUserId, Set<Role> roles) {
+    public TokenValue(String userId, String serviceUserId, Set<AppOrTokenRole> roles) {
         this.userId = userId;
         this.serviceUserId = serviceUserId;
         this.roles.addAll(roles);
@@ -61,11 +61,11 @@ public class TokenValue {
         this.serviceUserId = serviceUserId;
     }
 
-    public Set<Role> getRoles() {
+    public Set<AppOrTokenRole> getRoles() {
         return roles;
     }
 
-    public void setRoles(Set<Role> roles) {
+    public void setRoles(Set<AppOrTokenRole> roles) {
         this.roles = roles;
     }
 

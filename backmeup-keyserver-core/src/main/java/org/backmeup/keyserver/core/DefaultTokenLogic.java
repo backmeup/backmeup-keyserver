@@ -18,6 +18,8 @@ import java.util.Set;
 import org.backmeup.keyserver.core.db.DatabaseException;
 import org.backmeup.keyserver.crypto.Keyring;
 import org.backmeup.keyserver.crypto.PepperApps;
+import org.backmeup.keyserver.model.App;
+import org.backmeup.keyserver.model.AppOrTokenRole;
 import org.backmeup.keyserver.model.AuthResponse;
 import org.backmeup.keyserver.model.CryptoException;
 import org.backmeup.keyserver.model.EntryNotFoundException;
@@ -252,7 +254,7 @@ public class DefaultTokenLogic {
         
         // roles
         ArrayNode roles = node.arrayNode();
-        for (Role r : value.getRoles()) {
+        for (AppOrTokenRole r : value.getRoles()) {
             roles.add(r.name());
         }
         node.put(JsonKeys.ROLES, roles);
@@ -274,7 +276,7 @@ public class DefaultTokenLogic {
             
             // roles
             ArrayNode rolesNode = (ArrayNode) tokenValueObject.get(JsonKeys.ROLES);
-            Set<Role> roles = new HashSet<>();
+            Set<AppOrTokenRole> roles = new HashSet<>();
             for (JsonNode n : rolesNode) {
                 roles.add(Role.valueOf(n.asText()));
             }
@@ -312,6 +314,20 @@ public class DefaultTokenLogic {
         token.setAnnotation("Inheritance");
         
         this.create(token, decedentUserId, decedentAccountKey);
+        return new AuthResponse(token);
+    }
+    
+    public AuthResponse createInternalForAppAuthentication(String appId, App.Approle role, byte[] appKey) throws KeyserverException {
+        Token token = new Token(Kind.INTERNAL);
+        Set<AppOrTokenRole> roles = new HashSet<>();
+        roles.add(Role.AUTHENTICATION);
+        roles.add(role);
+        TokenValue tokenValue = new TokenValue(appId, appId, roles);
+        tokenValue.putValue(JsonKeys.ACCOUNT_KEY, appKey);
+        
+        token.setValue(tokenValue);
+        
+        this.create(token, null);
         return new AuthResponse(token);
     }
     
@@ -376,7 +392,7 @@ public class DefaultTokenLogic {
             if (value.hasRole(Role.INHERITANCE)) {
                 //"convert" to internal token
                 Token internalToken = new Token(token);
-                Set<Role> roles = new HashSet<>();
+                Set<AppOrTokenRole> roles = new HashSet<>();
                 roles.add(Role.INHERITANCE);
                 roles.add(Role.USER);
                 internalToken.getValue().setRoles(roles);

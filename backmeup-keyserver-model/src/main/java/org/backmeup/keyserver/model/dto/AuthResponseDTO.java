@@ -4,8 +4,8 @@ import java.util.Set;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.backmeup.keyserver.model.AppOrTokenRole;
 import org.backmeup.keyserver.model.AuthResponse;
-import org.backmeup.keyserver.model.TokenValue.Role;
 
 /**
  * DTO for {@link org.backmeup.keyserver.model.AuthResponse} objects.
@@ -15,6 +15,10 @@ import org.backmeup.keyserver.model.TokenValue.Role;
 @XmlRootElement
 @SuppressWarnings("unused")
 public class AuthResponseDTO {
+    public static enum Role implements AppOrTokenRole {
+        SERVICE, WORKER, STORAGE, INDEXER, USER, BACKUP_JOB, AUTHENTICATION, INHERITANCE
+    }
+    
     private String serviceUserId;
     private String username;
     private Set<Role> roles;

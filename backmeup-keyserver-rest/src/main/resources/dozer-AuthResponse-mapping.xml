@@ -17,6 +17,7 @@
 		<field>
   			<a>roles</a>
   			<b is-accessible="true">roles</b>
+  			<b-hint>org.backmeup.keyserver.model.dto.AuthResponseDTO.Role</b-hint>
 		</field> 
 		<field>
   			<a>token</a>

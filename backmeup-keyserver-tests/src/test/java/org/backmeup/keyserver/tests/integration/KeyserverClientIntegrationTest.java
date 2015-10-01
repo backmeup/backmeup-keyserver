@@ -26,6 +26,7 @@ import javax.ws.rs.core.Response;
 import org.apache.commons.codec.binary.StringUtils;
 import org.backmeup.keyserver.client.CallForbiddenException;
 import org.backmeup.keyserver.client.KeyserverClient;
+import org.backmeup.keyserver.model.App;
 import org.backmeup.keyserver.model.App.Approle;
 import org.backmeup.keyserver.model.EntryNotFoundException;
 import org.backmeup.keyserver.model.KeyserverException;
@@ -76,20 +77,18 @@ public class KeyserverClientIntegrationTest {
     @Test
     public void testAuthenticateApp() throws KeyserverException {
         AppDTO u = client.registerApp(Approle.WORKER);
-        AppDTO u2 = client.authenticateApp(u.getAppId(), u.getPassword());
-        assertEquals(u.getAppId(), u2.getAppId());
-        assertEquals(u.getPassword(), u2.getPassword());
-        assertEquals(Approle.WORKER, u.getAppRole());
-        assertEquals(Approle.WORKER, u2.getAppRole());
+        assertEquals(App.Approle.WORKER, u.getAppRole());
+        AuthResponseDTO u2 = client.authenticateApp(u.getAppId(), u.getPassword());
+        assertEquals(u.getAppId(), u2.getServiceUserId());
+        assertTrue(u2.getRoles().contains(AuthResponseDTO.Role.WORKER));
         client.removeApp(u.getAppId());
     }
 
     @Test
     public void testAuthenticateCoreApp() throws KeyserverException {
-        AppDTO u = client.authenticateApp(SERVICE_ID, SERVICE_SECRET);
-        assertEquals(u.getAppId(), SERVICE_ID);
-        assertEquals(u.getPassword(), SERVICE_SECRET);
-        assertEquals(Approle.SERVICE, u.getAppRole());
+        AuthResponseDTO u = client.authenticateApp(SERVICE_ID, SERVICE_SECRET);
+        assertEquals(SERVICE_ID, u.getServiceUserId());
+        assertTrue(u.getRoles().contains(AuthResponseDTO.Role.SERVICE));
     }
 
     @Test
@@ -212,7 +211,7 @@ public class KeyserverClientIntegrationTest {
         AuthResponseDTO u = client.authenticateUserWithPassword(USERNAME, PASSWORD);
         assertEquals(serviceUserId, u.getServiceUserId());
         assertEquals(USERNAME, u.getUsername());
-        assertTrue(u.getRoles().contains(Role.USER));
+        assertTrue(u.getRoles().contains(AuthResponseDTO.Role.USER));
         assertNotNull(u.getToken());
     }
 
@@ -448,7 +447,7 @@ public class KeyserverClientIntegrationTest {
         TokenDTO t = u.getToken();
         assertNotNull(u.getServiceUserId());
         assertNull(u.getUsername());
-        assertTrue(u.getRoles().contains(TokenValue.Role.INHERITANCE));
+        assertTrue(u.getRoles().contains(AuthResponseDTO.Role.INHERITANCE));
         assertEquals(1, u.getRoles().size());
         assertNotNull(t);
         assertNull(t.getTtl());
@@ -468,8 +467,8 @@ public class KeyserverClientIntegrationTest {
         assertNotEquals(t.getB64Token(), t2.getB64Token());
         assertEquals(u.getServiceUserId(), u2.getServiceUserId());
         
-        assertTrue(u2.getRoles().contains(TokenValue.Role.INHERITANCE));
-        assertTrue(u2.getRoles().contains(TokenValue.Role.USER));
+        assertTrue(u2.getRoles().contains(AuthResponseDTO.Role.INHERITANCE));
+        assertTrue(u2.getRoles().contains(AuthResponseDTO.Role.USER));
         assertEquals(2, u2.getRoles().size());
         assertNotNull(t2.getTtl());
         
@@ -593,7 +592,7 @@ public class KeyserverClientIntegrationTest {
         AuthResponseDTO ot = client.createOnetimeForBackup(u.getToken(), pluginIds, time);
         assertEquals(u.getServiceUserId(), ot.getServiceUserId());
         assertEquals(USERNAME, ot.getUsername());
-        assertTrue(ot.getRoles().contains(TokenValue.Role.BACKUP_JOB));
+        assertTrue(ot.getRoles().contains(AuthResponseDTO.Role.BACKUP_JOB));
         assertFalse(ot.hasNext());
 
         return ot;
@@ -603,12 +602,12 @@ public class KeyserverClientIntegrationTest {
     public void testOnetimeTokenForBackup() throws KeyserverException {
         AuthResponseDTO ot = this.createUserWithPluginsAndOnetimeTokenForBackup(KeyserverUtils.getActTime());
         assertEquals(USERNAME, ot.getUsername());
-        assertTrue(ot.getRoles().contains(TokenValue.Role.BACKUP_JOB));
+        assertTrue(ot.getRoles().contains(AuthResponseDTO.Role.BACKUP_JOB));
 
         AuthResponseDTO it = client.authenticateWithOnetime(ot.getToken());
         assertEquals(ot.getServiceUserId(), it.getServiceUserId());
         assertEquals(USERNAME, it.getUsername());
-        assertTrue(it.getRoles().contains(TokenValue.Role.BACKUP_JOB));
+        assertTrue(it.getRoles().contains(AuthResponseDTO.Role.BACKUP_JOB));
 
         String[] pluginIds = { "facebook1", "dropbox1" };
         String data = "json with oauth-token";
@@ -670,7 +669,7 @@ public class KeyserverClientIntegrationTest {
         AuthResponseDTO next = it.getNext();
         assertEquals(ot.getServiceUserId(), next.getServiceUserId());
         assertEquals(USERNAME, next.getUsername());
-        assertTrue(next.getRoles().contains(TokenValue.Role.BACKUP_JOB));
+        assertTrue(next.getRoles().contains(AuthResponseDTO.Role.BACKUP_JOB));
         assertTrue(next.getToken().getTtl().after(tomorrow));
     }
 
@@ -690,7 +689,7 @@ public class KeyserverClientIntegrationTest {
         AuthResponseDTO ot = client.createOnetimeForAuthentication(u.getToken());
         assertEquals(u.getServiceUserId(), ot.getServiceUserId());
         assertEquals(USERNAME, ot.getUsername());
-        assertTrue(ot.getRoles().contains(TokenValue.Role.AUTHENTICATION));
+        assertTrue(ot.getRoles().contains(AuthResponseDTO.Role.AUTHENTICATION));
         assertFalse(ot.hasNext());
 
         return ot;
@@ -700,12 +699,12 @@ public class KeyserverClientIntegrationTest {
     public void testOnetimeTokenForAuthentication() throws KeyserverException {
         AuthResponseDTO ot = this.createUserWithOnetimeTokenForAuthentication();
         assertEquals(USERNAME, ot.getUsername());
-        assertTrue(ot.getRoles().contains(TokenValue.Role.AUTHENTICATION));
+        assertTrue(ot.getRoles().contains(AuthResponseDTO.Role.AUTHENTICATION));
 
         AuthResponseDTO it = client.authenticateWithOnetime(ot.getToken());
         assertEquals(ot.getServiceUserId(), it.getServiceUserId());
         assertEquals(USERNAME, it.getUsername());
-        assertTrue(it.getRoles().contains(TokenValue.Role.AUTHENTICATION));
+        assertTrue(it.getRoles().contains(AuthResponseDTO.Role.AUTHENTICATION));
     }
 
     @Test
@@ -730,6 +729,6 @@ public class KeyserverClientIntegrationTest {
         AuthResponseDTO next = it.getNext();
         assertEquals(ot.getServiceUserId(), next.getServiceUserId());
         assertEquals(USERNAME, next.getUsername());
-        assertTrue(next.getRoles().contains(TokenValue.Role.AUTHENTICATION));
+        assertTrue(next.getRoles().contains(AuthResponseDTO.Role.AUTHENTICATION));
     }
 }

@@ -6,8 +6,6 @@ import java.util.Set;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
-import org.backmeup.keyserver.model.TokenValue.Role;
-
 /**
  * Response the authentication request.
  * Includes a next token (see {@link #getNext()}) if
@@ -45,7 +43,7 @@ public class AuthResponse {
         return this.token.getKind();
     }
 
-    public Set<Role> getRoles() {
+    public Set<AppOrTokenRole> getRoles() {
         return this.token.getValue().getRoles();
     }
 

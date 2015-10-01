@@ -16,6 +16,7 @@ import org.backmeup.keyserver.crypto.Keyring;
 import org.backmeup.keyserver.crypto.PepperApps;
 import org.backmeup.keyserver.model.App;
 import org.backmeup.keyserver.model.App.Approle;
+import org.backmeup.keyserver.model.AuthResponse;
 import org.backmeup.keyserver.model.CryptoException;
 import org.backmeup.keyserver.model.EntryNotFoundException;
 import org.backmeup.keyserver.model.KeyserverEntry;
@@ -139,11 +140,12 @@ public class DefaultAppLogic {
         }
     }
 
-    public App authenticate(String appId, String appKey) throws KeyserverException {
+    public AuthResponse authenticate(String appId, String appKey) throws KeyserverException {
         try {
             KeyserverEntry appEntry = this.keyserver.checkedGetEntry(appKey(appId), EntryNotFoundException.APP);
-            String appValue = this.keyserver.decryptString(fromBase64String(appKey), PepperApps.APP, appEntry.getValue());
-            return new App(appId, appKey, App.Approle.valueOf(appValue));
+            byte[] decodedAppKey = fromBase64String(appKey);
+            String appValue = this.keyserver.decryptString(decodedAppKey, PepperApps.APP, appEntry.getValue());
+            return this.keyserver.tokenLogic.createInternalForAppAuthentication(appId, App.Approle.valueOf(appValue), decodedAppKey);
         } catch (DatabaseException | CryptoException e) {
             throw new KeyserverException(e);
         }

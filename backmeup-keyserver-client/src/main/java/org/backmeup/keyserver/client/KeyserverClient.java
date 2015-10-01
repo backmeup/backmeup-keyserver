@@ -228,12 +228,12 @@ public class KeyserverClient {
      * Authenticates an app at keyserver.
      * @param appId
      * @param appKey
-     * @return AppDTO including role of app - if authentication is valid.
+     * @return AuthResponseDTO including role of app - if authentication is valid.
      * @throws KeyserverException at any error or invalid authentication.
      */
-    public AppDTO authenticateApp(String appId, String appKey) throws KeyserverException {
+    public AuthResponseDTO authenticateApp(String appId, String appKey) throws KeyserverException {
         try {
-            return this.createAppSpecificRequest(appId).post(Entity.form(new Form("key", appKey)), AppDTO.class);
+            return this.createAppSpecificRequest(appId).post(Entity.form(new Form("key", appKey)), AuthResponseDTO.class);
         } catch (WebApplicationException | ProcessingException exception) {
             throw this.parseException(exception);
         }
