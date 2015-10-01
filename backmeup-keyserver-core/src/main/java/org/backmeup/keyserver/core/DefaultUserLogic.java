@@ -82,7 +82,7 @@ public class DefaultUserLogic {
             this.keyserver.createEntry(fmtKey(PRIVATE_KEY_ENTRY_FMT, userId), payload);
             
             //[UserId].Index
-            String indexKey = generatePassword(this.keyring);
+            String indexKey = generatePassword(this.keyring, false);
             payload = this.keyserver.encryptString(accountKey, PepperApps.INDEX, indexKey);
             this.keyserver.createEntry(fmtKey(INDEX_ENTRY_FMT, userId), payload);
         } catch (CryptoException | DatabaseException e) {

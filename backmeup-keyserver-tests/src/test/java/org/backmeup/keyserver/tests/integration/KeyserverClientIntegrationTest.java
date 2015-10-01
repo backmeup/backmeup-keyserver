@@ -31,8 +31,6 @@ import org.backmeup.keyserver.model.App.Approle;
 import org.backmeup.keyserver.model.EntryNotFoundException;
 import org.backmeup.keyserver.model.KeyserverException;
 import org.backmeup.keyserver.model.KeyserverUtils;
-import org.backmeup.keyserver.model.TokenValue;
-import org.backmeup.keyserver.model.TokenValue.Role;
 import org.backmeup.keyserver.model.dto.AppDTO;
 import org.backmeup.keyserver.model.dto.AuthResponseDTO;
 import org.backmeup.keyserver.model.dto.TokenDTO;

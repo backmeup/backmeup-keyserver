@@ -94,14 +94,14 @@ public class EncryptionUtils {
         return ep.generateKey(k.getAsymmetricEncryptionKeyLength());
     }
 
-    public static String generatePassword(Keyring k) throws CryptoException {
+    public static String generatePassword(Keyring k, boolean specialChars) throws CryptoException {
         PasswordProvider pp;
         try {
             pp = ProviderRegistry.getPasswordProvider(k.getPasswordAlgorithm());
         } catch (NoSuchAlgorithmException e) {
             throw new CryptoException(e);
         }
-        return pp.getPassword(k.getPasswordLength());
+        return pp.getPassword(k.getPasswordLength(), specialChars);
     }
 
     public static byte[] hashByteArrayWithPepper(Keyring k, byte[] hashInput, String pepperApplication) throws CryptoException {
