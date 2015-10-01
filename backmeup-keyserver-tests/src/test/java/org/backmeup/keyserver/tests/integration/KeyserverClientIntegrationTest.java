@@ -290,7 +290,7 @@ public class KeyserverClientIntegrationTest {
 
         byte[] pubKey = client.getPublicKey(u.getToken());
         assertNotNull(pubKey);
-        byte[] pubKey2 = client.getPublicKey(u.getToken(), u.getUsername());
+        byte[] pubKey2 = client.getPublicKey(u.getUsername());
         assertNotNull(pubKey2);
         assertArrayEquals(pubKey, pubKey2);
         byte[] privKey = client.getPrivateKey(u.getToken());
@@ -339,7 +339,7 @@ public class KeyserverClientIntegrationTest {
         assertArrayEquals(client.getPublicKey(u2.getToken()), pubKey);
         
         //test get public key of user2 with username
-        byte[] pubKey2 = client.getPublicKey(u1.getToken(), username2);
+        byte[] pubKey2 = client.getPublicKey(username2);
         assertArrayEquals(pubKey, pubKey2);
         
         client.removeUser(u2.getToken());

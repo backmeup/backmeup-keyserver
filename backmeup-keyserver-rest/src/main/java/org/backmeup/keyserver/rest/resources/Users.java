@@ -120,7 +120,6 @@ public class Users extends SecureBase {
     }
     
     @AppsAllowed({ Approle.SERVICE, Approle.STORAGE, Approle.INDEXER })
-    @TokenRequired({ Role.USER, Role.BACKUP_JOB, Role.AUTHENTICATION })
     @GET
     @Path("/tokenUser/public_key")
     public String getPublicKey(@QueryParam("username") String username) throws KeyserverException {
