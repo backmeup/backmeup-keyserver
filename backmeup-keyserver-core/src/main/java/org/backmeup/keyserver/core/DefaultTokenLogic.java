@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.EnumUtils;
 import org.backmeup.keyserver.core.db.DatabaseException;
 import org.backmeup.keyserver.crypto.Keyring;
 import org.backmeup.keyserver.crypto.PepperApps;
@@ -27,6 +28,7 @@ import org.backmeup.keyserver.model.JsonKeys;
 import org.backmeup.keyserver.model.KeyserverEntry;
 import org.backmeup.keyserver.model.KeyserverException;
 import org.backmeup.keyserver.model.Token;
+import org.backmeup.keyserver.model.App.Approle;
 import org.backmeup.keyserver.model.Token.Kind;
 import org.backmeup.keyserver.model.TokenValue;
 import org.backmeup.keyserver.model.TokenValue.Role;
@@ -278,7 +280,15 @@ public class DefaultTokenLogic {
             ArrayNode rolesNode = (ArrayNode) tokenValueObject.get(JsonKeys.ROLES);
             Set<AppOrTokenRole> roles = new HashSet<>();
             for (JsonNode n : rolesNode) {
-                roles.add(Role.valueOf(n.asText()));
+                String enumValue = n.asText();
+                if (EnumUtils.isValidEnum(Role.class, enumValue)) {
+                    roles.add(Role.valueOf(enumValue)); 
+                } else if (EnumUtils.isValidEnum(Approle.class, enumValue)) {
+                    roles.add(Approle.valueOf(enumValue)); 
+                } else {
+                    throw new KeyserverException("role of token value no valid App.Approle or TokenValue.Role enum");
+                }
+                
             }
             
             value = new TokenValue(userId, serviceUserId, roles);
@@ -384,7 +394,17 @@ public class DefaultTokenLogic {
             
             TokenValue value = this.retrieveTokenValue(token, tokenEntry);
             token.setValue(value);
-            if(!this.keyserver.userLogic.checkServiceUserId(value.getServiceUserId())) {
+            
+            Set<AppOrTokenRole> roles = value.getRoles();
+            List<Approle> approles = EnumUtils.getEnumList(Approle.class);
+            boolean isAppAuth = true;
+            for (AppOrTokenRole r : roles) {
+                if(!r.equals(Role.AUTHENTICATION) && !approles.contains(r)) {
+                    isAppAuth = false;
+                    break;
+                }
+            }
+            if(!isAppAuth && !this.keyserver.userLogic.checkServiceUserId(value.getServiceUserId())) {
                 this.revoke(token);
                 throw new EntryNotFoundException(EntryNotFoundException.TOKEN_USER_REMOVED);
             }
@@ -392,10 +412,10 @@ public class DefaultTokenLogic {
             if (value.hasRole(Role.INHERITANCE)) {
                 //"convert" to internal token
                 Token internalToken = new Token(token);
-                Set<AppOrTokenRole> roles = new HashSet<>();
-                roles.add(Role.INHERITANCE);
-                roles.add(Role.USER);
-                internalToken.getValue().setRoles(roles);
+                Set<AppOrTokenRole> newRoles = new HashSet<>();
+                newRoles.add(Role.INHERITANCE);
+                newRoles.add(Role.USER);
+                internalToken.getValue().setRoles(newRoles);
                 this.create(internalToken, null);
                 
                 token = internalToken;

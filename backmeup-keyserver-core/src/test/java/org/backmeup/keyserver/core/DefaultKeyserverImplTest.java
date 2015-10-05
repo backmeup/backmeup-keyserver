@@ -648,11 +648,18 @@ public class DefaultKeyserverImplTest {
     @Test
     public void testAuthenticateApp() throws KeyserverException {
         App u = ks.registerApp(App.Approle.WORKER);
+        assertEquals(App.Approle.WORKER, u.getAppRole());
+        
         AuthResponse u2 = ks.authenticateApp(u.getAppId(), u.getPassword());
         assertEquals(u.getAppId(), u2.getServiceUserId());
-        assertEquals(App.Approle.WORKER, u.getAppRole());
         assertEquals(u.getPassword(), KeyserverUtils.toBase64String(u2.getAccountKey()));
         assertTrue(u2.getRoles().contains(App.Approle.WORKER));
+        
+        AuthResponse u3 = ks.authenticateWithInternalToken(u2.getB64Token());
+        assertEquals(u.getAppId(), u3.getServiceUserId());
+        assertEquals(u.getPassword(), KeyserverUtils.toBase64String(u3.getAccountKey()));
+        assertTrue(u3.getRoles().contains(App.Approle.WORKER));
+        
         ks.removeApp(u.getAppId());
     }
 
