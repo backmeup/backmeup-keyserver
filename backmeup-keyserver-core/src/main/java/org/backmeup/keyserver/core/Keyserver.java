@@ -43,7 +43,7 @@ public interface Keyserver {
     
     byte[] getPublicKey(String userId) throws KeyserverException;
     
-    byte[] getPublicKeyByUsername(String username) throws KeyserverException;
+    byte[] getPublicKeyByServiceUserId(String serviceUserId) throws KeyserverException;
     
     byte[] getPrivateKey(String userId, byte[] accountKey) throws KeyserverException;
     

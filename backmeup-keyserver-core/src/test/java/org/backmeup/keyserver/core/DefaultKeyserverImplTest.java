@@ -314,7 +314,7 @@ public class DefaultKeyserverImplTest {
         assertNotNull(accountKey);
         byte[] pubKey = ks.userLogic.getPublicKey(u.getUserId());
         assertNotNull(pubKey);
-        byte[] pubKey2 = ks.getPublicKeyByUsername(u.getUsername());
+        byte[] pubKey2 = ks.getPublicKeyByServiceUserId(u.getServiceUserId());
         assertNotNull(pubKey2);
         assertArrayEquals(pubKey, pubKey2);
         byte[] privKey = ks.userLogic.getPrivateKey(u.getUserId(), accountKey);

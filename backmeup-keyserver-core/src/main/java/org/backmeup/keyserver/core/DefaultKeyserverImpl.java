@@ -371,8 +371,8 @@ public class DefaultKeyserverImpl implements Keyserver {
     }
     
     @Override
-    public byte[] getPublicKeyByUsername(String username) throws KeyserverException {
-        return this.userLogic.getPublicKey(this.userLogic.getUserId(username));
+    public byte[] getPublicKeyByServiceUserId(String serviceUserId) throws KeyserverException {
+        return this.userLogic.getPublicKey(this.userLogic.getUserIdByServiceUserId(serviceUserId));
     }
     
     @Override

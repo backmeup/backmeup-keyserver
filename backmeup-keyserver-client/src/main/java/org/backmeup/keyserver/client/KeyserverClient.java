@@ -399,14 +399,14 @@ public class KeyserverClient {
     /**
      * Gets the public key of user for data encryption.
      * Only a keyserver client which is authenticated as SERVICE, STORAGE or INDEXER app can use this method.
-     * @param username  username of the user the public key should be retrieved for 
+     * @param serviceUserId  serviceUserId of the user the public key should be retrieved for 
      * @return the public key.
      * @throws KeyserverException
      */
-    public byte[] getPublicKey(String username) throws KeyserverException {
+    public byte[] getPublicKey(String serviceUserId) throws KeyserverException {
         try {
             Map<String, Object> queryParams = new HashMap<>();
-            queryParams.put(USERNAME_PARAM, username);
+            queryParams.put(SERVICE_USER_ID_PARAM, serviceUserId);
             return KeyserverUtils.fromBase64String(this.createUserSpecificRequest("/public_key", null, queryParams).get(String.class));
         } catch (WebApplicationException | ProcessingException exception) {
             throw this.parseException(exception);

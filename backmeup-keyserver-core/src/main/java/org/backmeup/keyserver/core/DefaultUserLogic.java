@@ -4,6 +4,7 @@ import static org.backmeup.keyserver.crypto.EncryptionUtils.*;
 import static org.backmeup.keyserver.model.KeyserverUtils.toBase64String;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.security.KeyPair;
 import java.text.MessageFormat;
 import java.util.HashMap;
@@ -67,7 +68,7 @@ public class DefaultUserLogic {
             this.keyserver.createEntry(fmtKey(USER_ID_ENTRY_FMT, userId), null);
 
             // [ServiceUserId].ServiceUserId
-            this.keyserver.createEntry(fmtKey(SERVICE_USER_ID_ENTRY_FMT, serviceUserId), null);
+            this.keyserver.createEntry(fmtKey(SERVICE_USER_ID_ENTRY_FMT, serviceUserId), userId.getBytes("utf-8"));
             
             // generate accountKey, which is saved later in [UserId].Account or in [Hash(UserKey)].InternalToken
             accountKey = generateSymmetricKey(this.keyring);
@@ -85,7 +86,7 @@ public class DefaultUserLogic {
             String indexKey = generatePassword(this.keyring, false);
             payload = this.keyserver.encryptString(accountKey, PepperApps.INDEX, indexKey);
             this.keyserver.createEntry(fmtKey(INDEX_ENTRY_FMT, userId), payload);
-        } catch (CryptoException | DatabaseException e) {
+        } catch (CryptoException | DatabaseException | UnsupportedEncodingException e) {
             throw new KeyserverException(e);
         }
 
@@ -159,11 +160,21 @@ public class DefaultUserLogic {
         return this.keyserver.tokenLogic.createInternalForInheritance(userId, serviceUserId, accountKey, decedantUserId, decedantServiceUserId, decedantAccountKey);
     }
 
-    protected String getUserId(String username) throws KeyserverException {
+    protected String getUserIdByUsername(String username) throws KeyserverException {
         try {
             KeyserverEntry usernameEntry = this.keyserver.checkedSearchForEntry(username, PepperApps.USERNAME, USERNAME_ENTRY_FMT.toPattern(), EntryNotFoundException.USERNAME, true);
             return this.decodeUserId(usernameEntry, username);
         } catch (DatabaseException | CryptoException e) {
+            throw new KeyserverException(e);
+        }
+    }
+    
+    protected String getUserIdByServiceUserId(String serviceUserId) throws KeyserverException {
+        try {
+            //KeyserverEntry serviceUserIdEntry = this.keyserver.checkedSearchForEntry(serviceUserId, PepperApps.SERVICE_USER_ID, SERVICE_USER_ID_ENTRY_FMT.toPattern(), EntryNotFoundException.SERVICE_USER_ID, true);
+            KeyserverEntry serviceUserIdEntry = this.keyserver.checkedGetEntry(fmtKey(SERVICE_USER_ID_ENTRY_FMT, serviceUserId), EntryNotFoundException.SERVICE_USER_ID);
+            return new String(serviceUserIdEntry.getValue(), "utf-8");
+        } catch (DatabaseException | UnsupportedEncodingException e) {
             throw new KeyserverException(e);
         }
     }
@@ -234,7 +245,7 @@ public class DefaultUserLogic {
     }
 
     public AuthResponse authenticateWithPassword(String username, String password) throws KeyserverException {
-        String userId = this.getUserId(username);
+        String userId = this.getUserIdByUsername(username);
 
         try {
             KeyserverEntry accountEntry = this.keyserver.checkedGetEntry(fmtKey(ACCOUNT_ENTRY_FMT, userId), EntryNotFoundException.ACCOUNT);

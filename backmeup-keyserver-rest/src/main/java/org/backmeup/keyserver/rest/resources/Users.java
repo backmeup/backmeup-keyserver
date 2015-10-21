@@ -122,10 +122,10 @@ public class Users extends SecureBase {
     @AppsAllowed({ Approle.SERVICE, Approle.STORAGE, Approle.INDEXER })
     @GET
     @Path("/tokenUser/public_key")
-    public String getPublicKey(@QueryParam("username") String username) throws KeyserverException {
+    public String getPublicKey(@QueryParam("serviceUserId") String serviceUserId) throws KeyserverException {
         AuthResponse auth = this.getAuthResponse();
-        if (username != null && !"".equals(username.trim())) {
-            return KeyserverUtils.toBase64String(this.getKeyserverLogic().getPublicKeyByUsername(username));
+        if (serviceUserId != null && !"".equals(serviceUserId.trim())) {
+            return KeyserverUtils.toBase64String(this.getKeyserverLogic().getPublicKeyByServiceUserId(serviceUserId));
         } else {
             return KeyserverUtils.toBase64String(this.getKeyserverLogic().getPublicKey(auth.getUserId()));
         }
