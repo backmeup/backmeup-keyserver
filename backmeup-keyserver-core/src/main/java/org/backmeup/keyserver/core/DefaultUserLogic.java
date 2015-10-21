@@ -28,6 +28,7 @@ import org.codehaus.jackson.node.ObjectNode;
  *
  */
 public class DefaultUserLogic {
+    private static final String DEFAULT_CHARSET = "utf-8";
     private static final MessageFormat USER_ID_ENTRY_FMT = new MessageFormat("{0}."+PepperApps.USER_ID);
     private static final MessageFormat SERVICE_USER_ID_ENTRY_FMT = new MessageFormat("{0}."+PepperApps.SERVICE_USER_ID);
     private static final MessageFormat USERNAME_ENTRY_FMT = new MessageFormat("{0}."+PepperApps.USERNAME);
@@ -68,7 +69,7 @@ public class DefaultUserLogic {
             this.keyserver.createEntry(fmtKey(USER_ID_ENTRY_FMT, userId), null);
 
             // [ServiceUserId].ServiceUserId
-            this.keyserver.createEntry(fmtKey(SERVICE_USER_ID_ENTRY_FMT, serviceUserId), userId.getBytes("utf-8"));
+            this.keyserver.createEntry(fmtKey(SERVICE_USER_ID_ENTRY_FMT, serviceUserId), userId.getBytes(DEFAULT_CHARSET));
             
             // generate accountKey, which is saved later in [UserId].Account or in [Hash(UserKey)].InternalToken
             accountKey = generateSymmetricKey(this.keyring);
@@ -171,9 +172,8 @@ public class DefaultUserLogic {
     
     protected String getUserIdByServiceUserId(String serviceUserId) throws KeyserverException {
         try {
-            //KeyserverEntry serviceUserIdEntry = this.keyserver.checkedSearchForEntry(serviceUserId, PepperApps.SERVICE_USER_ID, SERVICE_USER_ID_ENTRY_FMT.toPattern(), EntryNotFoundException.SERVICE_USER_ID, true);
             KeyserverEntry serviceUserIdEntry = this.keyserver.checkedGetEntry(fmtKey(SERVICE_USER_ID_ENTRY_FMT, serviceUserId), EntryNotFoundException.SERVICE_USER_ID);
-            return new String(serviceUserIdEntry.getValue(), "utf-8");
+            return new String(serviceUserIdEntry.getValue(), DEFAULT_CHARSET);
         } catch (DatabaseException | UnsupportedEncodingException e) {
             throw new KeyserverException(e);
         }
