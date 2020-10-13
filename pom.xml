@@ -28,7 +28,7 @@
 		<version.backmeup.keyserver.client>1.1-SNAPSHOT</version.backmeup.keyserver.client>
 		<version.backmeup.keyserver.fileencryption>1.1-SNAPSHOT</version.backmeup.keyserver.fileencryption>
 
-		<version.junit>4.11</version.junit>
+		<version.junit>4.13.1</version.junit>
 		<version.javax.servlet>3.0.1</version.javax.servlet>
 		<version.javax.enterprise.cdi-api>1.1</version.javax.enterprise.cdi-api>
 		<version.org.apache.tomcat.maven>2.2</version.org.apache.tomcat.maven>
